@@ -1,0 +1,43 @@
+.TH ySCHED 3 2011-Mar "linux" "heatherly custom tools manual"
+
+.SH NAME
+yEXEC \- simple, clean, and clear program launching and monitoring
+.SH SYNOPSIS
+.nf
+.B #include  <yEXEC.h>
+.sp
+.R  ---informational-------------------------------
+.R  return a c-string of library versioning information for display
+.BI "  char* " "c-str" " = ySCHED_version ( void );"
+.sp
+.R  ---preparation---------------------------------
+.R  parse a c-string of command line intruction into an argv[] structure
+.BI "  char  " "rc   " " = yEXEC_parse (const char *a_cstring);"
+
+
+.R  set a specific date for evaluating entries...
+.BI "char  " "rc " " = ySCHED_setdate ( int " "a_year" ", int " "a_month" ", int " "a_day" " );"
+.sp
+.R  clear out global effective dates before each file is read...
+.BI "char  " "rc " " = ySCHED_reset   ( void );"
+.sp
+.R  ---evaluation----------------------------------
+.R  parse a scheduling grammar string into current values...
+.BI "char  " "rc " " = ySCHED_parse   ( char* " "a_recd" " );"
+.sp
+.R  test the current parsed record at a specific time...
+.BI "int   " "dur" " = ySCHED_test    ( int " "a_hour" ", int " "a_minute" " );"
+.sp
+.R  ---storage-------------------------------------
+.R  saving the most recent parsed record to a structure...
+.BI "char  " "rc " " = ySCHED_save    ( tSCHED* " "a_sched" " );"
+.sp
+.R  loading ySCHED from a saved set of values...
+.BI "char  " "rc " " = ySCHED_load    ( tSCHED* " "a_sched" " );"
+.sp
+.B link with -L/usr/local/libs, and either -lyEXEC or -lyEXEC_debug
+
+.SH COLOPHON
+this page is part of a documentation package meant to make our use of the
+heatherly tools easier and faster
+
