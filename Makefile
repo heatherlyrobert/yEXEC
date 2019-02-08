@@ -38,7 +38,10 @@ include /usr/local/sbin/make_program
 
 #===(post-processing)======================================#
 # create a rule for...
-#install_post       :
+install_post       :
+	gcc -o neg_exit neg_exit.c
+	cp  neg_exit /usr/local/bin/
+
 #remove_post        :
 
 

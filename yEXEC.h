@@ -73,36 +73,6 @@
 #define YEXEC_hguard loaded
 
 
-#include <yLOG.h>              /* heatherly logging                           */
-
-/*===[[ PUBLIC HEADERS ]]=====================================================*/
-/*---(big standards)------------*/
-#include <stdio.h>             /* printf, scanf                               */
-#include <stdlib.h>            /* exit, system, ...                           */
-#include <sys/unistd.h>        /* fork, execl, getpid, getuid                 */
-#include <string.h>            /* strcat, strcpy, strlen, ...                 */
-
-/*---(process)------------------*/
-#include <sys/wait.h>          /* sigaction, waitpid, wait4                   */
-
-/*---(timekeeping)--------------*/
-#include <time.h>              /* time, localtime, strftime, ...              */
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <sys/resource.h>
-#include <sys/time.h>          /* gettimeofday                                */
-
-/*---(filesystems)--------------*/
-#include <sys/mount.h>         /* mount                                       */
-#include <fcntl.h>             /* open                                        */
-#include <sys/stat.h>          /* fstat, umask                                */
-#include <dirent.h>
-
-/*---(users)--------------------*/
-#include <pwd.h>               /* getpwuid, getpwnam                          */
-#include <grp.h>               /* initgroups                                  */
-
-
 
 
 
@@ -111,89 +81,47 @@ typedef const  int       cint;
 typedef const  long      clong;
 typedef const  char      cchar;
 
-typedef struct passwd    tPASSWD;
-typedef struct tm        tTIME;
-typedef struct dirent    tDIRENT;
-typedef struct sigaction tSIGACT;
+
+#define     YEXEC_NONE     ""
+
+#define     YEXEC_SOFT     'n'
+#define     YEXEC_HARD     'y'
+
+#define     YEXEC_NO       'n'
+#define     YEXEC_YES      'y'
+#define     YEXEC_ALL      'a'
+
+#define     YEXEC_BASH     'b'
+#define     YEXEC_DASH     'd'
+
+#define     YEXEC_TIGHT    't'
+#define     YEXEC_FULL     'f'
+
+#define     YEXEC_FORK     'y'
+#define     YEXEC_NOFORK   '-'
+
+#define     YEXEC_RUNNING  'r'
+#define     YEXEC_KILLED   't'
+#define     YEXEC_DIED     'd'
+#define     YEXEC_ERROR    'e'
+#define     YEXEC_NORMAL   'n'
+#define     YEXEC_FAILURE  'F'
+#define     YEXEC_WARNING  'w'
+
+#define     YEXEC_UNIT     "/tmp/yEXEC_unit.execution_feedback"
 
 
-#define     yEXEC_NONE     ""
-
-#define     yEXEC_SOFT     'n'
-#define     yEXEC_HARD     'y'
-
-#define     yEXEC_TNO      'n'
-#define     yEXEC_TYES     'y'
-
-#define     yEXEC_CNO      'n'
-#define     yEXEC_CYES     'y'
-#define     yEXEC_CALL     'a'
-
-#define     yEXEC_NOLOCAL  'n'
-#define     yEXEC_LOCAL    'y'
-
-#define     yEXEC_BASH     "/bin/bash"
-#define     yEXEC_DASH     "/bin/dash"
-
-#define     yEXEC_SYSM     "/sbin:/bin:/usr/sbin:/usr/bin"
-#define     yEXEC_NORM     "/sbin:/bin:/usr/sbin:/usr/bin:/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin"
-
-#define     yEXEC_FORK     'y'
-#define     yEXEC_DETACH   'd'
-#define     yEXEC_NOFORK   '-'
-
-
-char*        /*--> return library versioning info --------[ leaf-- [ ------ ]-*/
-yEXEC_version      (void);
-
-int          /*--> execute a specific command ------------[ ------ [ ------ ]-*/
-yEXEC_run          (
-      char       *a_output,       /* file to capture execution entry          */
-      char       *a_title,        /* short title                              */
-      char       *a_user,         /* user name                                */
-      char       *a_cmd,          /* command to execute                       */
-      char       *a_shell,        /* shell to run under                       */
-      char       *a_path,         /* path to use                              */
-      char        a_fork);        /* fork new or use existing process space   */
-
-char         /*--> verify status of a running job --------[ ------ [ ------ ]-*/
-yEXEC_check        (
-      char       *a_title,        /* program description                      */
-      int         a_rpid);        /* pid of program to locate                 */
-
-char             /* [------] find a running job by name ----------------------*/
-yEXEC_find         (
-      char       *a_name,         /* name to search for                       */
-      int        *a_rpid);        /* pid of program found                     */
-
-char             /* [------] exit on termintation/signal ---------------------*/
-yEXEC_term         (
-      const char *a_func,         /* descriptive function name                */
-      const int   a_exit);        /* exit code                                */
-
-char             /* [------] setup signal handling ---------------------------*/
-yEXEC_signal       (
-      char        a_bulletproof,  /* fail on SEGV and TERM (y/n)              */
-      char        a_interactive,  /* allow terminal signals                   */
-      char        a_children,     /* track children        (y/n)              */
-      char        a_callback);    /* call local handler    (y/n)              */
-
-void
-PROG_signal        (int a_signal, siginfo_t *a_info, void *a_nada);
-
-char             /* [------] daemonize the current program -------------------*/
-yEXEC_daemon       (
-      int         a_logger,       /* file id of logger                        */
-      int        *a_rpid);        /* resulting pid of program                 */
-
-/*> int              /+ [------] execute a specific command ----------------------+/   <* 
- *> yEXEC_detach       (                                                               <* 
- *>       char       *a_output,       /+ file to capture execution entry          +/   <* 
- *>       char       *a_title,        /+ short title                              +/   <* 
- *>       char       *a_user,         /+ user name                                +/   <* 
- *>       char       *a_cmd,          /+ command to execute                       +/   <* 
- *>       char       *a_shell,        /+ shell to run under                       +/   <* 
- *>       char       *a_path);        /+ path to use                              +/   <*/
+/*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
+char*       yEXEC_version           (void);
+char        yEXEC_runable           (char *a_title, char *a_user, char  *a_cmd, char a_path);
+int         yEXEC_run               (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
+char        yEXEC_check             (char *a_title, int a_rpid, int *rc);
+char        yEXEC_find              (char *a_name, int *a_rpid);
+char        yEXEC_term              (const char *a_func, const int a_exit);
+char        yEXEC_signal            (char a_bulletproof, char a_interactive, char a_children, void *a_signaler);
+char        yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir);
+char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
+char        yEXEC_daemon            (int a_logger, int *a_rpid);
 
 
 
