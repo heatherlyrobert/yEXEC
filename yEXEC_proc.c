@@ -4,9 +4,12 @@
 
 
 
+#define     MAX_ARGV    20
+
+
 /*---(globals)----------+-----------+----*/
-char        s_cmd       [2000];
-char       *s_argv      [20];
+char        s_cmd       [LEN_RECD];
+char       *s_argv      [MAX_ARGV];
 int         s_argc      = 0;
 char        s_envp      [10][200];
 
@@ -30,56 +33,103 @@ char       *s_path      = NULL;
 /*====================------------------------------------====================*/
 static void      o___BASICS__________________o (void) {;}
 
-char         /*--> break string into argv structure ------[ leaf-- [ ------ ]-*/
-yexec__parse       (const char *a_cstring)
+int          /*--> parse command line ----------------------------------------*/
+yEXEC_args              (char *a_src)
 {
-   /*---(locals)-----------+-----------+-*/
-   int         i, k;
-   int         x_len       = 0;
-   int         pos         = 0;
    /*---(defenses)-----------------------*/
-   if (a_cstring == NULL) return -1;
+   if (a_src == NULL) return -1;
+   /*---(locals)-------------------------*/
+   char        rce         =  -10;
+   int         x_len       =    0;          /* source length                  */
+   int         n           =    0;          /* maximum source length          */
+   int         c           =    0;          /* argument count                 */
+   int         i           =    0;          /* position count                 */
+   char        x_gap       =  'y';
+   char        x_dquote    =  '-';
+   int         x_squote    =   -1;
+   char       *x_dir       = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
    /*---(prepare)------------------------*/
-   strncpy (s_cmd, a_cstring, 2000);
-   s_cmd [1999] = '\0';  /* null terminate */
-   x_len = strlen (s_cmd);
-   for (i = 0; i < 20; ++i) s_argv[i] = (char *) 0;
-   s_argv[0] = s_cmd + 0;
-   s_argc    = 0;
-   i         = 1;
-   pos       = 0;
-   /*---(run through string)-------------*/
-   while (pos < x_len) {
-      /*---(get though argument)---------*/
-      for (k = pos; k <= x_len; ++k) {
-         if (  s_cmd[k] != '\0' &&
-               s_cmd[k] != ' ' )       continue;
-         pos = k;
-         break;
-      }
-      /*---(check for the end)-----------*/
-      if (s_cmd [pos] == '\0')         break;
-      /*> if (pos + 1 >= x_len)            break;                                     <*/
-      /*---(get though whitespace)-------*/
-      for (k = pos; k < x_len; ++k) {
-         if (s_cmd[k] == ' ') {
-            s_cmd[k]  =  '\0';
-            continue;
-         }
-         pos = k;
-         break;
-      }
-      /*---(check for the end)-----------*/
-      /*> if (s_cmd [pos] == '\0')         break;                                     <*/
-      /*> if (pos + 1 >= x_len)            break;                                     <*/
-      /*---(assign next argument)--------*/
-      s_argv[i] = s_cmd + pos;
-      /*---(prepare for next loop)-------*/
-      ++i;
-      if (i >= 20) break;
+   strcpy (s_cmd, "");
+   for (i = 0; i < MAX_ARGV; ++i)  s_argv [i] = NULL;
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_point   ("a_src"     , a_src);
+   --rce;  if (a_src == NULL) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
    }
+   DEBUG_YEXEC  yLOG_info    ("a_src"     , a_src);
+   x_len = strlen (a_src);
+   DEBUG_YEXEC  yLOG_value   ("x_len"     , x_len);
+   /*---(prepare)------------------------*/
+   strncpy (s_cmd, a_src, LEN_RECD - 1);
+   n = strlen (s_cmd);
+   DEBUG_YEXEC  yLOG_value   ("n"         , n);
+   if (n < x_len)   DEBUG_YEXEC  yLOG_note    ("WARNING, truncated source");
+   /*---(process string)-----------------*/
+   for (i = 0; i < n && c < MAX_ARGV; ++i) {
+      /*---(header)----------------------*/
+      DEBUG_YEXEC  yLOG_complex ("positon"   , "s_cmd [%3d]=%c/%03d, c=%3d", i, s_cmd [i], s_cmd [i], c);
+      /*---(dquote markers)--------------*/
+      if (s_cmd [i] == '"') {
+         if (i < x_squote) {
+            DEBUG_YEXEC  yLOG_note    ("embedded double quote");
+         } else if (x_dquote == '-')  {
+            DEBUG_YEXEC  yLOG_note    ("openning double quote");
+            x_dquote = 'y'; 
+            s_argv [c++] = s_cmd + i;
+         } else {
+            DEBUG_YEXEC  yLOG_note    ("closing double quote");
+            x_dquote = '-';
+         }
+         continue;
+      }
+      /*---(inside dquotes)--------------*/
+      if (x_dquote == 'y') {
+         DEBUG_YEXEC  yLOG_note    ("double quoted (protected)");
+         continue;
+      }
+      /*---(squote marker)---------------*/
+      if (s_cmd [i] == '\'') {
+         if (i >  x_squote) {
+            DEBUG_YEXEC  yLOG_note    ("openning single quote");
+            x_squote = i + 2;
+         }
+         if (i == x_squote) {
+            DEBUG_YEXEC  yLOG_note    ("closing single quote");
+         }
+      }
+      /*---(fill gaps)-------------------*/
+      if (s_cmd [i] == ' ' || s_cmd [i] == '\t')  {
+         if (i <= x_squote) {
+            DEBUG_YEXEC  yLOG_note    ("protected by sinble quoting");
+            continue;
+         } else {
+            DEBUG_YEXEC  yLOG_note    ("unquoted gap marker (nulling)");
+            s_cmd [i] = '\0';
+            x_gap     = 'y';
+         }
+         continue;
+      }
+      /*---(find changes)----------------*/
+      if (x_gap == 'y') {
+         s_argv [c++] = s_cmd + i;
+         x_gap = '-';
+      }
+      /*---(done)------------------------*/
+   }
+   /*---(update)-------------------------*/
+   s_argc = c;
+   /*---(find base)----------------------*/
+   x_dir = strrchr (s_argv [0], '/');
+   DEBUG_YEXEC  yLOG_point   ("path mark" , x_dir);
+   if (x_dir == NULL)  i = 0;
+   else                i = x_dir - s_argv [0] + 1;
+   DEBUG_YEXEC  yLOG_point   ("base pos"  , i);
    /*---(complete)-----------------------*/
-   return 0;
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return i;
 }
 
 char       /*--> verify file existance ---------------------------------------*/
@@ -249,7 +299,7 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
       return rce;
    }
    /*---(parse argv)----------------------------*/
-   rc = yexec__parse (a_cmd);
+   rc = yEXEC_args (a_cmd);
    DEBUG_YEXEC  yLOG_value   ("parse"     , rc);
    --rce;  if (rc < 0) {
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
@@ -653,6 +703,17 @@ yexec_proc__unit        (char *a_question, int a_num)
       sprintf (t, "[%s]", *s_argv);
       snprintf (unit_answer, LEN_RECD, "PROC exec        : %2d%s", strlen (*s_argv), t);
    }
+   /*---(argument testing)---------------*/
+   else if (strcmp (a_question, "argc"    )        == 0) {
+      snprintf (unit_answer, LEN_RECD, "PROC argc        : %d", s_argc);
+   }
+   else if (strcmp (a_question, "argv"    )        == 0) {
+      if (a_num < 20 && a_num < s_argc && s_argv [a_num] != NULL)  {
+         snprintf (unit_answer, LEN_RECD, "PROC argv   (%2d) : %2d[%-.40s]", a_num, strlen (s_argv [a_num]), s_argv [a_num]);
+      } else {
+         snprintf (unit_answer, LEN_RECD, "PROC argv   (%2d) :  0[]", a_num);
+      }
+   }
    /*---(complete)-----------------------*/
    return unit_answer;
 }
@@ -708,7 +769,6 @@ yexec_proc__unit_read         (void)
    /*---(complete)-----------------------*/
    return 0;
 }
-
 
 
 

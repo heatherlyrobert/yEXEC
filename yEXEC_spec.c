@@ -138,90 +138,146 @@ yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char
    return 0;
 }
 
-char             /* [------] daemonize the program ---------------------------*/
-yEXEC_daemon       (int a_logger, int *a_rpid)
+int
+yexec__foad        (void)
 {
-   DEBUG_YEXEC  yLOG_enter (__FUNCTION__);
-   /*---(locals)-----------+-----------+-*/
-   int         i           = 0;             /* loop iterator                  */
-   int         fd          = 0;             /* file descriptor                */
-   int         status      = 0;
-   int         rpid        = 0;
-   int         ppid        = 0;
-   int         sid         = 0;
-   int         count       = 0;             /* count of attempts to FOAD      */
-   int         rc          = 0;
-   /*---(fork off and die)---------------*/
-   while (count < 5) {
-      DEBUG_YEXEC  yLOG_info   ("foad"      , "fork off and die");
-      DEBUG_YEXEC  yLOG_value  ("attempt"   , count);
-      rpid = fork();
-      if (rpid < 0) {         /* error               */
-         DEBUG_YEXEC  yLOG_info   ("fork"      , "creation of child FAILED");
-         yEXEC_term  (__FUNCTION__, 1);
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   int         rc          =    0;
+   int         x_tries     =    0;
+   int         x_rpid      =    0;
+   int         x_ppid      =    0;
+   int         x_status    =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(defense)------------------------*/
+   x_rpid  = getpid();
+   DEBUG_YEXEC  yLOG_value   ("x_rpid"    , x_rpid);
+   if (x_rpid <= 1) {
+      DEBUG_YEXEC  yLOG_note    ("can not for process one, are you crazy?");
+      DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+      return 0;
+   }
+   /*---(create a fork)------------------*/
+   while (1) {
+      /*---(fork)------------------------*/
+      DEBUG_YEXEC  yLOG_value  ("x_tries"   , x_tries);
+      if (x_tries >= 5)  break;
+      /*---(fork)------------------------*/
+      x_rpid = fork();
+      DEBUG_YEXEC  yLOG_value  ("x_rpid"    , x_rpid);
+      /*---(try again on fail)-----------*/
+      if (x_rpid < 0) {
+         DEBUG_YEXEC  yLOG_info   ("FAILED"    , "creation of child FAILED, try again");
+         continue;
       }
-      if (rpid > 0) {         /* parent process      */
-         DEBUG_YEXEC  yLOG_info   ("PARENT"    , "exiting parent");
-         exit(0);
+      /*---(exit if parent)--------------*/
+      if (x_rpid > 0) {         /* parent process      */
+         DEBUG_YEXEC  yLOG_info   ("PARENT"    , "in parent, exiting parent");
+         exit (0);
       }
       /*---(wait for parent to die)------*/
-      rc = wait4 (rpid, &status, 0, NULL);
+      rc = wait4 (x_rpid, &x_status, 0, NULL);
       DEBUG_YEXEC  yLOG_value   ("wait4_rc"  , rc);
       if        (rc <  0) {
          DEBUG_YEXEC  yLOG_note    ("wait4 returned an error");
       } else if (rc == 0) {
          DEBUG_YEXEC  yLOG_note    ("wait4 returned an zero");
-      } else if (rc == rpid) {
+      } else if (rc == x_rpid) {
          DEBUG_YEXEC  yLOG_note    ("wait4 found parent has changed status");
       } else {
          DEBUG_YEXEC  yLOG_note    ("wait4 returned unknown error");
       }
-      /*---(fix the umask)---------------*/
-      DEBUG_YEXEC  yLOG_info    ("umask"     , "reset the default file permissions");
-      umask(0);
-      /*---(close off all descriptors)---*/
-      DEBUG_YEXEC  yLOG_info   ("fds"       , "close all inherited file descriptors");
-      for (i = 0; i < 256; ++i) {
-         if (i == a_logger) continue;
-         close(i);
-      }
-      /*---(std fds to the bitbucket)---*/
-      DEBUG_YEXEC  yLOG_info   ("std fds"   , "redirect stdin, stdout, and stderr to /dev/null");
-      fd = open("/dev/null", O_RDWR);
-      if (fd < 0) {
-         DEBUG_YEXEC  yLOG_info   ("fds"       , "creation of safe fd FAILED");
-         yEXEC_term  (__FUNCTION__, 2);
-      }
-      dup2(fd, 0);
-      dup2(fd, 1);
-      dup2(fd, 2);
-      /*---(obtain a new process group)--*/
-      DEBUG_YEXEC  yLOG_info   ("session"   , "create a new process/session");
-      sid = setsid();
-      if (sid < 0) {
-         DEBUG_YEXEC  yLOG_info   ("sid"       , "creation FAILED");
-         yEXEC_term  (__FUNCTION__, 3);
-      }
-      DEBUG_YEXEC  yLOG_value ("new sid",  sid);
-      /*---(record process info)---------*/
-      rpid  = getpid();
-      ppid  = getppid();
-      DEBUG_YEXEC  yLOG_value ("new pid"    , rpid);
-      DEBUG_YEXEC  yLOG_value ("new ppid"   , ppid);
       /*---(check for success)-----------*/
-      if (ppid == 1) {
+      x_ppid  = getppid();
+      DEBUG_YEXEC  yLOG_value  ("x_ppid"    , x_ppid);
+      if (x_ppid == 1) {
          DEBUG_YEXEC  yLOG_info  ("ppid"       , "owned by init, success");
          break;
       }
-      DEBUG_YEXEC  yLOG_info  ("FAIL"       , "not owned by init, failure");
+      DEBUG_YEXEC  yLOG_info  ("FAILED"     , "not owned by init, failure");
+      /*---(prepare for next)------------*/
+      ++x_tries;
       /*---(done)------------------------*/
    }
-   /*---(final message)------------------*/
-   if (ppid != 1) {
-      DEBUG_YEXEC  yLOG_info  ("FAIL"       , "too many attempts");
+   /*---(check for failure)--------------*/
+   --rce;  if (x_tries >= 5) {
+      DEBUG_YEXEC  yLOG_note    ("tried five times, could not do it");
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
    }
    /*---(complete)-----------------------*/
-   if (a_rpid != NULL)  *a_rpid = rpid;
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return 0;
+}
+
+char             /* [------] daemonize the program ---------------------------*/
+yEXEC_daemon       (int a_logger, int *a_rpid)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   int         rc          =    0;
+   int         x_rpid      =    0;
+   int         x_ppid      =    0;
+   int         i           =    0;
+   int         fd          =    0;
+   int         x_sid       =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(check current pid)--------------*/
+   x_rpid  = getpid();
+   DEBUG_YEXEC  yLOG_value   ("x_rpid"    , x_rpid);
+   /*---(fork off and die)---------------*/
+   rc = yexec__foad ();
+   DEBUG_YEXEC  yLOG_value   ("foad"      , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(record process info)---------*/
+   x_rpid  = getpid();
+   DEBUG_YEXEC  yLOG_value   ("new pid"    , x_rpid);
+   x_ppid  = getppid();
+   DEBUG_YEXEC  yLOG_value   ("new ppid"   , x_ppid);
+   if (x_rpid == 1)   DEBUG_YEXEC  yLOG_note    ("semi-daemon (process one)");
+   else               DEBUG_YEXEC  yLOG_note    ("full on daemon");
+   /*---(fix the umask)---------------*/
+   DEBUG_YEXEC  yLOG_info    ("umask"     , "reset the default file permissions");
+   umask (0);
+   /*---(close off all descriptors)---*/
+   DEBUG_YEXEC  yLOG_info   ("fds"       , "close all inherited file descriptors");
+   for (i = 0; i < 256; ++i) {
+      if (i == a_logger)          continue;
+      if (x_rpid == 1 && i == 1)  continue; /* semi-daemons need stdout     */
+      close (i);
+   }
+   /*---(std fds to the bitbucket)---*/
+   DEBUG_YEXEC  yLOG_info   ("std fds"   , "redirect stdin, stdout, and stderr to /dev/null");
+   fd = open ("/dev/null", O_RDWR);
+   DEBUG_YEXEC  yLOG_value   ("fd"         , fd);
+   --rce;  if (fd < 0) {
+      DEBUG_YEXEC  yLOG_info    ("fds"       , "creation of safe fd FAILED");
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   dup2(fd, 0);
+   dup2(fd, 2);
+   if (x_rpid != 1)  dup2(fd, 1);
+   /*---(obtain a new process group)--*/
+   if (x_rpid > 1) {
+      DEBUG_YEXEC  yLOG_info   ("session"   , "create a new process/session");
+      x_sid = setsid();
+      DEBUG_YEXEC  yLOG_value   ("x_sid"      , x_sid);
+      --rce;  if (x_sid < 0) {
+         DEBUG_YEXEC  yLOG_info   ("sid"       , "creation FAILED");
+         DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+         return rce;
+      }
+      DEBUG_YEXEC  yLOG_value ("new sid",  x_sid);
+   }
+   /*---(save rpid)----------------------*/
+   if (a_rpid != NULL)  *a_rpid = x_rpid;
+   /*---(complete)-----------------------*/
    DEBUG_YEXEC  yLOG_exit  (__FUNCTION__);
    return 0;
 }

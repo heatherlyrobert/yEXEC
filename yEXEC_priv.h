@@ -3,12 +3,13 @@
 
 /*===[[ VERSION ]]========================================*/
 /* rapidly evolving version number to aid with visual change confirmation     */
-#define   YEXEC_VER_NUM      "1.1c"
-#define   YEXEC_VER_TXT      "split into files, many changes and better logging in proc functions"
+#define   YEXEC_VER_NUM      "1.1d"
+#define   YEXEC_VER_TXT      "added yEXEC_args and unit tested"
 
 
 #include <yLOG.h>              /* heatherly logging                           */
 #include <yURG.h>              /* heatherly debugging framework               */
+#include <ySTR.h>              /* heatherly string handling                   */
 
 /*===[[ PUBLIC HEADERS ]]=====================================================*/
 /*---(big standards)------------*/
@@ -40,11 +41,6 @@
 #include <errno.h>             /* standard errors                             */
 
 
-#define     LEN_RECD    2000
-#define     LEN_PATH    300
-#define     LEN_TITLE   30
-#define     LEN_USER    12
-
 
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
 typedef struct passwd    tPASSWD;
@@ -70,9 +66,6 @@ struct cLOCAL {
 };
 extern  tLOCAL its;
 
-
-char         /*--> break string into argv structure ------[ leaf-- [ ------ ]-*/
-yexec__parse       (const char *a_cstring);
 
 void             /* [------] receive signals ---------------------------------*/
 yEXEC__comm        (

@@ -100,6 +100,7 @@ typedef const  char      cchar;
 #define     YEXEC_FORK     'y'
 #define     YEXEC_NOFORK   '-'
 
+#define     YEXEC_ALREADY  'A'
 #define     YEXEC_RUNNING  'r'
 #define     YEXEC_KILLED   't'
 #define     YEXEC_DIED     'd'
@@ -113,6 +114,7 @@ typedef const  char      cchar;
 
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
 char*       yEXEC_version           (void);
+int         yEXEC_args              (char *a_src);
 char        yEXEC_runable           (char *a_title, char *a_user, char  *a_cmd, char a_path);
 int         yEXEC_run               (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
 char        yEXEC_check             (char *a_title, int a_rpid, int *rc);
