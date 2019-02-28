@@ -1,29 +1,4 @@
 /*============================----beg-of-source---============================*/
-
-/*===[[ HEADER ]]=============================================================*
-
- *   focus         : (PS) programming support
- *   niche         : (ex) program_execution
- *   application   : yEXEC
- *   purpose       : clear, clean, program launching and tracking
- *
- *   base_system   : gnu/linux   (powerful, ubiquitous, technical, and hackable)
- *   lang_name     : ansi-c      (righteous, limitless, universal, and forever)
- *   dependencies  : yLOG
- *   size goal     : small       (less than 1,000 lines)
- *
- *   author        : the_heatherlys
- *   created       : 2011-05
- *   priorities    : direct, simple, brief, vigorous, and lucid (h.w. fowler)
- *   end goal      : loosely coupled, strict interface, maintainable, portable
- * 
- */
-/*===[[ SUMMARY ]]============================================================*
-
- *   yEXEC is a simple, clean, and clear library for launching and monitoring
- *   jobs for use in programs such as khronos, eos, kharon, haides, and nyx.
- *
- */
 /*===[[ PURPOSE ]]============================================================*
 
  *   yEXEC is a set of shared functions providing reliable, consisten, and clean
@@ -111,19 +86,29 @@ typedef const  char      cchar;
 
 #define     YEXEC_UNIT     "/tmp/yEXEC_unit.execution_feedback"
 
+#define     YEXEC_STDALL   'a'
+#define     YEXEC_STDOUT   'o'
+#define     YEXEC_BLIND    '-'
+
 
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
 char*       yEXEC_version           (void);
+
 int         yEXEC_args              (char *a_src);
 char        yEXEC_runable           (char *a_title, char *a_user, char  *a_cmd, char a_path);
 int         yEXEC_run               (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
 char        yEXEC_check             (char *a_title, int a_rpid, int *rc);
 char        yEXEC_find              (char *a_name, int *a_rpid);
+
 char        yEXEC_term              (const char *a_func, const int a_exit);
+
 char        yEXEC_signal            (char a_bulletproof, char a_interactive, char a_children, void *a_signaler);
+
 char        yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir);
 char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
 char        yEXEC_daemon            (int a_logger, int *a_rpid);
+char        yEXEC_tty_close         (int *a_fd);
+char        yEXEC_tty_open          (char *a_dev, int *a_fd, char a_std, char a_keep);
 
 
 

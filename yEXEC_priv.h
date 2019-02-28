@@ -1,10 +1,34 @@
 /*============================----beg-of-source---============================*/
+/*===[[ HEADER GUARD ]]=======================================================*/
+#ifndef YEXEC_pguard
+#define YEXEC_pguard loaded
+
+/*===[[ HEADER ]]=============================================================*/
+/*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
+
+#define     P_FOCUS     "PS (programming support)"
+#define     P_NICHE     "ex (process execution)"
+#define     P_PURPOSE   "clear, clean, program launching and tracking"
+
+#define     P_NAMESAKE  "brontes-akmonides (son of the anvil)"
+#define     P_HERITAGE  "thunder, one of the original three cyclops, blacksmith to gods"
+#define     P_IMAGERY   "massive, brutish, immortal giant with a single round eye"
+
+#define     P_SYSTEM    "gnu/linux   (powerful, ubiquitous, technical, and hackable)"
+#define     P_LANGUAGE  "ansi-c      (wicked, limitless, universal, and everlasting)"
+#define     P_CODESIZE  "small       (appoximately 1,000 slocl)"
+
+#define     P_AUTHOR    "heatherlyrobert"
+#define     P_CREATED   "2011-05"
+#define     P_DEPENDS   "ySTR"
+
+#define     P_VERNUM    "1.1e"
+#define     P_VERTXT    "tty_open and tty_close functions to help with daemons"
+#define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
+
+/*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
 
 
-/*===[[ VERSION ]]========================================*/
-/* rapidly evolving version number to aid with visual change confirmation     */
-#define   YEXEC_VER_NUM      "1.1d"
-#define   YEXEC_VER_TXT      "added yEXEC_args and unit tested"
 
 
 #include <yLOG.h>              /* heatherly logging                           */
@@ -40,6 +64,8 @@
 
 #include <errno.h>             /* standard errors                             */
 
+/*---(tty)----------------------*/
+#include    <termios.h>           /* clibc standard terminal control          */
 
 
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
@@ -48,6 +74,7 @@ typedef struct tm        tTIME;
 typedef struct dirent    tDIRENT;
 typedef struct sigaction tSIGACT;
 typedef struct stat      tSTAT;
+typedef struct termios   tTERMIOS;
 
 
 
@@ -85,4 +112,7 @@ char        yexec__unit_end         (void);
 char*       yexec_proc__unit        (char *a_question, int a_num);
 char        yexec_proc__unit_read   (void);
 
+
+
+#endif
 /*============================----end-of-source---============================*/

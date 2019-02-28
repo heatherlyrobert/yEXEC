@@ -70,43 +70,43 @@ yEXEC_args              (char *a_src)
    /*---(process string)-----------------*/
    for (i = 0; i < n && c < MAX_ARGV; ++i) {
       /*---(header)----------------------*/
-      DEBUG_YEXEC  yLOG_complex ("positon"   , "s_cmd [%3d]=%c/%03d, c=%3d", i, s_cmd [i], s_cmd [i], c);
+      /*> DEBUG_YEXEC  yLOG_complex ("positon"   , "s_cmd [%3d]=%c/%03d, c=%3d", i, s_cmd [i], s_cmd [i], c);   <*/
       /*---(dquote markers)--------------*/
       if (s_cmd [i] == '"') {
          if (i < x_squote) {
-            DEBUG_YEXEC  yLOG_note    ("embedded double quote");
+            /*> DEBUG_YEXEC  yLOG_note    ("embedded double quote");                  <*/
          } else if (x_dquote == '-')  {
-            DEBUG_YEXEC  yLOG_note    ("openning double quote");
+            /*> DEBUG_YEXEC  yLOG_note    ("openning double quote");                  <*/
             x_dquote = 'y'; 
             s_argv [c++] = s_cmd + i;
          } else {
-            DEBUG_YEXEC  yLOG_note    ("closing double quote");
+            /*> DEBUG_YEXEC  yLOG_note    ("closing double quote");                   <*/
             x_dquote = '-';
          }
          continue;
       }
       /*---(inside dquotes)--------------*/
       if (x_dquote == 'y') {
-         DEBUG_YEXEC  yLOG_note    ("double quoted (protected)");
+         /*> DEBUG_YEXEC  yLOG_note    ("double quoted (protected)");                 <*/
          continue;
       }
       /*---(squote marker)---------------*/
       if (s_cmd [i] == '\'') {
          if (i >  x_squote) {
-            DEBUG_YEXEC  yLOG_note    ("openning single quote");
+            /*> DEBUG_YEXEC  yLOG_note    ("openning single quote");                  <*/
             x_squote = i + 2;
          }
          if (i == x_squote) {
-            DEBUG_YEXEC  yLOG_note    ("closing single quote");
+            /*> DEBUG_YEXEC  yLOG_note    ("closing single quote");                   <*/
          }
       }
       /*---(fill gaps)-------------------*/
       if (s_cmd [i] == ' ' || s_cmd [i] == '\t')  {
          if (i <= x_squote) {
-            DEBUG_YEXEC  yLOG_note    ("protected by sinble quoting");
+            /*> DEBUG_YEXEC  yLOG_note    ("protected by sinble quoting");            <*/
             continue;
          } else {
-            DEBUG_YEXEC  yLOG_note    ("unquoted gap marker (nulling)");
+            /*> DEBUG_YEXEC  yLOG_note    ("unquoted gap marker (nulling)");          <*/
             s_cmd [i] = '\0';
             x_gap     = 'y';
          }
@@ -368,12 +368,13 @@ yexec__fork             (char *a_title, char a_fork)
       DEBUG_YEXEC  yLOG_end    ();   /* stop logging so the next can take over */
    }
    /*---(close off all descriptors)---*/
-   for (i = 0; i < 256; ++i)   close(i);
+   for (i = 0; i < 256; ++i)   close (i);
    /*---(std fds to the bitbucket)---*/
    fd = open ("/dev/null", O_RDWR);
-   dup2(fd, 0);
-   dup2(fd, 1);
-   dup2(fd, 2);
+   dup2 (fd, 0);
+   dup2 (fd, 1);
+   dup2 (fd, 2);
+   close (fd);
    /*---(complete)-----------------------*/
    return 0;
 }
@@ -489,7 +490,7 @@ yEXEC_run          (char *a_title, char *a_user, char  *a_cmd, char a_shell, cha
       _exit (rce);    /* must use _exit to get out properly                       */
    }
    /*---(try execve)----------------------------*/
-   fprintf   (f, "execve    : %.50s\n", a_cmd);
+   fprintf   (f, "execve    : %s\n", a_cmd);
    fprintf   (f, "==========================================================================end===\n");
    fflush    (f);
    fclose    (f);
@@ -498,7 +499,7 @@ yEXEC_run          (char *a_title, char *a_user, char  *a_cmd, char a_shell, cha
    /*---(try execvp)----------------------------*/
    f = fopen (s_output, "a");
    fprintf   (f, "FAILED    : %s\n", strerror (errno));
-   fprintf   (f, "execvp    : %.50s\n", a_cmd);
+   fprintf   (f, "execvp    : %s\n", a_cmd);
    fprintf   (f, "==========================================================================end===\n");
    fflush    (f);
    fclose    (f);
@@ -506,7 +507,7 @@ yEXEC_run          (char *a_title, char *a_user, char  *a_cmd, char a_shell, cha
    /*---(try execl)-----------------------------*/
    f = fopen (s_output, "a");
    fprintf   (f, "FAILED execvp, fallback...\n");
-   fprintf   (f, "execl     : %.50s\n", a_cmd);
+   fprintf   (f, "execl     : %s\n", a_cmd);
    fprintf   (f, "==========================================================================end===\n");
    fflush    (f);
    fclose    (f);
@@ -595,7 +596,6 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
    return YEXEC_WARNING;
 }
 
-
 char             /* [------] find a running job by name ----------------------*/
 yEXEC_find         (char *a_name, int *a_rpid)
 {
@@ -608,6 +608,7 @@ yEXEC_find         (char *a_name, int *a_rpid)
    char        line        [1000];
    int         rc;
    char       *p;
+   char       *q;
    int         status;
    int         rpid        = -1;
    int       x_status  = 0;                       /* the line's job status    */
@@ -632,9 +633,12 @@ yEXEC_find         (char *a_name, int *a_rpid)
       /*> printf ("title = <<%s>>, name = <<%s>> \n", title, a_name);                 <*/
       fclose (f);
       /*---(verify)----------------------*/
-      if (strcmp (title, a_name) != 0)  continue;
+      q = strchr (title, ' ');
+      if (q != NULL)  q [0] = '\0';
+      if (strstr (title, a_name) == 0)  continue;
       ++count;
       rpid =  atoi (den->d_name);
+      /*> printf ("%6d, %s\n", rpid, title);                                          <*/
    }
    closedir(dir);
    if (a_rpid != NULL)  *a_rpid = rpid;

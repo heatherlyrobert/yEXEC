@@ -24,7 +24,7 @@ yEXEC_version      (void)
 #else
    strncpy (t, "[unknown    ]", 15);
 #endif
-   snprintf (yEXEC_ver, 100, "%s   %s : %s", t, YEXEC_VER_NUM, YEXEC_VER_TXT);
+   snprintf (yEXEC_ver, 100, "%s   %s : %s", t, P_VERNUM, P_VERTXT);
    return yEXEC_ver;
 }
 

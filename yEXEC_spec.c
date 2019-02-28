@@ -4,6 +4,11 @@
 
 
 
+/*====================------------------------------------====================*/
+/*===----                       informational                          ----===*/
+/*====================------------------------------------====================*/
+static void      o___INFO____________________o (void) {;}
+
 char         /*--> verify a user name ----------------------------------------*/
 yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir)
 {
@@ -105,7 +110,7 @@ yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char
    /*---(save user info)-----------------*/
    DEBUG_YEXEC  yLOG_note    ("save uid and user name");
    if (a_uid  != NULL)   *a_uid  = x_uid;
-   strcpy (a_user, x_pass->pw_name);
+   if (a_user != NULL)   strcpy (a_user, x_pass->pw_name);
    /*---(check for root user)--------------*/
    if (x_uid == 0)   x_root = 'y';
    DEBUG_YEXEC  yLOG_char    ("x_root"    , x_root);
@@ -138,6 +143,13 @@ yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char
    return 0;
 }
 
+
+
+/*====================------------------------------------====================*/
+/*===----                         daemonizing                          ----===*/
+/*====================------------------------------------====================*/
+static void      o___DAEMON__________________o (void) {;}
+
 int
 yexec__foad        (void)
 {
@@ -154,49 +166,42 @@ yexec__foad        (void)
    x_rpid  = getpid();
    DEBUG_YEXEC  yLOG_value   ("x_rpid"    , x_rpid);
    if (x_rpid <= 1) {
-      DEBUG_YEXEC  yLOG_note    ("can not for process one, are you crazy?");
+      DEBUG_YEXEC  yLOG_note    ("can not fork process one, are you crazy?");
       DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
       return 0;
    }
    /*---(create a fork)------------------*/
    while (1) {
+      /*---(check status)----------------*/
+      x_ppid  = getppid ();
+      DEBUG_YEXEC  yLOG_value   ("x_ppid"    , x_ppid);
+      if (x_ppid == 1) {
+         DEBUG_YEXEC  yLOG_info    ("ppid"       , "owned by init, success");
+         break;
+      }
+      DEBUG_YEXEC  yLOG_note    ("not owned by init, need to fork");
       /*---(fork)------------------------*/
       DEBUG_YEXEC  yLOG_value  ("x_tries"   , x_tries);
-      if (x_tries >= 5)  break;
+      if (x_tries >= 10)  break;
       /*---(fork)------------------------*/
-      x_rpid = fork();
-      DEBUG_YEXEC  yLOG_value  ("x_rpid"    , x_rpid);
+      rc = fork();
+      DEBUG_YEXEC  yLOG_value  ("fork"      , rc);
       /*---(try again on fail)-----------*/
-      if (x_rpid < 0) {
+      if (rc < 0) {
          DEBUG_YEXEC  yLOG_info   ("FAILED"    , "creation of child FAILED, try again");
          continue;
       }
       /*---(exit if parent)--------------*/
-      if (x_rpid > 0) {         /* parent process      */
+      if (rc > 0) {         /* parent process      */
          DEBUG_YEXEC  yLOG_info   ("PARENT"    , "in parent, exiting parent");
-         exit (0);
-      }
-      /*---(wait for parent to die)------*/
-      rc = wait4 (x_rpid, &x_status, 0, NULL);
-      DEBUG_YEXEC  yLOG_value   ("wait4_rc"  , rc);
-      if        (rc <  0) {
-         DEBUG_YEXEC  yLOG_note    ("wait4 returned an error");
-      } else if (rc == 0) {
-         DEBUG_YEXEC  yLOG_note    ("wait4 returned an zero");
-      } else if (rc == x_rpid) {
-         DEBUG_YEXEC  yLOG_note    ("wait4 found parent has changed status");
+         _exit (0);
       } else {
-         DEBUG_YEXEC  yLOG_note    ("wait4 returned unknown error");
+         DEBUG_YEXEC  yLOG_info   ("child"     , "quick wait to allow parent to die");
+         sleep (0.25);
       }
-      /*---(check for success)-----------*/
-      x_ppid  = getppid();
-      DEBUG_YEXEC  yLOG_value  ("x_ppid"    , x_ppid);
-      if (x_ppid == 1) {
-         DEBUG_YEXEC  yLOG_info  ("ppid"       , "owned by init, success");
-         break;
-      }
-      DEBUG_YEXEC  yLOG_info  ("FAILED"     , "not owned by init, failure");
       /*---(prepare for next)------------*/
+      x_rpid  = getpid();
+      DEBUG_YEXEC  yLOG_value   ("x_rpid"    , x_rpid);
       ++x_tries;
       /*---(done)------------------------*/
    }
@@ -245,10 +250,10 @@ yEXEC_daemon       (int a_logger, int *a_rpid)
    DEBUG_YEXEC  yLOG_info    ("umask"     , "reset the default file permissions");
    umask (0);
    /*---(close off all descriptors)---*/
-   DEBUG_YEXEC  yLOG_info   ("fds"       , "close all inherited file descriptors");
+   DEBUG_YEXEC  yLOG_info    ("fds"       , "close all inherited file descriptors");
+   DEBUG_YEXEC  yLOG_value   ("a_logger"  , a_logger);
    for (i = 0; i < 256; ++i) {
       if (i == a_logger)          continue;
-      if (x_rpid == 1 && i == 1)  continue; /* semi-daemons need stdout     */
       close (i);
    }
    /*---(std fds to the bitbucket)---*/
@@ -260,25 +265,175 @@ yEXEC_daemon       (int a_logger, int *a_rpid)
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
-   dup2(fd, 0);
-   dup2(fd, 2);
-   if (x_rpid != 1)  dup2(fd, 1);
+   dup2 (fd, 0);
+   dup2 (fd, 1);
+   dup2 (fd, 2);
+   close (fd);
    /*---(obtain a new process group)--*/
-   if (x_rpid > 1) {
-      DEBUG_YEXEC  yLOG_info   ("session"   , "create a new process/session");
-      x_sid = setsid();
-      DEBUG_YEXEC  yLOG_value   ("x_sid"      , x_sid);
-      --rce;  if (x_sid < 0) {
-         DEBUG_YEXEC  yLOG_info   ("sid"       , "creation FAILED");
-         DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
-         return rce;
-      }
-      DEBUG_YEXEC  yLOG_value ("new sid",  x_sid);
-   }
+   /*> if (x_rpid > 1) {                                                              <*/
+   DEBUG_YEXEC  yLOG_info   ("session"   , "create a new process/session");
+   x_sid = setsid();
+   DEBUG_YEXEC  yLOG_value   ("x_sid"      , x_sid);
+   /*> --rce;  if (x_sid < 0) {                                                       <* 
+    *>    DEBUG_YEXEC  yLOG_info   ("sid"       , "creation FAILED");                 <* 
+    *>    DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);                              <* 
+    *>    return rce;                                                                 <* 
+    *> }                                                                              <*/
+   /*> }                                                                              <*/
    /*---(save rpid)----------------------*/
    if (a_rpid != NULL)  *a_rpid = x_rpid;
    /*---(complete)-----------------------*/
    DEBUG_YEXEC  yLOG_exit  (__FUNCTION__);
    return 0;
 }
+
+
+
+/*====================------------------------------------====================*/
+/*===----                      consoles and ttys                       ----===*/
+/*====================------------------------------------====================*/
+static void      o___TTYS____________________o (void) {;}
+
+char
+yEXEC_tty_close         (int *a_fd)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_point   ("a_fd"      , a_fd);
+   --rce;  if (a_fd == NULL) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_value   ("*a_fd"     , *a_fd);
+   --rce;  if (*a_fd < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(close term)---------------------*/
+   rc = close (*a_fd);
+   DEBUG_YEXEC  yLOG_value   ("close"     , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(ground pointer)-----------------*/
+   *a_fd = -1;
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return 0;
+}
+
+char
+yEXEC_tty_open          (char *a_dev, int *a_fd, char a_std, char a_keep)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   tTERMIOS    x_tty;
+   int         x_fd        =   -1;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_point   ("a_dev"     , a_dev);
+   --rce;  if (a_dev == NULL) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_info    ("a_dev"     , a_dev);
+   /*---(environment)--------------------*/
+   rc = putenv ("TERM=Eterm");
+   DEBUG_YEXEC  yLOG_value   ("putenv"    , rc);
+   --rce;  if (rc != 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(open term)----------------------*/
+   x_fd = open (a_dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
+   DEBUG_YEXEC  yLOG_value   ("open"      , x_fd);
+   --rce;  if (x_fd < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(get attributes)-----------------*/
+   rc = tcgetattr (x_fd, &x_tty);
+   DEBUG_YEXEC  yLOG_value   ("getattr"   , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(change attributes)--------------*/
+   x_tty.c_cflag        &= CBAUD|CBAUDEX|CSIZE|CSTOPB|PARENB|PARODD;
+   x_tty.c_cflag        |= HUPCL|CLOCAL|CREAD;
+   x_tty.c_cc[VINTR]	    = CINTR;
+   x_tty.c_cc[VQUIT]	    = CQUIT;
+   x_tty.c_cc[VERASE]    = CERASE; /* ASCII DEL (0177) */
+   x_tty.c_cc[VKILL]	    = CKILL;
+   x_tty.c_cc[VEOF]	    = CEOF;
+   x_tty.c_cc[VTIME]	    = 0;
+   x_tty.c_cc[VMIN]	    = 1;
+   x_tty.c_cc[VSWTC]	    = _POSIX_VDISABLE;
+   x_tty.c_cc[VSTART]    = CSTART;
+   x_tty.c_cc[VSTOP]	    = CSTOP;
+   x_tty.c_cc[VSUSP]	    = CSUSP;
+   x_tty.c_cc[VEOL]	    = _POSIX_VDISABLE;
+   x_tty.c_cc[VREPRINT]  = CREPRINT;
+   x_tty.c_cc[VDISCARD]  = CDISCARD;
+   x_tty.c_cc[VWERASE]   = CWERASE;
+   x_tty.c_cc[VLNEXT]    = CLNEXT;
+   x_tty.c_cc[VEOL2]	    = _POSIX_VDISABLE;
+   x_tty.c_iflag         = IGNPAR|ICRNL|IXON|IXANY;
+   x_tty.c_oflag         = OPOST|ONLCR;
+   x_tty.c_lflag         = ISIG|ICANON|ECHO|ECHOCTL|ECHOPRT|ECHOKE;
+   x_tty.c_iflag        |=  IGNBRK;
+   x_tty.c_iflag        &= ~(BRKINT|INLCR|IGNCR|IXON);
+   x_tty.c_oflag        &= ~(OCRNL|ONLRET);
+   /*---(set attributes)-----------------*/
+   rc = tcsetattr (x_fd, TCSANOW, &x_tty);
+   DEBUG_YEXEC  yLOG_value   ("setattr"   , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(flush data)---------------------*/
+   rc = tcflush (x_fd, TCIOFLUSH);
+   DEBUG_YEXEC  yLOG_value   ("flush"     , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(duplicate)----------------------*/
+   DEBUG_YEXEC  yLOG_char    ("a_std"     , a_std);
+   switch (a_std) {
+   case YEXEC_STDALL :
+      DEBUG_YEXEC  yLOG_note    ("connecting stdin, stdout, and stderr");
+      dup2 (x_fd, 0);
+      dup2 (x_fd, 1);
+      dup2 (x_fd, 2);
+      break;
+   case YEXEC_STDOUT :
+      DEBUG_YEXEC  yLOG_note    ("connecting stdout only");
+      dup2 (x_fd, 1);
+      break;
+   }
+   /*---(close term)---------------------*/
+   if (a_keep != YEXEC_YES) {
+      rc = yEXEC_tty_close (&x_fd);
+      DEBUG_YEXEC  yLOG_value   ("close"     , rc);
+      --rce;  if (x_fd < 0) {
+         DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+         return rce;
+      }
+   }
+   /*---(save)---------------------------*/
+   if (a_fd != NULL)  *a_fd = x_fd;
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return 0;
+}
+
+
 
