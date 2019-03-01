@@ -22,8 +22,8 @@
 #define     P_CREATED   "2011-05"
 #define     P_DEPENDS   "ySTR"
 
-#define     P_VERNUM    "1.1e"
-#define     P_VERTXT    "tty_open and tty_close functions to help with daemons"
+#define     P_VERNUM    "1.1f"
+#define     P_VERTXT    "added heartbeat file writing from khronos (unit tested)"
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 
 /*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
@@ -108,6 +108,8 @@ char        yexec__unit_quiet       (void);
 char        yexec__unit_loud        (void);
 char        yexec__unit_end         (void);
 
+char        yexec__unit_heartbeat   (char *a_file, char *a_heartbeat);
+char*       yexec_spec__unit        (char *a_question, char *a_text);
 
 char*       yexec_proc__unit        (char *a_question, int a_num);
 char        yexec_proc__unit_read   (void);

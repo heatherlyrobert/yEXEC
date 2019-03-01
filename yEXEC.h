@@ -99,11 +99,14 @@ char        yEXEC_runable           (char *a_title, char *a_user, char  *a_cmd, 
 int         yEXEC_run               (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
 char        yEXEC_check             (char *a_title, int a_rpid, int *rc);
 char        yEXEC_find              (char *a_name, int *a_rpid);
+char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);
+char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
 char        yEXEC_term              (const char *a_func, const int a_exit);
 
 char        yEXEC_signal            (char a_bulletproof, char a_interactive, char a_children, void *a_signaler);
 
+char        yEXEC_heartbeat         (int a_rpid, long a_now, char *a_file, char *a_heartbeat);
 char        yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir);
 char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
 char        yEXEC_daemon            (int a_logger, int *a_rpid);

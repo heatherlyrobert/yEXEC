@@ -29,7 +29,7 @@ char       *s_path      = NULL;
 
 
 /*====================------------------------------------====================*/
-/*===----                            basics                            ----===*/
+/*===----                             parsing                          ----===*/
 /*====================------------------------------------====================*/
 static void      o___BASICS__________________o (void) {;}
 
@@ -599,50 +599,110 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
 char             /* [------] find a running job by name ----------------------*/
 yEXEC_find         (char *a_name, int *a_rpid)
 {
-   /*---(locals)-----------+-----------+-*/
-   tDIRENT    *den;
-   DIR        *dir;
+   /*---(locals)-----------+-----+-----+-*/
+   int         rce         =  -10;
+   int         rc          =    0;
+   DIR        *x_dir;
+   tDIRENT    *x_den;
    FILE       *f;
-   char        name        [100];
-   char        title       [1000];
-   char        line        [1000];
-   int         rc;
+   char        x_name      [100];
+   char        x_title     [1000];
+   char        x_recd      [1000];
    char       *p;
    char       *q;
-   int         status;
-   int         rpid        = -1;
-   int       x_status  = 0;                       /* the line's job status    */
-   char        count       = 0;
-   /*---(open the proc system)-----------*/
-   dir = opendir("/proc");
+   int         x_rpid      =   -1;
+   char        c           =    0;
+   char        x_len       =    0;
+   /*---(output header)-----------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defense)-----------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (a_name);
+   --rce;  if (a_name == NULL) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_snote   (a_name);
+   x_len = strlen (a_name);
+   DEBUG_YEXEC  yLOG_sint    (x_len);
+   /*---(prepare)------------------------*/
    if (a_rpid != NULL)  *a_rpid = 9999;
-   if (dir == NULL) return -1;
+   /*---(open the proc system)-----------*/
+   x_dir = opendir("/proc");
+   DEBUG_YEXEC  yLOG_spoint  (x_dir);
+   --rce;  if (x_dir == NULL) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
    /*---(cycle through the entries)------*/
-   while ((den = readdir(dir)) != NULL) {
+   while ((x_den = readdir (x_dir)) != NULL) {
       /*---(filter non-processes)--------*/
-      if (atoi(den->d_name)     == 0)  continue;
+      if (atoi(x_den->d_name)     == 0)  continue;
       /*---(open the process)------------*/
-      sprintf(name, "/proc/%s/stat", den->d_name);
-      f = fopen (name, "r");
+      sprintf(x_name, "/proc/%s/stat", x_den->d_name);
+      f = fopen (x_name, "r");
       if (f == NULL) continue;
       /*---(read the entry)--------------*/
-      fgets (line, 1000, f);
-      p = strtok (line, "(");
+      fgets (x_recd, 1000, f);
+      p = strtok (x_recd, "(");
       p = strtok (NULL, ")");
-      strcpy (title, p);
-      /*> printf ("title = <<%s>>, name = <<%s>> \n", title, a_name);                 <*/
+      strcpy (x_title, p);
+      /*> printf ("title = <<%s>>, name = <<%s>> \n", x_title, a_name);                 <*/
       fclose (f);
       /*---(verify)----------------------*/
-      q = strchr (title, ' ');
+      q = strchr (x_title, ' ');
       if (q != NULL)  q [0] = '\0';
-      if (strstr (title, a_name) == 0)  continue;
-      ++count;
-      rpid =  atoi (den->d_name);
-      /*> printf ("%6d, %s\n", rpid, title);                                          <*/
+      if (strncmp (x_title, a_name, x_len) != 0)  continue;
+      ++c;
+      x_rpid =  atoi (x_den->d_name);
+      DEBUG_YEXEC  yLOG_snote   (x_rpid);
+      /*> printf ("%6d, %s\n", rpid, x_title);                                          <*/
+      /*---(done)------------------------*/
    }
-   closedir(dir);
-   if (a_rpid != NULL)  *a_rpid = rpid;
-   return count;
+   closedir (x_dir);
+   if (a_rpid != NULL)  *a_rpid = x_rpid;
+   DEBUG_YEXEC  yLOG_sint    (c);
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   return c;
+}
+
+char
+yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   int         i           =    0;
+   int         x_max       =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(get max)------------------------*/
+   for (i = 0; i < a_argc; ++i) x_max = strlen (a_argv [i]) + 1;
+   DEBUG_YEXEC  yLOG_sint    (x_max);
+   if (a_max != NULL)  *a_max = x_max;
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   return 0;
+}
+
+char
+yEXEC_rename            (char *a_mem, char *a_name, int a_max)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   int         x_len       =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (a_name);
+   if (a_name == NULL) {
+      DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   }
+   DEBUG_YEXEC  yLOG_snote   (a_name);
+   x_len = strlen (a_name);
+   DEBUG_YEXEC  yLOG_sint    (x_len);
+   /*---(save new)-----------------------*/
+   memset (a_mem, 0, a_max);
+   strlcpy (a_mem, a_name, a_max - 1);
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   return 0;
 }
 
 

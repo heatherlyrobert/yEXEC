@@ -7,6 +7,98 @@
 /*====================------------------------------------====================*/
 /*===----                       informational                          ----===*/
 /*====================------------------------------------====================*/
+static void      o___HEARTBEAT_______________o (void) {;}
+
+char        s_heartbeat      [LEN_HUND];
+
+char         /*--> write the heartbeat file ----------------------------------*/
+yEXEC_heartbeat         (int a_rpid, long a_now, char *a_file, char *a_heartbeat)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   long        x_now       =    0;
+   tTIME      *x_broke     = NULL;
+   char        t           [LEN_LABEL];
+   FILE       *f           = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(set time)-----------------------*/
+   if (a_now > 0)  x_now  = a_now;
+   else            x_now  = time (NULL);
+   DEBUG_YEXEC  yLOG_value   ("x_now"     , x_now);
+   /*---(break it down)------------------*/
+   x_broke   = localtime (&x_now);
+   /*---(heartbeat)----------------------*/
+   strftime (t, 20, "%y.%m.%d.%H.%M.%S", x_broke);
+   DEBUG_YEXEC  yLOG_info    ("t"         , t);
+   sprintf  (s_heartbeat, "%s  %-10d  now  %d", t, x_now, a_rpid);
+   DEBUG_YEXEC  yLOG_info    ("heartbeat" , s_heartbeat);
+   if (a_heartbeat != NULL)  strlcpy (a_heartbeat, s_heartbeat, LEN_HUND);
+   DEBUG_YEXEC  yLOG_point   ("a_file"    , a_file);
+   /*---(write file)---------------------*/
+   if (a_file != NULL) {
+      /*---(open)------------------------*/
+      DEBUG_YEXEC  yLOG_info    ("a_file"    , a_file);
+      f = fopen (a_file, "wt");
+      DEBUG_YEXEC  yLOG_point   ("f"         , f);
+      --rce;  if (rc < 0) {
+         DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+         return rce;
+      }
+      /*---(write)-----------------------*/
+      fputs (s_heartbeat, f);
+      /*---(close)-----------------------*/
+      rc = fclose (f);
+      DEBUG_YEXEC  yLOG_value   ("close"     , rc);
+      --rce;  if (rc < 0) {
+         DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+         return rce;
+      }
+   }
+   /*---(complete------------------------*/
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return 0;
+}
+
+char         /*--> read the last heartbeat -----------------------------------*/
+yexec__unit_heartbeat   (char *a_file, char *a_heartbeat)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   FILE       *f           = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(open)---------------------------*/
+   DEBUG_YEXEC  yLOG_info    ("a_file"    , a_file);
+   f = fopen (a_file, "rt");
+   DEBUG_YEXEC  yLOG_point   ("f"         , f);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(write)--------------------------*/
+   fgets (a_heartbeat, LEN_HUND, f);
+   DEBUG_YEXEC  yLOG_info    ("heartbeat" , a_heartbeat);
+   /*---(close)--------------------------*/
+   rc = fclose (f);
+   DEBUG_YEXEC  yLOG_value   ("close"     , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return 0;
+}
+
+
+
+
+/*====================------------------------------------====================*/
+/*===----                       informational                          ----===*/
+/*====================------------------------------------====================*/
 static void      o___INFO____________________o (void) {;}
 
 char         /*--> verify a user name ----------------------------------------*/
@@ -423,7 +515,7 @@ yEXEC_tty_open          (char *a_dev, int *a_fd, char a_std, char a_keep)
    if (a_keep != YEXEC_YES) {
       rc = yEXEC_tty_close (&x_fd);
       DEBUG_YEXEC  yLOG_value   ("close"     , rc);
-      --rce;  if (x_fd < 0) {
+      --rce;  if (rc < 0) {
          DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
          return rce;
       }
@@ -433,6 +525,34 @@ yEXEC_tty_open          (char *a_dev, int *a_fd, char a_std, char a_keep)
    /*---(complete)-----------------------*/
    DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
    return 0;
+}
+
+
+
+/*====================------------------------------------====================*/
+/*===----                      unit test accessor                      ----===*/
+/*====================------------------------------------====================*/
+static void      o___UNITTEST________________o (void) {;}
+
+char*            /*--> unit test accessor ------------------------------*/
+yexec_spec__unit        (char *a_question, char *a_text)
+{ 
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   int         rc          =    0;
+   char        x_heartbeat [LEN_HUND];
+   /*---(prepare)------------------------*/
+   strlcpy  (unit_answer, "SPEC             : question not understood", LEN_RECD);
+   /*---(crontab name)-------------------*/
+   if      (strcmp (a_question, "heartbeat"     )  == 0) {
+      snprintf (unit_answer, LEN_RECD, "SPEC heartbeat   : %s", s_heartbeat);
+   }
+   else if (strcmp (a_question, "lastbeat"      )  == 0) {
+      yexec__unit_heartbeat (a_text, x_heartbeat);
+      snprintf (unit_answer, LEN_RECD, "SPEC lastbeat    : %s", x_heartbeat);
+   }
+   /*---(complete)-----------------------*/
+   return unit_answer;
 }
 
 

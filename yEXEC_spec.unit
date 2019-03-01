@@ -14,6 +14,35 @@ PREP          v21  include the prototype headers                              
 
 
 
+#23456789-12  123  123456789-123456789-123456789-12345  123456789-123456789-  123456789-123456789-123456789-123456789-123456789-123456789-123456789-  123456789-  123456789-123456789-123456789-123456789-123456789-123456789-123456789-  -  123456789-123456789- 
+#==(verb)===  ver  ===========(description)===========  =====(function)=====  ========================(arguments)===================================  ==(test)==  ==========================(results)===================================  t  ========(var)======= 
+SCRP          v21  (RPTG  ) verify heartbeat operations                         rptg_hearbeat, exec_time                                                ((01.---))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+
+   COND       v21  prepare for run                                                    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((02.001))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+     exec     v21  initialize the system                yexec__unit_quiet                                                                                                                 i_equal     0                                                                                                    
+     code     v21  create a heartbeat                   - - - - - - - - - - - - -   char  x_heartbeat  [LEN_HUND];                                                                                                                                                                        
+     code     v21  create a file name                   - - - - - - - - - - - - -   char  x_file       [LEN_HUND] = "/tmp/yEXEC.heartbeat";                                                                                                                                               
+
+   COND       v21  prepare time                                                       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((04.018))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+     exec     v21  set the date                         yEXEC_heartbeat             7654   , 1320105600   , x_file     , x_heartbeat                                                      i_equal     0             
+     get      v21  ...check heartbeat                   yexec_spec__unit            "heartbeat"            , x_file                                                                       s_equal     SPEC heartbeat   : 11.10.31.17.00.00  1320105600  now  7654                                          
+     get      v21  ...check last heartbeat              yexec_spec__unit            "lastbeat"             , x_file                                                                       s_equal     SPEC lastbeat    : 11.10.31.17.00.00  1320105600  now  7654                                          
+
+   COND       v21  prepare time                                                       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((04.018))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+     exec     v21  set the date                         yEXEC_heartbeat             123    , 1494680400   , x_file     , x_heartbeat                                                      i_equal     0             
+     get      v21  ...check heartbeat                   yexec_spec__unit            "heartbeat"            , x_file                                                                       s_equal     SPEC heartbeat   : 17.05.13.06.00.00  1494680400  now  123                                           
+     get      v21  ...check last heartbeat              yexec_spec__unit            "lastbeat"             , x_file                                                                       s_equal     SPEC lastbeat    : 17.05.13.06.00.00  1494680400  now  123                                           
+
+   COND       v21  prepare time                                                       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((04.018))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+     exec     v21  set the date                         yEXEC_heartbeat             123    , 1494680491   , x_file     , x_heartbeat                                                      i_equal     0             
+     get      v21  ...check heartbeat                   yexec_spec__unit            "heartbeat"            , x_file                                                                       s_equal     SPEC heartbeat   : 17.05.13.06.01.31  1494680491  now  123                                           
+     get      v21  ...check last heartbeat              yexec_spec__unit            "lastbeat"             , x_file                                                                       s_equal     SPEC lastbeat    : 17.05.13.06.01.31  1494680491  now  123                                           
+
+   COND       v21  wrap up testing                                                    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((05.004))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+     exec     v21  wrap up                              yexec__unit_end                                                                                                                   i_equal     0                                                                                                    
+
+
+
 #23456789-12  123  123456789-123456789-123456789-12345  123456789-123456789-123456  123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789-  123456789-  123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789-123456789-  -  123456789-123456789- 
 #==(verb)===  ver  ===========(description)===========  =====(function)===========  ========================(arguments)=================================================================  ==(test)==  ==========================(results)=================================================================  t  ========(var)======= 
 SCRP          v21  (SPEC  ) verify user checking                                      yEXEC_user                                                                                            ((01.---))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
