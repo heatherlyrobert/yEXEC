@@ -344,7 +344,7 @@ yEXEC_daemon       (int a_logger, int *a_rpid)
    /*---(close off all descriptors)---*/
    DEBUG_YEXEC  yLOG_info    ("fds"       , "close all inherited file descriptors");
    DEBUG_YEXEC  yLOG_value   ("a_logger"  , a_logger);
-   for (i = 0; i < 256; ++i) {
+   for (i = 3; i < 256; ++i) {
       if (i == a_logger)          continue;
       close (i);
    }

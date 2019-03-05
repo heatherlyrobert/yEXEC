@@ -365,7 +365,7 @@ yexec__fork             (char *a_title, char a_fork)
    } else {
       DEBUG_YEXEC  yLOG_snote  ("REPLACE");
       DEBUG_YEXEC  yLOG_snote  ("closing logger");
-      DEBUG_YEXEC  yLOG_end    ();   /* stop logging so the next can take over */
+      DEBUG_YEXEC  yLOGS_end   ();   /* stop logging so the next can take over */
    }
    /*---(close off all descriptors)---*/
    for (i = 0; i < 256; ++i)   close (i);
@@ -646,16 +646,14 @@ yEXEC_find         (char *a_name, int *a_rpid)
       p = strtok (x_recd, "(");
       p = strtok (NULL, ")");
       strcpy (x_title, p);
-      /*> printf ("title = <<%s>>, name = <<%s>> \n", x_title, a_name);                 <*/
       fclose (f);
       /*---(verify)----------------------*/
       q = strchr (x_title, ' ');
       if (q != NULL)  q [0] = '\0';
-      if (strncmp (x_title, a_name, x_len) != 0)  continue;
+      if (strstr (x_title, a_name) == NULL)  continue;
       ++c;
       x_rpid =  atoi (x_den->d_name);
-      DEBUG_YEXEC  yLOG_snote   (x_rpid);
-      /*> printf ("%6d, %s\n", rpid, x_title);                                          <*/
+      DEBUG_YEXEC  yLOG_sint    (x_rpid);
       /*---(done)------------------------*/
    }
    closedir (x_dir);
@@ -674,7 +672,13 @@ yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max)
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
    /*---(get max)------------------------*/
-   for (i = 0; i < a_argc; ++i) x_max = strlen (a_argv [i]) + 1;
+   for (i = 0; i < a_argc; ++i) {
+      DEBUG_YEXEC  yLOG_sint    (i);
+      DEBUG_YEXEC  yLOG_snote   (a_argv [i]);
+      DEBUG_YEXEC  yLOG_sint    (strlen (a_argv [i]));
+      x_max += strlen (a_argv [i]) + 1;
+      DEBUG_YEXEC  yLOG_sint    (x_max);
+   }
    DEBUG_YEXEC  yLOG_sint    (x_max);
    if (a_max != NULL)  *a_max = x_max;
    /*---(complete)-----------------------*/

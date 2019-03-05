@@ -22,8 +22,8 @@
 #define     P_CREATED   "2011-05"
 #define     P_DEPENDS   "ySTR"
 
-#define     P_VERNUM    "1.1f"
-#define     P_VERTXT    "added heartbeat file writing from khronos (unit tested)"
+#define     P_VERNUM    "1.1g"
+#define     P_VERTXT    "fixed for changes to yLOG during updates"
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 
 /*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/

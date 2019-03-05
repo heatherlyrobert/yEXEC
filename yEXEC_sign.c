@@ -45,7 +45,7 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
    case  SIGTERM:
       if (s_bulletproof != 'y') {
          DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGTERM means terminate daemon");
-         DEBUG_YEXEC  yLOG_end   ();
+         DEBUG_YEXEC  yLOGS_end   ();
          if (s_signaler != NULL)  s_signaler (a_signal, a_info, a_nada);
          exit(-1);
       }
@@ -54,7 +54,7 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
    case  SIGSEGV:
       if (s_bulletproof != 'y') {
          DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGSEGV means daemon blew up");
-         DEBUG_YEXEC  yLOG_end   ();
+         DEBUG_YEXEC  yLOGS_end   ();
          if (s_signaler != NULL)  s_signaler (a_signal, a_info, a_nada);
          exit(-1);
       }
