@@ -320,8 +320,9 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
       return rce;
    }
    /*---(check output)--------------------------*/
-   if (a_output == NULL)   strcpy (s_output, "/dev/null");
-   else                    strcpy (s_output, a_output);
+   if      (a_output == NULL)         strcpy (s_output, "/dev/null");
+   else if (strlen (a_output) <= 0)   strcpy (s_output, "/dev/null");
+   else                               strcpy (s_output, a_output);
    f = fopen (s_output, "a");
    if (f == NULL)  {
       strcpy (s_output, "/dev/null");
@@ -538,8 +539,14 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
    /*> rc = wait4 (a_rpid, &x_status, WNOHANG, NULL);                                 <*/
    rc = waitpid (a_rpid, &x_status, WNOHANG);
    DEBUG_YEXEC  yLOG_svalue  ("waitpid"   , rc);
+   /*---(handle no such child)----------*/
+   if (rc == -1) {
+      DEBUG_YEXEC  yLOG_snote   ("daemonized and gone");
+      DEBUG_YEXEC  yLOG_sexit   ("CHK");
+      return YEXEC_NOSUCH;
+   }
    /*---(handle running)----------------*/
-   if (rc ==  0) {
+   if (rc == 0) {
       DEBUG_YEXEC  yLOG_snote   ("still running");
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_RUNNING;
@@ -550,13 +557,30 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
          x_signal = WTERMSIG (x_status);
          if (a_rc != NULL)  *a_rc = x_signal;
          switch (x_signal) {
-         case SIGTERM    : case SIGKILL    :
+         case SIGTERM : case SIGKILL : case SIGQUIT : case SIGABRT :
             DEBUG_YEXEC  yLOG_snote   ("TERMINATED");
             DEBUG_YEXEC  yLOG_sexit   ("CHK");
             return YEXEC_KILLED;
             break;
+         case SIGSEGV : case SIGFPE  : case SIGILL  : case SIGBUS  :
+         case SIGPIPE : case SIGSYS  :
+            DEBUG_YEXEC  yLOG_snote   ("BLEW-UP");
+            DEBUG_YEXEC  yLOG_sexit   ("CHK");
+            return YEXEC_SEGV;
+            break;
+         case SIGHUP  : case SIGALRM : case SIGUSR1 : case SIGUSR2 :
+         case SIGSTOP : case SIGTSTP : case SIGTTIN : case SIGTTOU : case SIGURG  :
+            DEBUG_YEXEC  yLOG_snote   ("IPC/USER");
+            DEBUG_YEXEC  yLOG_sexit   ("CHK");
+            return YEXEC_USER;
+            break;
+         case SIGXCPU : case SIGXFSZ :
+            DEBUG_YEXEC  yLOG_snote   ("LIMITS");
+            DEBUG_YEXEC  yLOG_sexit   ("CHK");
+            return YEXEC_LIMIT;
+            break;
          default   :
-            DEBUG_YEXEC  yLOG_snote   ("DIED");
+            DEBUG_YEXEC  yLOG_snote   ("OTHER/DIED");
             DEBUG_YEXEC  yLOG_sexit   ("CHK");
             return YEXEC_DIED;
          }
@@ -575,7 +599,7 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
    if (x_return == 127) {  /* command not found from linux */
       DEBUG_YEXEC  yLOG_snote   ("boom");
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
-      return YEXEC_ERROR;
+      return YEXEC_NOTREAL;
    }
    /*---(handle completed)--------------*/
    if (x_return == 0) {
@@ -605,13 +629,13 @@ yEXEC_find         (char *a_name, int *a_rpid)
    DIR        *x_dir;
    tDIRENT    *x_den;
    FILE       *f;
-   char        x_name      [100];
+   char        x_name      [1000];
    char        x_title     [1000];
    char        x_recd      [1000];
    char       *p;
    char       *q;
    int         x_rpid      =   -1;
-   char        c           =    0;
+   int         c           =    0;
    char        x_len       =    0;
    /*---(output header)-----------------*/
    DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
@@ -625,7 +649,7 @@ yEXEC_find         (char *a_name, int *a_rpid)
    x_len = strlen (a_name);
    DEBUG_YEXEC  yLOG_sint    (x_len);
    /*---(prepare)------------------------*/
-   if (a_rpid != NULL)  *a_rpid = 9999;
+   if (a_rpid != NULL)  *a_rpid = 99999;
    /*---(open the proc system)-----------*/
    x_dir = opendir("/proc");
    DEBUG_YEXEC  yLOG_spoint  (x_dir);
@@ -650,13 +674,20 @@ yEXEC_find         (char *a_name, int *a_rpid)
       /*---(verify)----------------------*/
       q = strchr (x_title, ' ');
       if (q != NULL)  q [0] = '\0';
-      if (strstr (x_title, a_name) == NULL)  continue;
+      if (strlen (x_title) != x_len)      continue;
+      if (strcmp (x_title, a_name) != 0)  continue;
       ++c;
-      x_rpid =  atoi (x_den->d_name);
-      DEBUG_YEXEC  yLOG_sint    (x_rpid);
+      DEBUG_YEXEC  yLOG_snote   (x_title);
+      DEBUG_YEXEC  yLOG_sint    (c);
+      DEBUG_YEXEC  yLOG_snote   ("FOUND");
+      if (x_rpid < 0) {
+         x_rpid =  atoi (x_den->d_name);
+         DEBUG_YEXEC  yLOG_sint    (x_rpid);
+      }
       /*---(done)------------------------*/
    }
    closedir (x_dir);
+   if (x_rpid <= 1)      x_rpid = 99999;
    if (a_rpid != NULL)  *a_rpid = x_rpid;
    DEBUG_YEXEC  yLOG_sint    (c);
    DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);

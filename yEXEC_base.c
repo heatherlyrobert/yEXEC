@@ -48,7 +48,7 @@ char       /*----: set up program urgents/debugging --------------------------*/
 yexec__unit_loud        (void)
 {
    yLOGS_begin   ("yEXEC", YLOG_SYS, YLOG_NOISE);
-   yURG_name    ("yexec", YURG_ON);
+   yURG_name     ("yexec", YURG_ON);
    DEBUG_YEXEC  yLOG_info     ("yEXEC"     , yEXEC_version   ());
    return 0;
 }

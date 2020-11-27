@@ -76,8 +76,14 @@ typedef const  char      cchar;
 #define     YEXEC_NOFORK   '-'
 
 #define     YEXEC_ALREADY  'A'
+#define     YEXEC_NOSUCH   '#'
 #define     YEXEC_RUNNING  'r'
-#define     YEXEC_KILLED   't'
+#define     YEXEC_KILLED   'T'
+#define     YEXEC_SEGV     'M'
+#define     YEXEC_QUIT     'Q'
+#define     YEXEC_USER     'H'
+#define     YEXEC_LIMIT    'L'
+#define     YEXEC_NOTREAL  '?'
 #define     YEXEC_DIED     'd'
 #define     YEXEC_ERROR    'e'
 #define     YEXEC_NORMAL   'n'
@@ -104,7 +110,8 @@ char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
 char        yEXEC_term              (const char *a_func, const int a_exit);
 
-char        yEXEC_signal            (char a_bulletproof, char a_interactive, char a_children, void *a_signaler);
+char        yEXEC_signal            (char a_bulletproof, char a_interactive, char a_children, void *a_signaler, char *a_output);
+int         yEXEC_signal_log        (char *a_name, int n, char *a_recd);
 
 char        yEXEC_heartbeat         (int a_rpid, long a_now, char *a_file, char *a_heartbeat);
 char        yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir);

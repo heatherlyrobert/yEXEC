@@ -8,22 +8,34 @@
 
 #define     P_FOCUS     "PS (programming support)"
 #define     P_NICHE     "ex (process execution)"
+#define     P_SUBJECT   "process control"
 #define     P_PURPOSE   "clear, clean, program launching and tracking"
 
 #define     P_NAMESAKE  "brontes-akmonides (son of the anvil)"
 #define     P_HERITAGE  "thunder, one of the original three cyclops, blacksmith to gods"
 #define     P_IMAGERY   "massive, brutish, immortal giant with a single round eye"
+#define     P_REASON    ""
+
+#define     P_ONELINE   P_NAMESAKE " " P_SUBJECT
+
+#define     P_BASENAME  ""
+#define     P_FULLPATH  ""
+#define     P_SUFFIX    ""
+#define     P_CONTENT   ""
 
 #define     P_SYSTEM    "gnu/linux   (powerful, ubiquitous, technical, and hackable)"
 #define     P_LANGUAGE  "ansi-c      (wicked, limitless, universal, and everlasting)"
 #define     P_CODESIZE  "small       (appoximately 1,000 slocl)"
+#define     P_DEPENDS   "ySTR"
 
 #define     P_AUTHOR    "heatherlyrobert"
 #define     P_CREATED   "2011-05"
-#define     P_DEPENDS   "ySTR"
 
-#define     P_VERNUM    "1.1g"
-#define     P_VERTXT    "fixed for changes to yLOG during updates"
+#define     P_VERMAJOR  "1.--, improvements for next generation tools"
+#define     P_VERMINOR  "1.1-, prepping for eos, nyx, hypnos, and hannibal"
+#define     P_VERNUM    "1.1h"
+#define     P_VERTXT    "significant update so signals, and some great tracking, unit testing"
+
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 
 /*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
