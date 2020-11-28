@@ -12,14 +12,14 @@ static void      o___HEARTBEAT_______________o (void) {;}
 char        s_heartbeat      [LEN_HUND];
 
 char         /*--> write the heartbeat file ----------------------------------*/
-yEXEC_heartbeat         (int a_rpid, long a_now, char *a_file, char *a_heartbeat)
+yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
    char        rc          =    0;
    long        x_now       =    0;
    tTIME      *x_broke     = NULL;
-   char        t           [LEN_LABEL];
+   char        t           [LEN_TITLE] = "";
    FILE       *f           = NULL;
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
@@ -30,9 +30,13 @@ yEXEC_heartbeat         (int a_rpid, long a_now, char *a_file, char *a_heartbeat
    /*---(break it down)------------------*/
    x_broke   = localtime (&x_now);
    /*---(heartbeat)----------------------*/
-   strftime (t, 20, "%y.%m.%d.%H.%M.%S", x_broke);
+   strftime (t, LEN_TITLE, "%y.%m.%d.%H.%M.%S.%w.%V.%j", x_broke);
    DEBUG_YEXEC  yLOG_info    ("t"         , t);
-   sprintf  (s_heartbeat, "%s  %-10d  now  %d", t, x_now, a_rpid);
+   sprintf  (s_heartbeat, "%-26.26s  %-10d  %6d", t, x_now, a_rpid);
+   if (a_suffix != NULL) {
+      strlcat (s_heartbeat, "  "    , LEN_HUND);
+      strlcat (s_heartbeat, a_suffix, LEN_HUND);
+   }
    DEBUG_YEXEC  yLOG_info    ("heartbeat" , s_heartbeat);
    if (a_heartbeat != NULL)  strlcpy (a_heartbeat, s_heartbeat, LEN_HUND);
    DEBUG_YEXEC  yLOG_point   ("a_file"    , a_file);
@@ -545,11 +549,11 @@ yexec_spec__unit        (char *a_question, char *a_text)
    strlcpy  (unit_answer, "SPEC             : question not understood", LEN_RECD);
    /*---(crontab name)-------------------*/
    if      (strcmp (a_question, "heartbeat"     )  == 0) {
-      snprintf (unit_answer, LEN_RECD, "SPEC heartbeat   : %s", s_heartbeat);
+      snprintf (unit_answer, LEN_RECD, "SPEC heartbeat   : %2d[%s]", strlen (s_heartbeat), s_heartbeat);
    }
    else if (strcmp (a_question, "lastbeat"      )  == 0) {
       yexec__unit_heartbeat (a_text, x_heartbeat);
-      snprintf (unit_answer, LEN_RECD, "SPEC lastbeat    : %s", x_heartbeat);
+      snprintf (unit_answer, LEN_RECD, "SPEC lastbeat    : %2d[%s]", strlen (x_heartbeat), x_heartbeat);
    }
    /*---(complete)-----------------------*/
    return unit_answer;

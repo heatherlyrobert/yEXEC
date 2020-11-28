@@ -33,10 +33,12 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.1-, prepping for eos, nyx, hypnos, and hannibal"
-#define     P_VERNUM    "1.1h"
-#define     P_VERTXT    "significant update so signals, and some great tracking, unit testing"
+#define     P_VERNUM    "1.1i"
+#define     P_VERTXT    "further cleaned signals and built reference table to save memory"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
+#define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
+#define     P_REMINDER  "there are many better options, but i *own* every byte of this one"
 
 /*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
 

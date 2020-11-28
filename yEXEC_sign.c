@@ -7,37 +7,103 @@
 static char     s_bulletproof = 'n';
 static char     s_interactive = 'n';
 static char     s_children    = 'n';
-static void   (*s_signaler)   (int a_signal, siginfo_t *a_info, void *a_nada);
+static void   (*s_signaler)   (int a_signal, siginfo_t *a_info, char *a_name, char *a_desc);
 static char     s_output      [LEN_RECD]  = "";
+static FILE    *f             = NULL;
 
 
+
+#define      MAX_SIGS         24
+typedef struct cSIGS tSIGS;
+static struct cSIGS {
+   char        num;
+   char        name        [LEN_TERSE];
+   char        desc        [LEN_TITLE];
+};
+static const tSIGS s_sigs [MAX_SIGS] = {
+   /*--, "123456789"  "123456789-123456789-123456789" */
+   {  0, "------"   , ""                              },
+   {  1, "SIGHUP"   , "reload files, refresh data"    },
+   {  2, "SIGINT"   , "C-c to kill a process"         },
+   {  3, "SIGQUIT"  , "C-µ to kill a process"         },
+   {  4, "SIGILL"   , "corrupted executable"          },
+   {  5, "SIGTRAP"  , "tracing/breakpoint"            },
+   {  6, "SIGABRT"  , "program controlled abort ()"   },
+   {  7, "SIGBUS"   , "unaddressable system bus"      },
+   {  8, "SIGFPE"   , "fatal arithmetic error"        },
+   {  9, "SIGKILL"  , "un-handlable termination"      },
+   { 10, "SIGUSR1"  , "user controlled"               },
+   { 11, "SIGSEGV"  , "segfault, bad memory access"   },
+   { 12, "SIGUSR2"  , "user controlled (daemon ping)" },
+   { 13, "SIGPIPE"  , "broken pipe for ipc"           },
+   { 14, "SIGALRM"  , "program controlled alarm ()"   },
+   { 15, "SIGTERM"  , "graceful termination"          },
+   { 16, "SIGSTK>"  , "stack fault on coprocessor"    },
+   { 17, "SIGCHLD"  , "child process died"            },
+   { 18, "SIGCONT"  , "restart a paused process"      },
+   { 19, "SIGSTOP"  , "un-handlable process pause"    },
+   { 20, "SIGTSTP"  , "C-z to pause a process"        },
+   { 21, "SIGTTIN"  , "terminal input required"       },
+   { 22, "SIGTTOU"  , "terminal output required"      },
+   { 23, "------"   , ""                              },
+   /*--, "123456789"  "123456789-123456789-123456789" */
+};
+
+
+
+/*====================------------------------------------====================*/
+/*===----                       signal catching                        ----===*/
+/*====================------------------------------------====================*/
+static void      o___CATCH___________________o (void) {;}
+
+
+void
+yexec__done        (int a_signal, siginfo_t *a_info, char *a_name, char *a_desc)
+{
+   DEBUG_YEXEC  yLOG_note  ("not set to bulletproof, so terminating");
+   if (f != NULL)  fclose (f);
+   f = NULL;
+   if (s_signaler != NULL)  s_signaler (a_signal, a_info, a_name, a_desc);
+   DEBUG_YEXEC  yLOGS_end   ();
+   exit(-1);
+   return 0;
+}
 
 void             /* [------] receive signals ---------------------------------*/
 yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
 {
    /*---(locals)-----------+-----+-----+-*/
+   char        rc          =    0;
+   char        x_looking   =    1;
    int         x_pid       = 0;
-   long        x_now       =    0;
-   tTIME      *x_broke     = NULL;
-   char        t           [LEN_TITLE] = "";
-   FILE       *f           = NULL;
+   char        t           [LEN_DESC]  = "";
+   char        x_recd      [LEN_HUND]  = "";
    int         status      = 0;
-   int         rc          = 0;
    char        rchar       = 0;
    /*---(prepare for logging)-------------------*/
-   x_pid     = getpid ();
-   x_now     = time (NULL);
-   x_broke   = localtime (&x_now);
-   strftime (t, LEN_TITLE, "%y.%m.%d.%H.%M.%S.%V", x_broke);
    if      (strlen (s_output) <= 0)            f = NULL;
    else if (strcmp (s_output, "stdsig") == 0)  f = fopen ("/tmp/signal.log"      , "at");
    else if (strcmp (s_output, "unit"  ) == 0)  f = fopen ("/tmp/signal_unit.log" , "at");
    else if (strcmp (s_output, "local" ) == 0)  f = fopen ("/tmp/signal_local.log", "at");
    else                                        f = fopen (s_output               , "at");
-   /*---(handle signals)------------------------*/
-   switch (a_signal) {
+   /*---(message)-------------------------------*/
+   x_pid     = getpid ();
+   if (a_signal > 0 && a_signal < MAX_SIGS) {
+      if (a_signal != SIGCHLD)  DEBUG_YEXEC  yLOG_complex ("SIGNAL", "%-7.7s (%2d) %s", s_sigs [a_signal].name, a_signal, s_sigs [a_signal].desc);
+      sprintf (t, "yexec  %-7.7s (%2d) %s", s_sigs [a_signal].name, a_signal, s_sigs [a_signal].desc);
+   } else {
+      sprintf (t, "yexec  ERROR   (%2d) signal number out-of-range", a_signal);
+   }
+   yEXEC_heartbeat (x_pid, 0, t, NULL, x_recd);
+   if (f != NULL) {
+      fprintf (f, "%s\n", x_recd);
+      fclose (f);
+      f = NULL;
+   }
+   if (a_signal < 0 || a_signal >= MAX_SIGS)   return;
+   /*---(children)------------------------------*/
+   if (x_looking)  switch (a_signal) {
    case  SIGCHLD:
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGHLD (%d) means child process died\n", t, x_now, x_pid, a_signal);
       DEBUG_YEXEC  yLOG_senter("sigchld");
       DEBUG_YEXEC  yLOG_spoint((void *) a_info);
       DEBUG_YEXEC  yLOG_svalue("pid"     , (int) a_info->si_pid);
@@ -48,68 +114,80 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
       DEBUG_YEXEC  yLOG_svalue("wait_rc" , rc);
       DEBUG_YEXEC  yLOG_snote ("done");
       DEBUG_YEXEC  yLOG_sexit ("sigchld");
-      break;
-   case  SIGHUP:
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGHUP MEANS REFRESH");
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGHUP  (%2d) means reload files, refresh data\n", t, x_now, x_pid, a_signal);
-      break;
-   case  SIGUSR1:
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGUSR1 means user message");
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGUSR1 (%2d) user controlled\n", t, x_now, x_pid, a_signal);
-      break;
-   case  SIGUSR2:
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGUSR2 means process ping");
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGUSR2 (%2d) user controlled, good as ping\n", t, x_now, x_pid, a_signal);
-      break;
-   case  SIGALRM:
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGALRM means using alarm ()");
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGALRM (%2d) user controlled alarm ()\n", t, x_now, x_pid, a_signal);
-      break;
-   case  SIGTERM:
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGTERM (%2d) means orderly shutdown\n", t, x_now, x_pid, a_signal);
-      if (s_bulletproof != 'y') {
-         DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGTERM means terminate daemon");
-         DEBUG_YEXEC  yLOGS_end   ();
-         fclose (f);
-         if (s_signaler != NULL)  s_signaler (a_signal, a_info, a_nada);
-         exit(-1);
-      }
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGTERM means terminate, but this one must not");
-      break;
-   case  SIGSEGV:
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGSEGV (%2d) segfault, illegal memory access\n", t, x_now, x_pid, a_signal);
-      if (s_bulletproof != 'y') {
-         DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGSEGV means daemon blew up");
-         DEBUG_YEXEC  yLOGS_end   ();
-         fclose (f);
-         if (s_signaler != NULL)  s_signaler (a_signal, a_info, a_nada);
-         exit(-1);
-      }
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGSEGV means terminate, but this one must not");
-      break;
-   case  SIGABRT:
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIGABRT (%2d) means termination from abort ()\n", t, x_now, x_pid, a_signal);
-      if (s_bulletproof != 'y') {
-         DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGABRT means daemon blew up");
-         DEBUG_YEXEC  yLOGS_end   ();
-         fclose (f);
-         if (s_signaler != NULL)  s_signaler (a_signal, a_info, a_nada);
-         exit(-1);
-      }
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "SIGABRT means terminate, but this one must not");
-      break;
-   default:
-      DEBUG_YEXEC  yLOG_info  ("SIGNAL", "UNKNOWN, signal received, but not handled");
-      if (f != NULL)  fprintf (f, "%-20s  %-10ld  %-6d  yexec  SIG???? (%2d) unknown signal\n", t, x_now, x_pid, a_signal);
+      x_looking = 0;
       break;
    }
-   /*---(close logging)-------------------------*/
-   if (f != NULL)  fclose (f);
+   /*---(user/config)---------------------------*/
+   if (x_looking)  switch (a_signal) {
+   case  SIGHUP:
+      x_looking = 0;
+      break;
+   case  SIGUSR1:
+      x_looking = 0;
+      break;
+   case  SIGUSR2:
+      x_looking = 0;
+      break;
+   case  SIGALRM:
+      x_looking = 0;
+      break;
+   }
+   /*---(baddies)-------------------------------*/
+   if (x_looking)  switch (a_signal) {
+   case  SIGTERM:
+      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      x_looking = 0;
+      break;
+   case  SIGSEGV:
+      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      x_looking = 0;
+      break;
+   case  SIGABRT:
+      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      x_looking = 0;
+      break;
+   case  SIGINT :
+      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      x_looking = 0;
+      break;
+   case  SIGQUIT:
+      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      x_looking = 0;
+      break;
+   }
+   /*---(job control)---------------------------*/
+   if (x_looking)  switch (a_signal) {
+   case  SIGTSTP:
+      x_looking = 0;
+      break;
+   case  SIGCONT:
+      x_looking = 0;
+      break;
+   }
+   /*---(catch all)-----------------------------*/
+   /*> if (x_looking) {                                                                                                              <* 
+    *>    DEBUG_YEXEC  yLOG_info  ("SIGNAL", "UNKNOWN, signal received, but not handled");                                           <* 
+    *>    if (f != NULL)  fprintf (f, "%-20.20s  %-10ld  %-6d  yexec  SIG???? (%2d) unknown signal\n", t, x_now, x_pid, a_signal);   <* 
+    *>    x_looking = 0;                                                                                                             <* 
+    *> }                                                                                                                             <*/
    /*---(call local support)--------------------*/
-   if (s_signaler != NULL)  s_signaler (a_signal, a_info, a_nada);
+   if (s_signaler != NULL)  s_signaler (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+   /*---(re-handle)-----------------------------*/
+   switch (a_signal) {
+   case  SIGTSTP:
+      kill (x_pid, SIGSTOP);
+      break;
+   }
    /*---(complete)------------------------------*/
    return;
 }
+
+
+
+/*====================------------------------------------====================*/
+/*===----                       signal setting                         ----===*/
+/*====================------------------------------------====================*/
+static void      o___SET_____________________o (void) {;}
 
 char
 yexec__signal      (char *a_terse, char *a_desc, int a_signal, char a_action)
@@ -182,20 +260,19 @@ yEXEC_signal       (char a_bulletproof, char a_interactive, char a_children, voi
    /*---(keyboard)-----------------------*/
    DEBUG_YEXEC  yLOG_note  ("keyboard  : INT, TSTP, QUIT, CONT, TTIN, TTOU");
    if (s_interactive != 'y') {
-      yexec__ignore  ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
       yexec__ignore  ("SIGTSTP", "keyboard stop (C-z)"      , SIGTSTP);
+      yexec__ignore  ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
       yexec__ignore  ("SIGQUIT", "keyboard quit (C-µ)"      , SIGQUIT);
-      yexec__ignore  ("SIGCONT", "keyboard continue"        , SIGCONT);
       yexec__ignore  ("SIGTTIN", "terminal input"           , SIGTTIN);
       yexec__ignore  ("SIGTTOU", "terminal output"          , SIGTTOU);
    } else {
-      yexec__default ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
-      yexec__default ("SIGTSTP", "keyboard stop (C-z)"      , SIGTSTP);
-      yexec__default ("SIGQUIT", "keyboard quit (C-µ)"      , SIGQUIT);
-      yexec__default ("SIGCONT", "keyboard continue"        , SIGCONT);
+      yexec__custom  ("SIGTSTP", "keyboard stop (C-z)"      , SIGTSTP);
+      yexec__custom  ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
+      yexec__custom  ("SIGQUIT", "keyboard quit (C-µ)"      , SIGQUIT);
       yexec__default ("SIGTTIN", "terminal input"           , SIGTTIN);
       yexec__default ("SIGTTOU", "terminal output"          , SIGTTOU);
    }
+   yexec__custom  ("SIGCONT", "keyboard continue"        , SIGCONT);
    /*---(children)-----------------------*/
    DEBUG_YEXEC  yLOG_note  ("children  : CHLD");
    if (s_children != 'y' && s_children != 'a') {
@@ -219,6 +296,13 @@ yEXEC_signal       (char a_bulletproof, char a_interactive, char a_children, voi
    return 0;
 }
 
+
+
+/*====================------------------------------------====================*/
+/*===----                       signal checking                        ----===*/
+/*====================------------------------------------====================*/
+static void      o___CHECK___________________o (void) {;}
+
 int
 yEXEC_signal_log        (char *a_name, int n, char *a_recd)
 {
@@ -240,10 +324,13 @@ yEXEC_signal_log        (char *a_name, int n, char *a_recd)
    /*---(read records)-------------------*/
    while (1) {
       fgets (t, LEN_RECD, f);
-      if (feof (f))  break;
+      if (c != 0 && feof (f))  break;
+      /*> printf ("%2d[%s]\n", strlen (t), t);                                        <*/
       if (n <  0 && a_recd != NULL)  strlcpy (a_recd, t, LEN_RECD);
       if (c == n && a_recd != NULL)  strlcpy (a_recd, t, LEN_RECD);
       ++c;
+      if (feof (f))  break;
+
    }
    /*---(clean record)-------------------*/
    if (a_recd != NULL) {
@@ -285,6 +372,10 @@ yexec_sign__unit        (char *a_question, int n)
    else if (strcmp (a_question, "local"         )  == 0) {
       c = yEXEC_signal_log ("local", n, t);
       snprintf (unit_answer, LEN_RECD, "SIGN local  (%2d) : %3d  %2d[%.70s]", n, c, strlen (t), t);
+   }
+   else if (strcmp (a_question, "ticker"        )  == 0) {
+      c = yEXEC_signal_log ("/tmp/unit_ticker.txt", 0, t);
+      snprintf (unit_answer, LEN_RECD, "SIGN ticker      : %3d  %2d[%.70s]", c, strlen (t), t);
    }
    else if (strcmp (a_question, "settings"      )  == 0) {
       c = yEXEC_signal_log ("local", n, t);
