@@ -56,6 +56,9 @@ typedef const  int       cint;
 typedef const  long      clong;
 typedef const  char      cchar;
 
+typedef struct passwd    tPASSWD;
+typedef struct spwd      tSHADOW;
+
 
 #define     YEXEC_NONE     ""
 
@@ -111,14 +114,24 @@ char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 char        yEXEC_term              (const char *a_func, const int a_exit);
 
 char        yEXEC_signal            (char a_bulletproof, char a_interactive, char a_children, void *a_signaler, char *a_output);
-int         yEXEC_signal_log        (char *a_name, int n, char *a_recd);
+int         yEXEC_file_verify       (char *a_name, int n, char *a_recd);
 
 char        yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat);
 char        yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir);
 char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
 char        yEXEC_daemon            (int a_logger, int *a_rpid);
-char        yEXEC_tty_close         (int *a_fd);
+
+
+char        yEXEC_tty_valid         (char *a_dev);
 char        yEXEC_tty_open          (char *a_dev, int *a_fd, char a_std, char a_keep);
+char        yEXEC_tty_close         (int *a_fd);
+char        yEXEC_tty_noecho        (int a_fd);
+char        yEXEC_tty_clear         (int a_fd);
+char        yEXEC_tty_user          (char *a_user, char a_rotate, char *a_true);
+char        yEXEC_tty_password      (char *a_user, char *a_pass);
+
+char*       yEXEC_challenge         (int a_seed, char *a_challenge);
+char        yEXEC_response          (char *a_response, char *a_phase, char *a_judgement, char *a_position, char *a_user);
 
 
 

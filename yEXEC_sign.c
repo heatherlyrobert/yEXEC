@@ -164,12 +164,6 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
       x_looking = 0;
       break;
    }
-   /*---(catch all)-----------------------------*/
-   /*> if (x_looking) {                                                                                                              <* 
-    *>    DEBUG_YEXEC  yLOG_info  ("SIGNAL", "UNKNOWN, signal received, but not handled");                                           <* 
-    *>    if (f != NULL)  fprintf (f, "%-20.20s  %-10ld  %-6d  yexec  SIG???? (%2d) unknown signal\n", t, x_now, x_pid, a_signal);   <* 
-    *>    x_looking = 0;                                                                                                             <* 
-    *> }                                                                                                                             <*/
    /*---(call local support)--------------------*/
    if (s_signaler != NULL)  s_signaler (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
    /*---(re-handle)-----------------------------*/
@@ -255,7 +249,7 @@ yEXEC_signal       (char a_bulletproof, char a_interactive, char a_children, voi
    s_signaler   = a_signaler;
    DEBUG_YEXEC  yLOG_point  ("s_signaler", s_signaler);
    /*---(output)-------------------------*/
-   if (s_output == NULL)  strlcpy (s_output, ""      , LEN_RECD);
+   if (a_output == NULL)  strlcpy (s_output, ""      , LEN_RECD);
    else                   strlcpy (s_output, a_output, LEN_RECD);
    /*---(keyboard)-----------------------*/
    DEBUG_YEXEC  yLOG_note  ("keyboard  : INT, TSTP, QUIT, CONT, TTIN, TTOU");
@@ -304,7 +298,7 @@ yEXEC_signal       (char a_bulletproof, char a_interactive, char a_children, voi
 static void      o___CHECK___________________o (void) {;}
 
 int
-yEXEC_signal_log        (char *a_name, int n, char *a_recd)
+yEXEC_file_verify       (char *a_name, int n, char *a_recd)
 {
    char        rce         =  -10;
    FILE       *f           = NULL;
@@ -332,6 +326,7 @@ yEXEC_signal_log        (char *a_name, int n, char *a_recd)
       if (feof (f))  break;
 
    }
+   if (c > 999)  c = 999;
    /*---(clean record)-------------------*/
    if (a_recd != NULL) {
       x_len = strlen (a_recd);
@@ -362,23 +357,23 @@ yexec_sign__unit        (char *a_question, int n)
    strlcpy  (unit_answer, "SIGN             : question not understood", LEN_RECD);
    /*---(crontab name)-------------------*/
    if      (strcmp (a_question, "signal"        )  == 0) {
-      yEXEC_signal_log ("stdsig", n, t);
+      yEXEC_file_verify ("stdsig", n, t);
       snprintf (unit_answer, LEN_RECD, "SIGN signal (%2d) : %3d  %2d[%.70s]", n, c, strlen (t), t);
    }
    else if (strcmp (a_question, "unit"          )  == 0) {
-      c = yEXEC_signal_log ("unit", n, t);
+      c = yEXEC_file_verify ("unit", n, t);
       snprintf (unit_answer, LEN_RECD, "SIGN unit   (%2d) : %3d  %2d[%.70s]", n, c, strlen (t), t);
    }
    else if (strcmp (a_question, "local"         )  == 0) {
-      c = yEXEC_signal_log ("local", n, t);
+      c = yEXEC_file_verify ("local", n, t);
       snprintf (unit_answer, LEN_RECD, "SIGN local  (%2d) : %3d  %2d[%.70s]", n, c, strlen (t), t);
    }
    else if (strcmp (a_question, "ticker"        )  == 0) {
-      c = yEXEC_signal_log ("/tmp/unit_ticker.txt", 0, t);
+      c = yEXEC_file_verify ("/tmp/unit_ticker.txt", 0, t);
       snprintf (unit_answer, LEN_RECD, "SIGN ticker      : %3d  %2d[%.70s]", c, strlen (t), t);
    }
    else if (strcmp (a_question, "settings"      )  == 0) {
-      c = yEXEC_signal_log ("local", n, t);
+      c = yEXEC_file_verify ("local", n, t);
       snprintf (unit_answer, LEN_RECD, "SIGN settings    : bullet %c, inter  %c, child  %c, handle %-10p, output %s", s_bulletproof, s_interactive, s_children, s_signaler, s_output);
    }
    /*---(complete)-----------------------*/

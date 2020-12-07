@@ -33,8 +33,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.1-, prepping for eos, nyx, hypnos, and hannibal"
-#define     P_VERNUM    "1.1i"
-#define     P_VERTXT    "further cleaned signals and built reference table to save memory"
+#define     P_VERNUM    "1.1j"
+#define     P_VERTXT    "fully built and tested yEXEC_challenge and yEXEC_response"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -73,8 +73,10 @@
 #include <dirent.h>
 
 /*---(users)--------------------*/
+#include <unistd.h>                 /* stat(),crpyt()                      */
 #include <pwd.h>               /* getpwuid, getpwnam                          */
 #include <grp.h>               /* initgroups                                  */
+#include <shadow.h>                 /* LINIX     password shadow access    */
 
 #include <errno.h>             /* standard errors                             */
 
@@ -128,6 +130,9 @@ char*       yexec_spec__unit        (char *a_question, char *a_text);
 char*       yexec_proc__unit        (char *a_question, int a_num);
 char        yexec_proc__unit_read   (void);
 
+char        yexec_tty__useradd      (cchar *a_name, cchar *a_pass);
+char        yexec_tty__userdel      (cchar *a_name);
+char*       yexec_tty__unit         (char *a_question);
 
 
 #endif
