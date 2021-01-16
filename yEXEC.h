@@ -66,8 +66,12 @@ typedef struct spwd      tSHADOW;
 #define     YEXEC_HARD     'y'
 
 #define     YEXEC_NO       'n'
+#define     YEXEC_WAIT     'w'
 #define     YEXEC_YES      'y'
-#define     YEXEC_ALL      'a'
+
+#define     YEXEC_IGNORED  'i'
+#define     YEXEC_DEFAULT  'd'
+#define     YEXEC_TRAPPED  't'
 
 #define     YEXEC_BASH     'b'
 #define     YEXEC_DASH     'd'
@@ -76,7 +80,7 @@ typedef struct spwd      tSHADOW;
 #define     YEXEC_FULL     'f'
 
 #define     YEXEC_FORK     'y'
-#define     YEXEC_NOFORK   '-'
+#define     YEXEC_REPLACE  '-'
 
 #define     YEXEC_ALREADY  'A'
 #define     YEXEC_NOSUCH   '#'
@@ -93,6 +97,11 @@ typedef struct spwd      tSHADOW;
 #define     YEXEC_FAILURE  'F'
 #define     YEXEC_WARNING  'w'
 
+#define     YEXEC_NOCHMOD  '{'
+#define     YEXEC_BADLOG   '|'
+#define     YEXEC_NOTEXEC  '}'
+#define     YEXEC_NOPERM   '~'
+
 #define     YEXEC_UNIT     "/tmp/yEXEC_unit.execution_feedback"
 
 #define     YEXEC_STDALL   'a'
@@ -103,21 +112,26 @@ typedef struct spwd      tSHADOW;
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
 char*       yEXEC_version           (void);
 
-int         yEXEC_args              (char *a_src);
 char        yEXEC_runable           (char *a_title, char *a_user, char  *a_cmd, char a_path);
-int         yEXEC_run               (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
-char        yEXEC_check             (char *a_title, int a_rpid, int *rc);
+int         yEXEC_quick             (char *a_cmd);
+int         yEXEC_run               (char *a_title, char *a_user, char *a_cmd);
+int         yEXEC_tight             (char *a_title, char *a_user, char *a_cmd);
+int         yEXEC_full              (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
+char        yEXEC_verify            (char *a_title, int a_rpid, int *rc);
+char        yEXEC_check             (int a_rpid);
 char        yEXEC_find              (char *a_name, int *a_rpid);
 char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);
 char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
 char        yEXEC_term              (const char *a_func, const int a_exit);
 
-char        yEXEC_signal            (char a_bulletproof, char a_interactive, char a_children, void *a_signaler, char *a_output);
+char        yEXEC_signal            (char a_tough, char a_inter, char a_child, void *a_signaler, char *a_output);
+char        yEXEC_sighard           (void);
+char        yEXEC_sigsoft           (void);
 int         yEXEC_file_verify       (char *a_name, int n, char *a_recd);
 
 char        yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat);
-char        yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir);
+char        yEXEC_userdata          (char *a_user, int *a_uid, int *a_gid, char *a_dir, char *a_shell);
 char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
 char        yEXEC_daemon            (int a_logger, int *a_rpid);
 
@@ -127,11 +141,11 @@ char        yEXEC_tty_open          (char *a_dev, int *a_fd, char a_std, char a_
 char        yEXEC_tty_close         (int *a_fd);
 char        yEXEC_tty_noecho        (int a_fd);
 char        yEXEC_tty_clear         (int a_fd);
-char        yEXEC_tty_user          (char *a_user, char a_rotate, char *a_true);
-char        yEXEC_tty_password      (char *a_user, char *a_pass);
+/*> char        yEXEC_tty_user          (char *a_user, char a_rotate, char *a_true);   <*/
+/*> char        yEXEC_tty_password      (char *a_user, char *a_pass);                 <*/
 
-char*       yEXEC_challenge         (int a_seed, char *a_challenge);
-char        yEXEC_response          (char *a_response, char *a_phase, char *a_judgement, char *a_position, char *a_user);
+/*> char*       yEXEC_challenge         (int a_seed, char *a_challenge);              <*/
+/*> char        yEXEC_response          (char *a_response, char *a_phase, char *a_judgement, char *a_position, char *a_user);   <*/
 
 
 

@@ -33,8 +33,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.1-, prepping for eos, nyx, hypnos, and hannibal"
-#define     P_VERNUM    "1.1j"
-#define     P_VERTXT    "fully built and tested yEXEC_challenge and yEXEC_response"
+#define     P_VERNUM    "1.1l"
+#define     P_VERTXT    "fixed logging file permission issue fataling non-privilaged launches"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -127,12 +127,17 @@ char        yexec__unit_end         (void);
 char        yexec__unit_heartbeat   (char *a_file, char *a_heartbeat);
 char*       yexec_spec__unit        (char *a_question, char *a_text);
 
+char        yexec__command          (void);
+char        yexec__setpath          (char a_path);
+char        yexec__onpath           (void);
 char*       yexec_proc__unit        (char *a_question, int a_num);
-char        yexec_proc__unit_read   (void);
+char        yexec_proc__unit_read   (char a_type, char *a_info);
 
-char        yexec_tty__useradd      (cchar *a_name, cchar *a_pass);
-char        yexec_tty__userdel      (cchar *a_name);
 char*       yexec_tty__unit         (char *a_question);
+
+char        yexec_unpoint           (char *a_ptr []);
+char        yexec_arg               (char *a_src);
+char        yexec_env               (char *a_src);
 
 
 #endif

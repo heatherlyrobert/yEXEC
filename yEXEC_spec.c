@@ -106,7 +106,7 @@ yexec__unit_heartbeat   (char *a_file, char *a_heartbeat)
 static void      o___INFO____________________o (void) {;}
 
 char         /*--> verify a user name ----------------------------------------*/
-yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir)
+yEXEC_userdata          (char *a_user, int *a_uid, int *a_gid, char *a_dir, char *a_shell)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
@@ -116,10 +116,11 @@ yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir)
    tPASSWD    *x_pass      = NULL;
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
-   /*---(prepare)------------------------*/
-   if (a_uid != NULL)  *a_uid = -1;
-   if (a_gid != NULL)  *a_gid = -1;
-   strcpy (a_dir, "");
+   /*---(default save backs)-------------*/
+   if (a_uid   != NULL)  *a_uid = -1;
+   if (a_gid   != NULL)  *a_gid = -1;
+   if (a_dir   != NULL)  strcpy (a_dir, "");
+   if (a_shell != NULL)  strcpy (a_shell, "");
    /*---(defense)------------------------*/
    DEBUG_YEXEC  yLOG_point   ("a_user"    , a_user);
    --rce;  if (a_user == NULL) {
@@ -157,11 +158,13 @@ yEXEC_user              (char *a_user, int *a_uid, int *a_gid, char *a_dir)
    }
    /*---(save)---------------------------*/
    DEBUG_YEXEC  yLOG_value   ("uid"       , x_pass->pw_uid);
-   if (a_uid != NULL)  *a_uid = x_pass->pw_uid;
+   if (a_uid   != NULL)  *a_uid = x_pass->pw_uid;
    DEBUG_YEXEC  yLOG_value   ("gid"       , x_pass->pw_gid);
-   if (a_gid != NULL)  *a_gid = x_pass->pw_gid;
+   if (a_gid   != NULL)  *a_gid = x_pass->pw_gid;
    DEBUG_YEXEC  yLOG_info    ("dir"       , x_pass->pw_dir);
-   strcpy (a_dir, x_pass->pw_dir);
+   if (a_dir   != NULL)  strcpy (a_dir, x_pass->pw_dir);
+   DEBUG_YEXEC  yLOG_info    ("shell"     , x_pass->pw_shell);
+   if (a_shell != NULL)  strcpy (a_shell, x_pass->pw_shell);
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
    return 0;
@@ -176,7 +179,7 @@ yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char
    int         x_uid       =    0;
    tPASSWD    *x_pass      = NULL;
    int         x_len       =    0;
-   char        x_root      =  'n';
+   char        x_root      =  '-';
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
    /*---(get real uid)-------------------*/
@@ -380,6 +383,52 @@ yEXEC_daemon       (int a_logger, int *a_rpid)
    if (a_rpid != NULL)  *a_rpid = x_rpid;
    /*---(complete)-----------------------*/
    DEBUG_YEXEC  yLOG_exit  (__FUNCTION__);
+   return 0;
+}
+
+char
+yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   int         i           =    0;
+   int         x_max       =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(get max)------------------------*/
+   for (i = 0; i < a_argc; ++i) {
+      DEBUG_YEXEC  yLOG_sint    (i);
+      DEBUG_YEXEC  yLOG_snote   (a_argv [i]);
+      DEBUG_YEXEC  yLOG_sint    (strlen (a_argv [i]));
+      x_max += strlen (a_argv [i]) + 1;
+      DEBUG_YEXEC  yLOG_sint    (x_max);
+   }
+   DEBUG_YEXEC  yLOG_sint    (x_max);
+   if (a_max != NULL)  *a_max = x_max;
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   return 0;
+}
+
+char
+yEXEC_rename            (char *a_mem, char *a_name, int a_max)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   int         x_len       =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (a_name);
+   if (a_name == NULL) {
+      DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   }
+   DEBUG_YEXEC  yLOG_snote   (a_name);
+   x_len = strlen (a_name);
+   DEBUG_YEXEC  yLOG_sint    (x_len);
+   /*---(save new)-----------------------*/
+   memset (a_mem, 0, a_max);
+   strlcpy (a_mem, a_name, a_max - 1);
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
    return 0;
 }
 

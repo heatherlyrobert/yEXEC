@@ -3,15 +3,31 @@
 #include   "yEXEC_priv.h"
 
 
+/*
+ *  metis § wn8-- § permission and log issues written to console/syslog
+ *  metis § wn1-- § do not fail if exec feedback can not be written
+ *  metis § dw2-- § change importance to match metis codes
+ *  metis § ww1-- § add metis duration code to duration values
+ *
+ *
+ *
+ */
 
 #define     MAX_ARGV    20
 
 
-/*---(globals)----------+-----------+----*/
-char        s_cmd       [LEN_RECD];
+/*---(arguments)-------------------------*/
+char        s_arg       [LEN_RECD];
+char        s_argw      [LEN_RECD];
+char        s_argf      [LEN_RECD];
 char       *s_argv      [MAX_ARGV];
 int         s_argc      = 0;
-char        s_envp      [10][200];
+/*---(environment)-----------------------*/
+char        s_env       [LEN_RECD];
+char        s_envw      [LEN_RECD];
+char        s_envf      [LEN_RECD];
+char       *s_envp      [MAX_ARGV];
+int         s_envc      = 0;
 
 int         s_uid       =    0;
 int         s_gid       =    0;
@@ -33,103 +49,42 @@ char       *s_path      = NULL;
 /*====================------------------------------------====================*/
 static void      o___BASICS__________________o (void) {;}
 
-int          /*--> parse command line ----------------------------------------*/
-yEXEC_args              (char *a_src)
+char
+yexec_unpoint           (char *a_ptr [])
 {
-   /*---(defenses)-----------------------*/
-   if (a_src == NULL) return -1;
    /*---(locals)-------------------------*/
    char        rce         =  -10;
-   int         x_len       =    0;          /* source length                  */
-   int         n           =    0;          /* maximum source length          */
-   int         c           =    0;          /* argument count                 */
-   int         i           =    0;          /* position count                 */
-   char        x_gap       =  'y';
-   char        x_dquote    =  '-';
-   int         x_squote    =   -1;
-   char       *x_dir       = NULL;
-   /*---(header)-------------------------*/
-   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
-   /*---(prepare)------------------------*/
-   strcpy (s_cmd, "");
-   for (i = 0; i < MAX_ARGV; ++i)  s_argv [i] = NULL;
-   /*---(defense)------------------------*/
-   DEBUG_YEXEC  yLOG_point   ("a_src"     , a_src);
-   --rce;  if (a_src == NULL) {
-      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
-      return rce;
+   int         i           =    0;
+   int         j           =    0;
+   char       *x_cur       = NULL;
+   for (i = 0; i < LEN_LABEL; ++i) {
+      x_cur = a_ptr [i];
+      printf ("%02d) %-10.10p   ", i, a_ptr [i]);
+      if (a_ptr [i] == NULL)  {
+         printf ("--[]\n");
+         continue;
+      }
+      printf ("%02d[%s]\n", strlen (x_cur), x_cur);
+      /*> j = 0;                                                                      <* 
+       *> while (x_cur + j++ != '\0') {                                               <* 
+       *>    printf ("%c", x_cur + j);                                                <* 
+       *> }                                                                           <* 
+       *> printf ("¤");                                                               <*/
    }
-   DEBUG_YEXEC  yLOG_info    ("a_src"     , a_src);
-   x_len = strlen (a_src);
-   DEBUG_YEXEC  yLOG_value   ("x_len"     , x_len);
-   /*---(prepare)------------------------*/
-   strncpy (s_cmd, a_src, LEN_RECD - 1);
-   n = strlen (s_cmd);
-   DEBUG_YEXEC  yLOG_value   ("n"         , n);
-   if (n < x_len)   DEBUG_YEXEC  yLOG_note    ("WARNING, truncated source");
-   /*---(process string)-----------------*/
-   for (i = 0; i < n && c < MAX_ARGV; ++i) {
-      /*---(header)----------------------*/
-      /*> DEBUG_YEXEC  yLOG_complex ("positon"   , "s_cmd [%3d]=%c/%03d, c=%3d", i, s_cmd [i], s_cmd [i], c);   <*/
-      /*---(dquote markers)--------------*/
-      if (s_cmd [i] == '"') {
-         if (i < x_squote) {
-            /*> DEBUG_YEXEC  yLOG_note    ("embedded double quote");                  <*/
-         } else if (x_dquote == '-')  {
-            /*> DEBUG_YEXEC  yLOG_note    ("openning double quote");                  <*/
-            x_dquote = 'y'; 
-            s_argv [c++] = s_cmd + i;
-         } else {
-            /*> DEBUG_YEXEC  yLOG_note    ("closing double quote");                   <*/
-            x_dquote = '-';
-         }
-         continue;
-      }
-      /*---(inside dquotes)--------------*/
-      if (x_dquote == 'y') {
-         /*> DEBUG_YEXEC  yLOG_note    ("double quoted (protected)");                 <*/
-         continue;
-      }
-      /*---(squote marker)---------------*/
-      if (s_cmd [i] == '\'') {
-         if (i >  x_squote) {
-            /*> DEBUG_YEXEC  yLOG_note    ("openning single quote");                  <*/
-            x_squote = i + 2;
-         }
-         if (i == x_squote) {
-            /*> DEBUG_YEXEC  yLOG_note    ("closing single quote");                   <*/
-         }
-      }
-      /*---(fill gaps)-------------------*/
-      if (s_cmd [i] == ' ' || s_cmd [i] == '\t')  {
-         if (i <= x_squote) {
-            /*> DEBUG_YEXEC  yLOG_note    ("protected by sinble quoting");            <*/
-            continue;
-         } else {
-            /*> DEBUG_YEXEC  yLOG_note    ("unquoted gap marker (nulling)");          <*/
-            s_cmd [i] = '\0';
-            x_gap     = 'y';
-         }
-         continue;
-      }
-      /*---(find changes)----------------*/
-      if (x_gap == 'y') {
-         s_argv [c++] = s_cmd + i;
-         x_gap = '-';
-      }
-      /*---(done)------------------------*/
-   }
-   /*---(update)-------------------------*/
-   s_argc = c;
-   /*---(find base)----------------------*/
-   x_dir = strrchr (s_argv [0], '/');
-   DEBUG_YEXEC  yLOG_point   ("path mark" , x_dir);
-   if (x_dir == NULL)  i = 0;
-   else                i = x_dir - s_argv [0] + 1;
-   DEBUG_YEXEC  yLOG_point   ("base pos"  , i);
-   /*---(complete)-----------------------*/
-   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
-   return i;
+   printf ("\n");
+   return 0;
+}
+
+char
+yexec_arg               (char *a_src)
+{
+   return strlparse (a_src, s_argw, s_argf, MAX_ARGV, &s_argc, s_argv, LEN_RECD);
+}
+
+char
+yexec_env               (char *a_src)
+{
+   return strlparse (a_src, s_envw, s_envf, MAX_ARGV, &s_envc, s_envp, LEN_RECD);
 }
 
 char       /*--> verify file existance ---------------------------------------*/
@@ -183,6 +138,32 @@ yexec__command          (void)
    DEBUG_YEXEC  yLOG_note    ("permissions show executable");
    /*---(complete)-----------------------*/
    DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return 0;
+}
+
+char       /*--> verify file existance ---------------------------------------*/
+yexec__setpath          (char a_path)
+{
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(set path)-----------------------*/
+   DEBUG_YEXEC  yLOG_schar   (a_path);
+   switch (a_path) {
+   case YEXEC_TIGHT :
+      DEBUG_YEXEC  yLOG_snote   ("tight path");
+      s_path  = s_tight;
+      break;
+   case YEXEC_FULL  :
+      DEBUG_YEXEC  yLOG_snote   ("full path");
+      s_path  = s_full;
+      break;
+   default          :
+      DEBUG_YEXEC  yLOG_snote   ("unknown path, set to tight");
+      s_path  = s_tight;
+      break;
+   }
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
    return 0;
 }
 
@@ -247,7 +228,7 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
       return rce;
    }
    /*---(get user information)-----------*/
-   rc = yEXEC_user (a_user, &s_uid, &s_gid, s_home);
+   rc = yEXEC_userdata (a_user, &s_uid, &s_gid, s_home, NULL);
    DEBUG_YEXEC  yLOG_value   ("user"      , rc);
    --rce;  if (rc < 0) {
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
@@ -299,7 +280,7 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
       return rce;
    }
    /*---(parse argv)----------------------------*/
-   rc = yEXEC_args (a_cmd);
+   rc = yexec_arg (a_cmd);
    DEBUG_YEXEC  yLOG_value   ("parse"     , rc);
    --rce;  if (rc < 0) {
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
@@ -320,13 +301,11 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
       return rce;
    }
    /*---(check output)--------------------------*/
-   if      (a_output == NULL)         strcpy (s_output, "/dev/null");
-   else if (strlen (a_output) <= 0)   strcpy (s_output, "/dev/null");
+   if      (a_output == NULL)         strcpy (s_output, YEXEC_UNIT);
+   else if (strlen (a_output) <= 0)   strcpy (s_output, YEXEC_UNIT);
    else                               strcpy (s_output, a_output);
-   f = fopen (s_output, "a");
-   if (f == NULL)  {
-      strcpy (s_output, "/dev/null");
-   }
+   f = fopen (s_output, "at");
+   if (f == NULL)                     strcpy (s_output, YEXEC_UNIT);
    fclose (f);
    DEBUG_YEXEC  yLOG_info    ("s_output"  , s_output);
    /*---(complete)-----------------------*/
@@ -341,7 +320,6 @@ yexec__fork             (char *a_title, char a_fork)
    int         rc          =    0;
    int         x_rpid      =    0;
    int         i           =    0;
-   int         fd          =    0;
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_senter ("RUN");
    DEBUG_YEXEC  yLOG_snote (a_title);
@@ -368,24 +346,19 @@ yexec__fork             (char *a_title, char a_fork)
       DEBUG_YEXEC  yLOG_snote  ("closing logger");
       DEBUG_YEXEC  yLOGS_end   ();   /* stop logging so the next can take over */
    }
-   /*---(close off all descriptors)---*/
-   for (i = 0; i < 256; ++i)   close (i);
-   /*---(std fds to the bitbucket)---*/
-   fd = open ("/dev/null", O_RDWR);
-   dup2 (fd, 0);
-   dup2 (fd, 1);
-   dup2 (fd, 2);
-   close (fd);
    /*---(complete)-----------------------*/
    return 0;
 }
 
 char
-yexec__environ          (FILE *a_file, char *a_user)
+yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
 {
    /*---(locals)-----------+-----+-----+-*/
    int         rce         =  -10;
    int         rc          =    0;
+   int         i           =    0;
+   int         fd          =    0;
+   char        t           [LEN_RECD]  = "";
    /*---(set user)-----------------------*/
    rc = setenv ("USER",  a_user, 1);
    --rce;  if (rc <  0) {
@@ -393,7 +366,9 @@ yexec__environ          (FILE *a_file, char *a_user)
       return rce;
    }
    fprintf  (a_file, "USER set  : %s\n", a_user);
-   snprintf (s_envp [0], 200, "USER=%s",   a_user);
+   snprintf (t, LEN_LONG, "USER=%s",   a_user);
+   strlcat (s_env, t, LEN_RECD);
+   /*> s_envp [0] = s_envi [0][0];                                                    <*/
    /*---(set home)-----------------------*/
    rc = setenv ("HOME",  s_home,  1);
    --rce;  if (rc <  0) {
@@ -401,7 +376,9 @@ yexec__environ          (FILE *a_file, char *a_user)
       return rce;
    }
    fprintf  (a_file, "HOME set  : %s\n", s_home);
-   snprintf (s_envp [1], 200, "HOME=%s",   s_home);
+   snprintf (t, LEN_LONG, "HOME=%s",   s_home);
+   strlcat (s_env, t, LEN_RECD);
+   /*> s_envp [1] = s_envi [1][0];                                                    <*/
    /*---(set shell)----------------------*/
    rc = setenv ("SHELL", s_shell, 1);
    --rce;  if (rc <  0) {
@@ -409,7 +386,9 @@ yexec__environ          (FILE *a_file, char *a_user)
       return rce;
    }
    fprintf  (a_file, "SHELL set : %s\n", s_shell);
-   snprintf (s_envp [2], 200, "SHELL=%s",  s_shell);
+   snprintf (t, LEN_LONG, "SHELL=%s",  s_shell);
+   strlcat (s_env, t, LEN_RECD);
+   /*> s_envp [2] = s_envi [2][0];                                                    <*/
    /*---(set path)-----------------------*/
    rc = setenv ("PATH",  s_path, 1);
    --rce;  if (rc <  0) {
@@ -417,7 +396,9 @@ yexec__environ          (FILE *a_file, char *a_user)
       return rce;
    }
    fprintf  (a_file, "PATH set  : %s\n", s_path);
-   snprintf (s_envp [3], 200, "PATH=%s", s_path);
+   snprintf (t, LEN_LONG, "PATH=%s", s_path);
+   strlcat (s_env, t, LEN_RECD);
+   /*> s_envp [3] = s_envi [3][0];                                                    <*/
    /*---(set group)----------------------*/
    rc = initgroups (a_user, s_gid);
    --rce;  if (rc <  0) {
@@ -429,18 +410,22 @@ yexec__environ          (FILE *a_file, char *a_user)
       fprintf  (a_file, "FATAL, initgroups failed\n");
       return rce;
    }
-   snprintf  (s_envp [4], 200, "GID=%d", s_gid);
    fprintf   (a_file, "GID set   : %d\n", s_gid);
+   snprintf  (t, LEN_LONG, "GID=%d", s_gid);
+   strlcat (s_env, t, LEN_RECD);
+   /*> s_envp [4] = s_envi [4][0];                                                    <*/
    /*---(set uid)------------------------*/
    rc = setreuid (s_uid, s_uid);
    --rce;  if (rc <  0) {
-      fprintf  (a_file, "FATAL, initgroups failed\n");
+      fprintf  (a_file, "FATAL, setreuid failed\n");
       return rce;
    }
-   snprintf  (s_envp[5], 200, "UID=%d", s_uid);
    fprintf   (a_file, "UID set   : %d\n", s_uid);
-   /*---(finish enviroment)--------------*/
-   s_envp [6][0] = NULL;
+   snprintf  (t, LEN_LONG, "UID=%d", s_uid);
+   strlcat (s_env, t, LEN_RECD);
+   /*> s_envp [5] = s_envi [5][0];                                                    <*/
+   /*---(parse)--------------------------*/
+   yexec_env (s_env);
    /*---(set current dir)----------------*/
    rc = chdir (s_home);
    --rce;  if (rc <  0) {
@@ -448,6 +433,19 @@ yexec__environ          (FILE *a_file, char *a_user)
       return rce;
    }
    fprintf  (a_file, "chdir     : %s\n", s_home);
+   /*---(close off all descriptors)---*/
+   fflush   (a_out);
+   fclose   (a_out);
+   if (a_fork == YEXEC_FORK) {
+      for (i = 0; i < 256; ++i)   close (i);
+      fd = open ("/dev/null", O_RDWR);
+      dup2 (fd, 0);
+      dup2 (fd, 1);
+      dup2 (fd, 2);
+      close (fd);
+   } else {
+      for (i = 3; i < 256; ++i)   close (i);
+   }
    /*---(complete)-----------------------*/
    return 0;
 }
@@ -459,7 +457,7 @@ yEXEC_runable      (char *a_title, char *a_user, char  *a_cmd, char a_path)
 }
 
 int              /* [------] execute a specific command ----------------------*/
-yEXEC_run          (char *a_title, char *a_user, char  *a_cmd, char a_shell, char a_path, char a_fork, char *a_output)
+yEXEC_full         (char *a_title, char *a_user, char  *a_cmd, char a_shell, char a_path, char a_fork, char *a_output)
 {
    /*---(locals)-----------+-----------+-*/
    int         rce         =  -10;
@@ -467,69 +465,100 @@ yEXEC_run          (char *a_title, char *a_user, char  *a_cmd, char a_shell, cha
    int         x_rpid      =   -1;
    FILE       *f           = NULL;
    char        msg         [200];
-   long        now         =    0;
-   tTIME      *curr_time   = NULL;
    int         i           =    0;
+   /*> char       *x_arg       [LEN_LABEL] = { "/bin/sleep" , "2", NULL };            <*/
+   /*> char       *x_argv      [LEN_LABEL] = { "/bin/sleep", "1", "2", NULL };        <*/
+   char       *x_env       [LEN_LABEL] = { NULL , NULL };
    /*---(validate)-----------------------*/
    rc = yexec__validate (a_title, a_user, a_cmd, a_shell, a_path, a_output);
    if (rc < 0)        return rc;
    /*---(fork)---------------------------*/
+   /*> printf ("\n%-20.20s %-20.20s %s\n", a_title, a_user, a_cmd);                   <*/
+   /*> yexec_unpoint (x_argv);                                                        <*/
+   /*> yexec_unpoint (s_argv);                                                        <*/
    x_rpid = yexec__fork (a_title, a_fork);
    if (x_rpid != 0)   return x_rpid;
    /*---(output)-------------------------*/
-   f = fopen (s_output, "a");
+   rc = chmod (s_output, 0666);
+   if (rc < 0)  _exit (-YEXEC_NOCHMOD);
+   if (strcmp (s_output, YEXEC_UNIT) == 0)   f = fopen (s_output, "wt");
+   else                                      f = fopen (s_output, "at");
+   if (f == NULL)  _exit (-YEXEC_BADLOG);
    fprintf(f, "========================================================================begin===\n");
    /*---(get the date)----------------*/
-   now       = time      (NULL);
-   curr_time = localtime (&now);
-   strftime (msg, 50, "%Ss %Mm %Hh %dd %mm  %ww", curr_time);
+   yEXEC_heartbeat (getpid (), NULL, a_cmd, NULL, msg);
    fprintf  (f, "start     : %s\n",   msg);
    /*---(set up environment)-------------*/
-   rc = yexec__environ (f, a_user);
-   --rce;  if (rc < 0) {
-      fclose (f);
-      _exit (rce);    /* must use _exit to get out properly                       */
-   }
+   rc = yexec__environ (f, a_user, a_fork, f);
+   --rce;  if (rc < 0)   _exit (rce);    /* must use _exit to get out properly                       */
    /*---(try execve)----------------------------*/
+   f = fopen (s_output, "at");
+   if (f == NULL)  _exit (-YEXEC_NOPERM);
    fprintf   (f, "execve    : %s\n", a_cmd);
    fprintf   (f, "==========================================================================end===\n");
    fflush    (f);
    fclose    (f);
    /*> rc = execve (*s_argv, s_argv, s_envp);                                         <*/
-   rc = execve (*s_argv, s_argv, NULL  );
+   /*> rc = execve (s_argv [0], s_argv, s_envi);                                      <*/
+   /*> rc = execve (x_argv [0], x_argv, x_env);                                       <*/
+   /*> rc = execve (s_argv [0], s_argv, x_env);                                       <*/
+   rc = execve (s_argv [0], s_argv, s_envp);
    /*---(try execvp)----------------------------*/
-   f = fopen (s_output, "a");
-   fprintf   (f, "FAILED    : %s\n", strerror (errno));
+   f = fopen (s_output, "at");
+   if (f == NULL)  _exit (-YEXEC_NOPERM);
+   fprintf   (f, "FAILED execve (%d) %3d, %s\n", rc, errno, strerror (errno));
    fprintf   (f, "execvp    : %s\n", a_cmd);
    fprintf   (f, "==========================================================================end===\n");
    fflush    (f);
    fclose    (f);
    rc = execvp (*s_argv, s_argv);
    /*---(try execl)-----------------------------*/
-   f = fopen (s_output, "a");
-   fprintf   (f, "FAILED execvp, fallback...\n");
+   f = fopen (s_output, "at");
+   if (f == NULL)  _exit (-YEXEC_NOPERM);
+   fprintf   (f, "FAILED execvp, fallback (%d)...\n", rc);
    fprintf   (f, "execl     : %s\n", a_cmd);
    fprintf   (f, "==========================================================================end===\n");
    fflush    (f);
    fclose    (f);
    rc = execl (s_shell, s_shell, "-c", a_cmd, NULL, NULL);
    /*---(failure)-------------------------------*/
-   f = fopen (s_output, "a");
-   fprintf   (f, "FAILED execl, just won't run\n");
+   f = fopen (s_output, "at");
+   if (f == NULL)  _exit (-YEXEC_NOPERM);
+   fprintf   (f, "FAILED execl, just won't run (%d)\n", rc);
    fprintf   (f, "==========================================================================end===\n");
    fflush    (f);
    fclose    (f);
-   _exit (-3);    /* must use _exit to get out properly                       */
+   _exit (-YEXEC_NOTEXEC);    /* must use _exit to get out properly                       */
+}
+
+int
+yEXEC_run          (char *a_title, char *a_user, char *a_cmd)
+{
+   return yEXEC_full (a_title, a_user, a_cmd, YEXEC_DASH, YEXEC_FULL, YEXEC_FORK, YEXEC_UNIT);
+}
+
+int
+yEXEC_tight        (char *a_title, char *a_user, char *a_cmd)
+{
+   return yEXEC_full (a_title, a_user, a_cmd, YEXEC_DASH, YEXEC_TIGHT, YEXEC_FORK, YEXEC_UNIT);
+}
+
+int
+yEXEC_quick        (char *a_cmd)
+{
+   char        x_user      [LEN_LABEL] = "";
+   yEXEC_whoami (NULL, NULL, NULL, NULL, x_user, NULL);
+   return yEXEC_full ("quick", x_user, a_cmd, YEXEC_DASH, YEXEC_FULL, YEXEC_FORK, YEXEC_UNIT);
 }
 
 char         /*--> verify status of a running job --------[ ------ [ ------ ]-*/
-yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
+yEXEC_verify       (char *a_title, int a_rpid, int *a_rc)
 {
    /*---(locals)-------------------------*/
    int       rc        =    0;
    int       x_status  =    0;
-   int       x_return  =    0;
    int       x_signal  =    0;
+   char      x_rc      =    0;
    /*---(output header)-----------------*/
    DEBUG_YEXEC  yLOG_senter  ("CHK");
    DEBUG_YEXEC  yLOG_snote   (a_title);
@@ -551,7 +580,7 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_RUNNING;
    }
-   /*---(handle terminated)-------------*/
+   /*---(handle signal termed)----------*/
    if (!WIFEXITED (x_status)) {
       if (WIFSIGNALED (x_status)) {
          x_signal = WTERMSIG (x_status);
@@ -592,25 +621,43 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
    }
    /*---(gather return code)------------*/
    DEBUG_YEXEC  yLOG_snote   ("exited");
-   x_return = WEXITSTATUS (x_status);
-   DEBUG_YEXEC  yLOG_svalue  ("status"    , x_return);
-   if (a_rc != NULL)  *a_rc = x_return;
+   x_rc = WEXITSTATUS (x_status);
+   DEBUG_YEXEC  yLOG_svalue  ("x_rc"      , x_rc);
+   if (a_rc != NULL)  *a_rc = x_rc;
    /*---(handle launch failures)--------*/
-   if (x_return == 127) {  /* command not found from linux */
+   if (x_rc == 127) {  /* command not found from linux */
       DEBUG_YEXEC  yLOG_snote   ("boom");
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_NOTREAL;
    }
    /*---(handle completed)--------------*/
-   if (x_return == 0) {
+   if (x_rc == 0) {
       DEBUG_YEXEC  yLOG_snote   ("normal");
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_NORMAL;
    }
    /*---(handle errors)-----------------*/
-   if (x_return >  127) {  /* negative returns from linux uchar return */
+   if (x_rc == -YEXEC_NOPERM) {
+      DEBUG_YEXEC  yLOG_snote   ("no permission on files");
+      if (a_rc != NULL)  *a_rc = x_rc;
+      DEBUG_YEXEC  yLOG_sexit   ("CHK");
+      return YEXEC_NOPERM;
+   }
+   if (x_rc == -YEXEC_NOTEXEC) {
+      DEBUG_YEXEC  yLOG_snote   ("could not exec process");
+      if (a_rc != NULL)  *a_rc = x_rc;
+      DEBUG_YEXEC  yLOG_sexit   ("CHK");
+      return YEXEC_NOTEXEC;
+   }
+   if (x_rc == -YEXEC_NOCHMOD) {
+      DEBUG_YEXEC  yLOG_snote   ("could not chmod output");
+      if (a_rc != NULL)  *a_rc = x_rc;
+      DEBUG_YEXEC  yLOG_sexit   ("CHK");
+      return YEXEC_NOCHMOD;
+   }
+   if (x_rc <    0) {  /* negative returns from linux uchar return */
       DEBUG_YEXEC  yLOG_snote   ("FAILURE");
-      if (a_rc != NULL)  *a_rc = x_return - 256;
+      if (a_rc != NULL)  *a_rc = x_rc;
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_FAILURE;
    }
@@ -618,6 +665,12 @@ yEXEC_check        (char *a_title, int a_rpid, int *a_rc)
    DEBUG_YEXEC  yLOG_snote   ("warning");
    DEBUG_YEXEC  yLOG_sexit   ("CHK");
    return YEXEC_WARNING;
+}
+
+char
+yEXEC_check        (int a_rpid)
+{
+   return yEXEC_verify ("quick", a_rpid, NULL);
 }
 
 char             /* [------] find a running job by name ----------------------*/
@@ -694,52 +747,6 @@ yEXEC_find         (char *a_name, int *a_rpid)
    return c;
 }
 
-char
-yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max)
-{
-   /*---(locals)-----------+-----+-----+-*/
-   int         i           =    0;
-   int         x_max       =    0;
-   /*---(header)-------------------------*/
-   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
-   /*---(get max)------------------------*/
-   for (i = 0; i < a_argc; ++i) {
-      DEBUG_YEXEC  yLOG_sint    (i);
-      DEBUG_YEXEC  yLOG_snote   (a_argv [i]);
-      DEBUG_YEXEC  yLOG_sint    (strlen (a_argv [i]));
-      x_max += strlen (a_argv [i]) + 1;
-      DEBUG_YEXEC  yLOG_sint    (x_max);
-   }
-   DEBUG_YEXEC  yLOG_sint    (x_max);
-   if (a_max != NULL)  *a_max = x_max;
-   /*---(complete)-----------------------*/
-   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
-   return 0;
-}
-
-char
-yEXEC_rename            (char *a_mem, char *a_name, int a_max)
-{
-   /*---(locals)-----------+-----+-----+-*/
-   int         x_len       =    0;
-   /*---(header)-------------------------*/
-   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
-   /*---(defense)------------------------*/
-   DEBUG_YEXEC  yLOG_spoint  (a_name);
-   if (a_name == NULL) {
-      DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
-   }
-   DEBUG_YEXEC  yLOG_snote   (a_name);
-   x_len = strlen (a_name);
-   DEBUG_YEXEC  yLOG_sint    (x_len);
-   /*---(save new)-----------------------*/
-   memset (a_mem, 0, a_max);
-   strlcpy (a_mem, a_name, a_max - 1);
-   /*---(complete)-----------------------*/
-   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
-   return 0;
-}
-
 
 
 /*====================------------------------------------====================*/
@@ -747,60 +754,63 @@ yEXEC_rename            (char *a_mem, char *a_name, int a_max)
 /*====================------------------------------------====================*/
 static void      o___UNITTEST________________o (void) {;}
 
-static char   u_time     [LEN_RECD];
-static char   u_user     [LEN_RECD];
-static char   u_home     [LEN_RECD];
-static char   u_shell    [LEN_RECD];
-static char   u_path     [LEN_RECD];
-static char   u_gid      [LEN_RECD];
-static char   u_uid      [LEN_RECD];
-static char   u_chdir    [LEN_RECD];
+static char    x_info      [LEN_HUND] = "";  
 
 char*            /*--> unit test accessor ------------------------------*/
 yexec_proc__unit        (char *a_question, int a_num)
 {
    /*---(locals)-----------+-----+-----+-*/
-   char        t           [LEN_RECD]  = "[]";
+   char        s           [LEN_RECD]  = "";
+   char        t           [LEN_RECD]  = "";
    int         c           =    0;
    /*---(prepare)------------------------*/
-   strncpy  (unit_answer, "FILE             : question not understood", LEN_RECD);
+   strncpy  (unit_answer, "PROC             : question not understood", LEN_RECD);
    /*---(crontab name)-------------------*/
    if      (strcmp (a_question, "time"    )        == 0) {
-      sprintf (t, "[%s]", u_time);
-      snprintf (unit_answer, LEN_RECD, "PROC time        : %2d%s", strlen (u_time), t);
+      yexec_proc__unit_read ('t', t);
+      snprintf (unit_answer, LEN_RECD, "PROC time        : %s", t);
    }
    else if (strcmp (a_question, "user"    )        == 0) {
-      sprintf (t, "[%s]", u_user);
-      snprintf (unit_answer, LEN_RECD, "PROC user        : %2d%s", strlen (u_user), t);
+      yexec_proc__unit_read ('u', t);
+      snprintf (unit_answer, LEN_RECD, "PROC user        : %s", t);
    }
    else if (strcmp (a_question, "home"    )        == 0) {
-      sprintf (t, "[%s]", u_home);
-      snprintf (unit_answer, LEN_RECD, "PROC home        : %2d%s", strlen (u_home), t);
+      yexec_proc__unit_read ('l', t);
+      snprintf (unit_answer, LEN_RECD, "PROC home        : %s", t);
    }
-   else if (strcmp (a_question, "shell"   )        == 0) {
-      sprintf (t, "[%s]", u_shell);
-      snprintf (unit_answer, LEN_RECD, "PROC shell       : %2d%s", strlen (u_shell), t);
-   }
-   else if (strcmp (a_question, "path"    )        == 0) {
-      if (strlen (u_path) < 40)  sprintf (t, "[%s]", u_path);
-      else                       sprintf (t, "[%-40.40s>", u_path);
-      snprintf (unit_answer, LEN_RECD, "PROC path        : %2d%s", strlen (u_path), t);
-   }
-   else if (strcmp (a_question, "uid"     )        == 0) {
-      sprintf (t, "[%s]", u_uid);
-      snprintf (unit_answer, LEN_RECD, "PROC uid         : %2d%s", strlen (u_uid), t);
-   }
-   else if (strcmp (a_question, "gid"     )        == 0) {
-      sprintf (t, "[%s]", u_gid);
-      snprintf (unit_answer, LEN_RECD, "PROC gid         : %2d%s", strlen (u_gid), t);
-   }
-   else if (strcmp (a_question, "chdir"   )        == 0) {
-      sprintf (t, "[%s]", u_chdir);
-      snprintf (unit_answer, LEN_RECD, "PROC chdir       : %2d%s", strlen (u_chdir), t);
+   else if (strcmp (a_question, "detail"  )        == 0) {
+      yexec_proc__unit_read ('d', t);
+      snprintf (unit_answer, LEN_RECD, "PROC detail      : %s", t);
    }
    else if (strcmp (a_question, "exec"    )        == 0) {
-      sprintf (t, "[%s]", *s_argv);
-      snprintf (unit_answer, LEN_RECD, "PROC exec        : %2d%s", strlen (*s_argv), t);
+      yexec_proc__unit_read ('x', t);
+      snprintf (unit_answer, LEN_RECD, "PROC exec        : %s  %2d[%s]", t, strlen (*s_argv), *s_argv);
+   }
+   else if (strcmp (a_question, "parse"   )        == 0) {
+      yexec_proc__unit_read ('x', t);
+      snprintf (unit_answer, LEN_RECD, "PROC parse       : %2d[%s]", strlen (s_arg), s_arg);
+   }
+   else if (strcmp (a_question, "whoami"  )        == 0) {
+      strlcpy (s, "/tmp/unit_whoami.txt", LEN_HUND);
+      snprintf (unit_answer, LEN_RECD, "PROC whoami      : main %-5d", getpid ());
+      sprintf  (t, ", pid  %-5.5s"  , strlrecd (s, 0, NULL, NULL, LEN_RECD) + 7);
+      strcat   (unit_answer, t);
+      sprintf  (t, ", ppid %-5.5s"  , strlrecd (s, 1, NULL, NULL, LEN_RECD) + 7);
+      strcat   (unit_answer, t);
+      sprintf  (t, ", uid  %-5.5s"  , strlrecd (s, 2, NULL, NULL, LEN_RECD) + 7);
+      strcat   (unit_answer, t);
+      sprintf  (t, ", who  (%-1.1s)", strlrecd (s, 3, NULL, NULL, LEN_RECD) + 7);
+      strcat   (unit_answer, t);
+      sprintf  (t, " %s"            , strlrecd (s, 4, NULL, NULL, LEN_RECD) + 7);
+      strcat   (unit_answer, t);
+   }
+   else if (strcmp (a_question, "whereami")        == 0) {
+      strlcpy (s, "/tmp/unit_whoami.txt", LEN_HUND);
+      snprintf (unit_answer, LEN_RECD, "PROC whereami    : ");
+      sprintf  (t, "%-12.12s"  , strlrecd (s, 6, NULL, NULL, LEN_RECD) + 7);
+      strcat   (unit_answer, t);
+      sprintf  (t, "  %s"  , strlrecd (s, 5, NULL, NULL, LEN_RECD) + 7);
+      strcat   (unit_answer, t);
    }
    /*---(argument testing)---------------*/
    else if (strcmp (a_question, "argc"    )        == 0) {
@@ -818,7 +828,7 @@ yexec_proc__unit        (char *a_question, int a_num)
 }
 
 char
-yexec_proc__unit_read         (void)
+yexec_proc__unit_read         (char a_type, char *a_info)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
@@ -827,21 +837,23 @@ yexec_proc__unit_read         (void)
    char        x_recd      [LEN_RECD];
    int         x_len       =    0;
    char        x_cmd       [LEN_RECD];
+   char        u_time      [LEN_RECD] = "";
+   char        u_user      [LEN_RECD] = "";
+   char        u_home      [LEN_RECD] = "";
+   char        u_shell     [LEN_RECD] = "";
+   char        u_path      [LEN_RECD] = "";
+   char        u_gid       [LEN_RECD] = "";
+   char        u_uid       [LEN_RECD] = "";
+   char        u_chdir     [LEN_RECD] = "";
+   char        u_exec      [LEN_RECD] = "";
+   char        t           [LEN_RECD] = "";
+   char        s           [LEN_RECD] = "";
    /*---(chmod)--------------------------*/
-   sprintf (x_cmd, "chmod 0777 %s", YEXEC_UNIT);
+   sprintf (x_cmd, "chmod 0777 %s  2> /dev/null", YEXEC_UNIT);
    system  (x_cmd);
    /*---(open)---------------------------*/
    f = fopen (YEXEC_UNIT, "rt");
    --rce; if (f == NULL)  return rce;
-   /*---(prepare)------------------------*/
-   strncpy (u_time  , "", LEN_RECD);
-   strncpy (u_user  , "", LEN_RECD);
-   strncpy (u_home  , "", LEN_RECD);
-   strncpy (u_shell , "", LEN_RECD);
-   strncpy (u_path  , "", LEN_RECD);
-   strncpy (u_gid   , "", LEN_RECD);
-   strncpy (u_uid   , "", LEN_RECD);
-   strncpy (u_chdir , "", LEN_RECD);
    /*---(read)---------------------------*/
    while (1) {
       fgets (x_recd, 2000, f);
@@ -857,14 +869,35 @@ yexec_proc__unit_read         (void)
       case  6 : strncpy (u_gid   , x_recd + 12, LEN_RECD);  break;
       case  7 : strncpy (u_uid   , x_recd + 12, LEN_RECD);  break;
       case  8 : strncpy (u_chdir , x_recd + 12, LEN_RECD);  break;
+      case  9 : strncpy (u_exec  , x_recd + 12, LEN_RECD);  break;
       }
       ++c;
    }
    /*---(close)--------------------------*/
    fclose (f);
-   /*---(erase)--------------------------*/
-   sprintf (x_cmd, "rm -f %s", YEXEC_UNIT);
-   system  (x_cmd);
+   /*---(write back)---------------------*/
+   switch (a_type) {
+   case 't' :
+      sprintf (a_info, "%2d[%-.40s]", strlen (u_time), u_time);
+      break;
+   case 'u' :
+      sprintf (t, "%2d[%-.20s]", strlen (u_user), u_user);
+      sprintf (a_info, "%-24.24s  %4d  %4d", t, atoi (u_uid), atoi (u_gid));
+      break;
+   case 'd' :
+      sprintf (t, "%2d[%-.20s]", strlen (u_shell), u_shell);
+      sprintf (s, "%2d[%-.40s]", strlen (u_path ), u_path );
+      sprintf (a_info, "%-24.24s  %s", t, s);
+      break;
+   case 'l' :
+      sprintf (t, "%2d[%-.40s]", strlen (u_home ), u_home );
+      sprintf (a_info, "%-40.40s  %c", t, (strcmp (u_home, u_chdir) == 0) ? 'y' : 'F');
+      break;
+   case 'x' :
+      sprintf (t, "%2d[%-.40s]", strlen (u_exec ), u_exec );
+      sprintf (a_info, "%-40.40s", t);
+      break;
+   }
    /*---(complete)-----------------------*/
    return 0;
 }

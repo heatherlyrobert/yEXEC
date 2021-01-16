@@ -1,41 +1,274 @@
-.TH ySCHED 3 2011-Mar "linux" "heatherly custom tools manual"
+.TH yEXEC 3 2020-jan "linux" "heatherly custom tools manual"
 
 .SH NAME
-yEXEC \- simple, clean, and clear program launching and monitoring
+.B yEXEC
+\- simple, clean, and clear program launching and monitoring
+
+.SH PATRON
+.B brontes-akmonides
+(son of the anvil) thunder, blacksmith to gods
+
+.SH IMAGERY
+massive, brutish, immortal giant with a single round eye
+
+.SH SUMMARY
+yEXEC is a custom shared-library providing widely-used, standardized,
+well-tested, and traceable process services, such as process launching and
+monitoring, signal handling, and daemonizing.
+
+.SH DOCUMENTATION FILES
+.nf
+yEXEC (3)    [***] interfacing applications with yEXEC
+.nf
+yEXEC (7)          decision rationale, objectives, and overview
+
 .SH SYNOPSIS
 .nf
 .B #include  <yEXEC.h>
 .sp
-.R  ---informational-------------------------------
-.R  return a c-string of library versioning information for display
-.BI "  char* " "c-str" " = ySCHED_version ( void );"
-.sp
-.R  ---preparation---------------------------------
-.R  parse a c-string of command line intruction into an argv[] structure
-.BI "  char  " "rc   " " = yEXEC_parse (const char *a_cstring);"
+===(( overall ))===============================
+.BI "char* yEXEC_version      (void);"
 
+===(( process ))===============================
+-------full-interface-------------
+.BI "char  yEXEC_runable      (char *" "title" ", char *" "user " ", char *" "cmd  " ", ··· );"
+.BI "char  yEXEC_full         (char *" "title" ", char *" "user " ", char *" "cmd  " ", ··· );"
+.BI "char  yEXEC_verify       (char *" "title" ", int   " "rpid " ", int  *" "rc   " ");"
+.BI "char  yEXEC_find         (char *" "name " ", int  *" "rpid " ");"
+-------simpilied------------------
+.BI "char  yEXEC_run          (char *" "title" ", char *" "user " ", char *" "cmd  " ");"
+.BI "char  yEXEC_tight        (char *" "title" ", char *" "user " ", char *" "cmd  " ");"
+.BI "char  yEXEC_quick        (char *" "cmd  " ");"
+.BI "char  yEXEC_check        (int   " "rpid " ");"
 
-.R  set a specific date for evaluating entries...
-.BI "char  " "rc " " = ySCHED_setdate ( int " "a_year" ", int " "a_month" ", int " "a_day" " );"
+===(( signal ))================================
+.BI "char  yEXEC_signal       (char  " "tough" ", char  " "inter" ", char  " "child" ", ··· );"
+.BI "char  yEXEC_sighard      (void);"
+.BI "char  yEXEC_sigsoft      (void);"
+
+===(( special ))===============================
+.BI "char  yEXEC_heartbeat    (int   " "rpid " ", long  " "now  " ", char *" "suffx" ", ··· );"
+.BI "char  yEXEC_userdata     (char *" "user " ", int  *" "uid  " ", int  *" "gid  " ", ··· );"
+.BI "char  yEXEC_whoami       (int  *" "pid  " ", int  *" "ppid " ", int  *" "uid  " ", ··· );"
+.BI "char  yEXEC_daemon       (int   " "loggr" ", int  *" "rpid " ");"
+.BI "char  yEXEC_maxname      (int   " "argc " ", char**" "argv " ", int   " "max  " ");"
+.BI "char  yEXEC_rename       (char *" "mem  " ", char *" "name " ", int   " "max  " ");"
+
 .sp
-.R  clear out global effective dates before each file is read...
-.BI "char  " "rc " " = ySCHED_reset   ( void );"
-.sp
-.R  ---evaluation----------------------------------
-.R  parse a scheduling grammar string into current values...
-.BI "char  " "rc " " = ySCHED_parse   ( char* " "a_recd" " );"
-.sp
-.R  test the current parsed record at a specific time...
-.BI "int   " "dur" " = ySCHED_test    ( int " "a_hour" ", int " "a_minute" " );"
-.sp
-.R  ---storage-------------------------------------
-.R  saving the most recent parsed record to a structure...
-.BI "char  " "rc " " = ySCHED_save    ( tSCHED* " "a_sched" " );"
-.sp
-.R  loading ySCHED from a saved set of values...
-.BI "char  " "rc " " = ySCHED_load    ( tSCHED* " "a_sched" " );"
-.sp
-.B link with -L/usr/local/libs, and either -lyEXEC or -lyEXEC_debug
+.B link with -L/usr/local/lib, and either -lyEXEC or -lyEXEC_debug
+
+.SH OVERALL FUNCTIONS
+library setup, wrapup, and admin functions
+
+.B yEXEC_version ()
+versioning string with version comment
+   -- takes no arguments
+   -- returns a char* ascii text string
+
+.SH PROCESS FUNCTIONS
+standardizes launching and monitoring of unix/linux processes
+
+.B yEXEC_runable ()
+verify an executable can be launched by this user
+   1) char *title, short name for tracing and reporting
+   2) char *user , user name who will own the process
+   3) char *cmd  , command string of path, name, and arguments
+   4) char  path , path used to find executable (see stds/path)
+   -- returns char as success code (<0 fail, >=0 success)
+
+.B yEXEC_full ()
+execute a process with specific user, path, etc.
+   1) char *title, short name for tracing and reporting
+   2) char *user , user name who will own the process
+   3) char *cmd  , command string of path, name, and arguments
+   4) char  shell, shell used to run executable (see stds/shell)
+   5) char  path , path used to find executable (see stds/path)
+   6) char  fork , launch as a child or in current (see stds/fork)
+   7) char *out  , file name to log launch notes (see files/exec)
+   -- returns int rpid of process launched (<0 if failed)
+
+.B yEXEC_run ()
+execute a process with many defaults, but loose path
+   1) char *title, short name for tracing and reporting
+   2) char *user , user name who will own the process
+   3) char *cmd  , command string of path, name, and arguments
+   -- returns int rpid of process launched (<0 if failed)
+
+.B yEXEC_tight ()
+execute a process with many defaults, but tight path
+   1) char *title, short name for tracing and reporting
+   2) char *user , user name who will own the process
+   3) char *cmd  , command string of path, name, and arguments
+   -- returns int rpid of process launched (<0 if failed)
+
+.B yEXEC_quick ()
+execute a process with just executable name
+   1) char *cmd  , command string of path, name, and arguments
+   -- returns int rpid of process launched (<0 if failed)
+
+.B yEXEC_verify ()
+check status of process, i.e., running, complete, ...
+   1) char *title, short name for tracing and reporting
+   2) int   rpid , rpid of process to check
+   3) int  *rc   , returns completion code, if complete
+   -- returns char status code (see stds/status)
+
+.B yEXEC_check ()
+check status of process, i.e., running, complete, ...
+   1) int   rpid , rpid of process to check
+   -- returns char status code (see stds/status)
+
+.B yEXEC_find ()
+finds running process by name and returns rpid
+   1) char *name , executable name of process with full path
+   2) int  *rpid , returns rpid of first matching process
+   -- returns char count of processes with specified name
+
+.SH SIGNAL FUNCTIONS
+standardizes handling of unix/linux process signals
+
+.B yEXEC_signal ()
+configures signal handling environment
+   1) char  tough, normal or hardened to failures (see stds/tough)
+   2) char  inter, handling of user signals or not (see stds/inter)
+   3) char  child, monitoring of child processes (see stds/child)
+   4) void *handl, secondary signal handler in program (see client)
+   5) char *out  , file name to log for signal notes (see files/sig)
+   -- returns char as success code (<0 fail, >=0 success)
+
+.B yEXEC_hard ()
+configures signal handling environment to hardened
+   -- returns char as success code (<0 fail, >=0 success)
+
+.B yEXEC_soft ()
+configures signal handling environment to normal
+   -- returns char as success code (<0 fail, >=0 success)
+
+.B client-side signal handler
+   1) int   sign , standard unix/linux signal number
+   2) sinf *info , stardard siginfo data structure from signal
+   3) char *name , my name for signal to help debugging
+   4) char *desc , my description for signal to help debugging
+   -- returns a void
+
+.SH SPECIAL FUNCTIONS
+supplementary help for daemons and major programs
+
+.B yEXEC_heartbeat ()
+generates and writes a timestamp for monitoring
+   1) int   rpid , process id of source program
+   2) long  now  , epoch date or -1 for current
+   3) char *suffx, free-use text for end of heartbeat
+   4) char *out  , file to contain heartbeat (see files/beat)
+   5) char *beat , returns heartbeat used
+   -- returns char as success code (<0 fail, >=0 success)
+
+.B yEXEC_userdata  ()
+returns key user data from system
+   1) char *user , user name in system
+   2) int  *uid  , returns user id
+   3) int  *gid  , returns group id
+   4) char *dir  , returns home directory path
+   5) char *shell, returns user assigned shell
+   -- returns char as success code (<0 fail, >=0 success)
+
+.B yEXEC_whoami  ()
+returns key program execution data from system
+   1) int  *pid  , programs process id
+   2) int  *ppid , returns programs parent process id
+   3) int  *uid  , returns programs effective user id
+   4) char *root , returns currently running root (y/n)
+   5) char *user , returns programs effective user name
+   6) char  wheel, attempt to gain root 'y' or not '-'
+   -- returns char as success code (<0 fail, >=0 success)
+
+.B yEXEC_daemon ()
+turn current program into a daemon
+   1) int   logn , number of yLOG logger file (to keep open)
+   2) int  *rpid , returns resulting rpid
+
+.SH FILES
+
+.B launch,
+since process launching can be fraught with troubles and batch processes
+can be difficult to quickly monitor, i like to capture some launch data
+in a specific file.  this is completely optional.  below is the data appended
+at each launch to confirm key data.
+   EX  =======================================================
+   EX  start     : 21.01.09.00.32.33.6.01.009
+   EX  USER set  : member
+   EX  HOME set  : /home/member
+   EX  SHELL set : /bin/dash
+   EX  PATH set  : /sbin:/bin:/usr/sbin:/usr/bin:/opt/sbin····
+   EX  GID set   : 1000
+   EX  UID set   : 1000
+   EX  chdir     : /home/member
+   EX  execve    : /bin/sleep 1
+   EX  =======================================================
+
+.B heart beat,
+a standard heartbeat file which is similar to linux "run" files.  it is
+typically written as a single line to a ascii-text file.  this allows
+programs and administrators to see if the program is "fresh" and responsive.
+   EX  [17.05.13.06.01.31.6.19.133  1494680491     123  khronos]
+   --  [yy.mm.dd.hh.mm.ss..... main timestamp
+   --  day of week        d.ww.ddd    week of year, and day of year
+   --  data in epoch format         ..........
+   --  running process id                          ...
+   --  program name                                     ........>
+
+.B signal log,
+signal log file to make tracing and debugging much simplier.  an one line
+entry is written for each signal received with detailed time stamping.
+it simply appends signal information to a standard heartbeat.
+   EX  [...  123  khronos  SIGTERM (15) graceful termination]                             
+   --  signal name, number, and description are appended to heartbeat
+   --  rather than replacing, they are appended to the file
+
+.SH STANDARDS
+
+.B path searched
+   YEXEC_TIGHT      only core executable directories (secure)
+   YEXEC_FULL       most encompassing path (default in shells)
+
+.B shell used
+   YEXEC_DASH       posix-standard dash shell (secure)
+   YEXEC_BASH       full-featured linux shell
+
+.B forking
+   YEXEC_FORK       fork a child to run process
+   YEXEC_REPLACE    replace the existing process
+
+.B status
+   ---continues-----------------------
+   YEXEC_ALREADY    alreading running, will not relaunch
+   YEXEC_NOSUCH     process is not a child, can not track
+   YEXEC_RUNNING    currently running
+   ---signals-------------------------
+   YEXEC_KILLED     terminated by a user/system signal
+   YEXEC_SEGV       terminated by harsh signal
+   YEXEC_USER       stopped/paused by signal
+   YEXEC_LIMIT      terminated by exceeding time/space
+   YEXEC_DIED       terminated by other signal
+   ---troubles------------------------
+   YEXEC_NOTREAL    terminated immediately, unable to launch shell
+   YEXEC_ERROR      terminated, shell could not find executable
+   ---complete------------------------
+   YEXEC_NORMAL     completed normally (0 rc)
+   YEXEC_FAILURE    completed with error (neg rc)
+   YEXEC_WARNING    completed with warning (pos rc)
+
+.B tough
+   YEXEC_SOFT       can be terminated normally by signals
+   YEXEC_HARD       basically, only sigkill can terminate
+
+.B inter
+   YEXEC_NO         receive no user/interactive signals
+   YEXEC_YES        get normal user signals
+
+.B child
+   YEXEC_NO         receive no child signals
+   YEXEC_YES        get normal child signals
 
 .SH COLOPHON
 this page is part of a documentation package meant to make our use of the

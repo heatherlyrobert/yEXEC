@@ -4,9 +4,9 @@
 
 
 
-static char     s_bulletproof = 'n';
-static char     s_interactive = 'n';
-static char     s_children    = 'n';
+static char     s_tough       = 'n';
+static char     s_inter       = 'n';
+static char     s_child       = 'n';
 static void   (*s_signaler)   (int a_signal, siginfo_t *a_info, char *a_name, char *a_desc);
 static char     s_output      [LEN_RECD]  = "";
 static FILE    *f             = NULL;
@@ -135,23 +135,23 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
    /*---(baddies)-------------------------------*/
    if (x_looking)  switch (a_signal) {
    case  SIGTERM:
-      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      if (s_tough != YEXEC_HARD)  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
       x_looking = 0;
       break;
    case  SIGSEGV:
-      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      if (s_tough != YEXEC_HARD)  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
       x_looking = 0;
       break;
    case  SIGABRT:
-      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      if (s_tough != YEXEC_HARD)  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
       x_looking = 0;
       break;
    case  SIGINT :
-      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      if (s_tough != YEXEC_HARD)  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
       x_looking = 0;
       break;
    case  SIGQUIT:
-      if (s_bulletproof != 'y')  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
+      if (s_tough != YEXEC_HARD)  yexec__done (a_signal, a_info, s_sigs [a_signal].name, s_sigs [a_signal].desc);
       x_looking = 0;
       break;
    }
@@ -197,19 +197,19 @@ yexec__signal      (char *a_terse, char *a_desc, int a_signal, char a_action)
    DEBUG_YEXEC  yLOG_schar  (a_action);
    /*---(create request)-----------------*/
    switch (a_action) {
-   case 'i' :
+   case YEXEC_IGNORED :
       DEBUG_YEXEC  yLOG_snote   ("ignore, no trapping");
       sa.sa_handler   = SIG_IGN;
       sa.sa_sigaction = NULL;
       sa.sa_flags     = SA_RESTART;
       break;
-   case 'd' :
+   case YEXEC_DEFAULT :
       DEBUG_YEXEC  yLOG_snote   ("default, no trapping");
       sa.sa_handler   = SIG_DFL;
       sa.sa_sigaction = NULL;
       sa.sa_flags     = SA_RESTART;
       break;
-   case 'y' :
+   case YEXEC_TRAPPED :
       DEBUG_YEXEC  yLOG_snote   ("custom, trapped");
       sa.sa_handler   = NULL;
       sa.sa_sigaction = yEXEC__comm;
@@ -228,24 +228,24 @@ yexec__signal      (char *a_terse, char *a_desc, int a_signal, char a_action)
    return rc;
 }
 
-char yexec__ignore      (char *a_terse, char *a_desc, int a_signal)  { return yexec__signal (a_terse, a_desc, a_signal, 'i'); }
-char yexec__default     (char *a_terse, char *a_desc, int a_signal)  { return yexec__signal (a_terse, a_desc, a_signal, 'd'); }
-char yexec__custom      (char *a_terse, char *a_desc, int a_signal)  { return yexec__signal (a_terse, a_desc, a_signal, 'y'); }
+char yexec__ignored     (char *a_terse, char *a_desc, int a_signal)  { return yexec__signal (a_terse, a_desc, a_signal, YEXEC_IGNORED); }
+char yexec__default     (char *a_terse, char *a_desc, int a_signal)  { return yexec__signal (a_terse, a_desc, a_signal, YEXEC_DEFAULT); }
+char yexec__trapped     (char *a_terse, char *a_desc, int a_signal)  { return yexec__signal (a_terse, a_desc, a_signal, YEXEC_TRAPPED); }
 
 char             /* [------] setup signal handling ---------------------------*/
-yEXEC_signal       (char a_bulletproof, char a_interactive, char a_children, void *a_signaler, char *a_output)
+yEXEC_signal       (char a_tough, char a_inter, char a_child, void *a_signaler, char *a_output)
 {
    /*---(locals)-----------+-----------+-*/
    tSIGACT     sa;
    int         rc          = 0;
    /*---(begin)--------------------------*/
    DEBUG_YEXEC  yLOG_enter  (__FUNCTION__);
-   s_bulletproof  = a_bulletproof;
-   DEBUG_YEXEC  yLOG_char   ("bullet"    , s_bulletproof);
-   s_interactive  = a_interactive;
-   DEBUG_YEXEC  yLOG_char   ("interact"  , s_interactive);
-   s_children     = a_children;
-   DEBUG_YEXEC  yLOG_char   ("children"  , s_children);
+   s_tough  = a_tough;
+   DEBUG_YEXEC  yLOG_char   ("tough"     , s_tough);
+   s_inter  = a_inter;
+   DEBUG_YEXEC  yLOG_char   ("interact"  , s_inter);
+   s_child     = a_child;
+   DEBUG_YEXEC  yLOG_char   ("child"     , s_child);
    s_signaler   = a_signaler;
    DEBUG_YEXEC  yLOG_point  ("s_signaler", s_signaler);
    /*---(output)-------------------------*/
@@ -253,41 +253,53 @@ yEXEC_signal       (char a_bulletproof, char a_interactive, char a_children, voi
    else                   strlcpy (s_output, a_output, LEN_RECD);
    /*---(keyboard)-----------------------*/
    DEBUG_YEXEC  yLOG_note  ("keyboard  : INT, TSTP, QUIT, CONT, TTIN, TTOU");
-   if (s_interactive != 'y') {
-      yexec__ignore  ("SIGTSTP", "keyboard stop (C-z)"      , SIGTSTP);
-      yexec__ignore  ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
-      yexec__ignore  ("SIGQUIT", "keyboard quit (C-µ)"      , SIGQUIT);
-      yexec__ignore  ("SIGTTIN", "terminal input"           , SIGTTIN);
-      yexec__ignore  ("SIGTTOU", "terminal output"          , SIGTTOU);
+   if (s_inter != YEXEC_YES) {
+      yexec__ignored ("SIGTSTP", "keyboard stop (C-z)"      , SIGTSTP);
+      yexec__ignored ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
+      yexec__ignored ("SIGQUIT", "keyboard quit (C-µ)"      , SIGQUIT);
+      yexec__ignored ("SIGTTIN", "terminal input"           , SIGTTIN);
+      yexec__ignored ("SIGTTOU", "terminal output"          , SIGTTOU);
    } else {
-      yexec__custom  ("SIGTSTP", "keyboard stop (C-z)"      , SIGTSTP);
-      yexec__custom  ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
-      yexec__custom  ("SIGQUIT", "keyboard quit (C-µ)"      , SIGQUIT);
+      yexec__trapped ("SIGTSTP", "keyboard stop (C-z)"      , SIGTSTP);
+      yexec__trapped ("SIGINT" , "keyboard interrupt (C-c)" , SIGINT );
+      yexec__trapped ("SIGQUIT", "keyboard quit (C-µ)"      , SIGQUIT);
       yexec__default ("SIGTTIN", "terminal input"           , SIGTTIN);
       yexec__default ("SIGTTOU", "terminal output"          , SIGTTOU);
    }
-   yexec__custom  ("SIGCONT", "keyboard continue"        , SIGCONT);
+   yexec__trapped ("SIGCONT", "keyboard continue"        , SIGCONT);
    /*---(children)-----------------------*/
    DEBUG_YEXEC  yLOG_note  ("children  : CHLD");
-   if (s_children != 'y' && s_children != 'a') {
+   if (s_child != YEXEC_YES) {
       yexec__default ("SIGCHLD", "child process ended"      , SIGCHLD);
    } else {
-      yexec__custom  ("SIGCHLD", "child process ended"      , SIGCHLD);
+      yexec__trapped ("SIGCHLD", "child process ended"      , SIGCHLD);
    }
    /*---(use involved)-------------------*/
    DEBUG_YEXEC  yLOG_info  ("program",  "look for HUP, USR1, USR2, and ALRM");
-   yexec__custom  ("SIGHUP" , "reload and refresh"       , SIGHUP );
-   yexec__custom  ("SIGUSR1", "user controlled"          , SIGUSR1);
-   yexec__custom  ("SIGUSR2", "user controlled (ping)"   , SIGUSR2);
-   yexec__custom  ("SIGALRM", "timer using alarm ()"     , SIGALRM);
+   yexec__trapped ("SIGHUP" , "reload and refresh"       , SIGHUP );
+   yexec__trapped ("SIGUSR1", "user controlled"          , SIGUSR1);
+   yexec__trapped ("SIGUSR2", "user controlled (ping)"   , SIGUSR2);
+   yexec__trapped ("SIGALRM", "timer using alarm ()"     , SIGALRM);
    /*---(monsters)-----------------------*/
    DEBUG_YEXEC  yLOG_info  ("baddies",  "handle SEGV, TERM, and ABRT");
-   yexec__custom  ("SIGTERM", "graceful termination"     , SIGTERM);
-   yexec__custom  ("SIGSEGV", "memory/segment fault"     , SIGSEGV);
-   yexec__custom  ("SIGABRT", "termination from abort ()", SIGABRT);
+   yexec__trapped ("SIGTERM", "graceful termination"     , SIGTERM);
+   yexec__trapped ("SIGSEGV", "memory/segment fault"     , SIGSEGV);
+   yexec__trapped ("SIGABRT", "termination from abort ()", SIGABRT);
    /*---(complete)-----------------------*/
    DEBUG_YEXEC  yLOG_exit  (__FUNCTION__);
    return 0;
+}
+
+char
+yEXEC_sighard           (void)
+{
+   return yEXEC_signal (YEXEC_HARD, YEXEC_NO , YEXEC_NO, NULL, NULL);
+}
+
+char
+yEXEC_sigsoft           (void)
+{
+   return yEXEC_signal (YEXEC_SOFT, YEXEC_YES, YEXEC_NO, NULL, NULL);
 }
 
 
@@ -374,7 +386,7 @@ yexec_sign__unit        (char *a_question, int n)
    }
    else if (strcmp (a_question, "settings"      )  == 0) {
       c = yEXEC_file_verify ("local", n, t);
-      snprintf (unit_answer, LEN_RECD, "SIGN settings    : bullet %c, inter  %c, child  %c, handle %-10p, output %s", s_bulletproof, s_interactive, s_children, s_signaler, s_output);
+      snprintf (unit_answer, LEN_RECD, "SIGN settings    : tough  %c, inter  %c, child  %c, handle %-10p, output %s", s_tough, s_inter, s_child, s_signaler, s_output);
    }
    /*---(complete)-----------------------*/
    return unit_answer;
