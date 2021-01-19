@@ -87,7 +87,6 @@ typedef struct spwd      tSHADOW;
 #define     YEXEC_RUNNING  'r'
 #define     YEXEC_KILLED   'T'
 #define     YEXEC_SEGV     'M'
-#define     YEXEC_QUIT     'Q'
 #define     YEXEC_USER     'H'
 #define     YEXEC_LIMIT    'L'
 #define     YEXEC_NOTREAL  '?'
@@ -123,6 +122,12 @@ char        yEXEC_find              (char *a_name, int *a_rpid);
 char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);
 char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
+char        yEXEC_dur_in_sec        (char *a_text, int *a_dur);
+char        yexec_min_in_msec       (int a_dur, char a_min, int a_floor , int *a_mindur);
+char        yexec_max_in_msec       (int a_dur, char a_max, int a_mindur, int *a_maxdur);
+char        yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_handoff, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy);
+char        yEXEC_controls          (void);
+
 char        yEXEC_term              (const char *a_func, const int a_exit);
 
 char        yEXEC_signal            (char a_tough, char a_inter, char a_child, void *a_signaler, char *a_output);
@@ -136,16 +141,6 @@ char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *
 char        yEXEC_daemon            (int a_logger, int *a_rpid);
 
 
-char        yEXEC_tty_valid         (char *a_dev);
-char        yEXEC_tty_open          (char *a_dev, int *a_fd, char a_std, char a_keep);
-char        yEXEC_tty_close         (int *a_fd);
-char        yEXEC_tty_noecho        (int a_fd);
-char        yEXEC_tty_clear         (int a_fd);
-/*> char        yEXEC_tty_user          (char *a_user, char a_rotate, char *a_true);   <*/
-/*> char        yEXEC_tty_password      (char *a_user, char *a_pass);                 <*/
-
-/*> char*       yEXEC_challenge         (int a_seed, char *a_challenge);              <*/
-/*> char        yEXEC_response          (char *a_response, char *a_phase, char *a_judgement, char *a_position, char *a_user);   <*/
 
 
 

@@ -270,6 +270,34 @@ it simply appends signal information to a standard heartbeat.
    YEXEC_NO         receive no child signals
    YEXEC_YES        get normal child signals
 
+
+.SH JOB CONTROL
+jobs are monitored, controlled, recovered, and terminated based on a job control
+string of seven (7) characters.  while this method is far from perfect, it
+keeps each individual job from having to deal with it clumsily and reduntantly.
+
+   IMPORTANCE |                                       | REMEDY       
+   a absolute |                                       | g graceful   
+   n need     |              JOB CONTROL              | k kill       
+   v value    |               (7 chars)               | r relaunch   
+   c crave    ³-------´                       ´-------³ ] let to end 
+   w want     |       |                       |       | · allow fail 
+   l like             ´------´ ay/s92k ´------´                      
+   m might   ´------------------´   ´------------------´             
+   - tbd     |       ´-----------´´´-----------´       |             
+             |       |            |            |       |             
+   ----------³  -----³-----  -----³-----  -----³-----  ³----------   
+   TRACKING     HAND-OFF     STRICTNESS   MINIMUM       MAXIMUM      
+   C console    ^ tbd        S full       = 1.00        = 1.00       
+   Y formal     | tbd        s loose      9 0.90        1 1.10       
+   y informal   / tbd        a adisory    7 0.75        2 1.25       
+   - passive    < tbd        - passive    h 0.50        H 1.50       
+                > tbd                     q 0.25        D 2.00       
+                · none                    t 0.10        T 3.00       
+                                          - 0.00        - infinite   
+
+
+
 .SH COLOPHON
 this page is part of a documentation package meant to make our use of the
 heatherly tools easier and faster

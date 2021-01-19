@@ -33,8 +33,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.1-, prepping for eos, nyx, hypnos, and hannibal"
-#define     P_VERNUM    "1.1l"
-#define     P_VERTXT    "fixed logging file permission issue fataling non-privilaged launches"
+#define     P_VERNUM    "1.1m"
+#define     P_VERTXT    "updated and fully unit tested after fixing job control format"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -55,6 +55,7 @@
 #include <stdlib.h>            /* exit, system, ...                           */
 #include <sys/unistd.h>        /* fork, execl, getpid, getuid                 */
 #include <string.h>            /* strcat, strcpy, strlen, ...                 */
+#include <math.h>              /* round                                       */
 
 /*---(process)------------------*/
 #include <sys/wait.h>          /* sigaction, waitpid, wait4                   */
