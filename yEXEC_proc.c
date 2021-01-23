@@ -685,11 +685,15 @@ yEXEC_find         (char *a_name, int *a_rpid)
    char        x_name      [1000];
    char        x_title     [1000];
    char        x_recd      [1000];
+   char        x_save      [1000];
+   char        t           [50];  
    char       *p;
    char       *q;
    int         x_rpid      =   -1;
    int         c           =    0;
-   char        x_len       =    0;
+   int         x_len       =    0;
+   int         l           =    0;
+   char        x_status    =  '-';
    /*---(output header)-----------------*/
    DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
    /*---(defense)-----------------------*/
@@ -714,23 +718,33 @@ yEXEC_find         (char *a_name, int *a_rpid)
    while ((x_den = readdir (x_dir)) != NULL) {
       /*---(filter non-processes)--------*/
       if (atoi(x_den->d_name)     == 0)  continue;
-      /*---(open the process)------------*/
+      /*---(open and get record)---------*/
       sprintf(x_name, "/proc/%s/stat", x_den->d_name);
       f = fopen (x_name, "r");
       if (f == NULL) continue;
-      /*---(read the entry)--------------*/
       fgets (x_recd, 1000, f);
+      fclose (f);
+      /*---(read the entry)--------------*/
+      strcpy (x_save, x_recd);
       p = strtok (x_recd, "(");
       p = strtok (NULL, ")");
       strcpy (x_title, p);
-      fclose (f);
+      p = strtok (NULL, ")");
+      x_status = p [1];
+      switch (x_status) {
+      case 'Z' : continue;      break;
+      }
       /*---(verify)----------------------*/
       q = strchr (x_title, ' ');
       if (q != NULL)  q [0] = '\0';
       if (strlen (x_title) != x_len)      continue;
       if (strcmp (x_title, a_name) != 0)  continue;
       ++c;
-      DEBUG_YEXEC  yLOG_snote   (x_title);
+      l = strlen (x_save);
+      if (x_save [l - 1] == '\n')  x_save [--l] = '\0';
+      snprintf (t, 50, "%03d[%-40.40s]", l, x_save);
+      DEBUG_YEXEC  yLOG_snote   (t);
+      DEBUG_YEXEC  yLOG_schar   (x_status);
       DEBUG_YEXEC  yLOG_sint    (c);
       DEBUG_YEXEC  yLOG_snote   ("FOUND");
       if (x_rpid < 0) {

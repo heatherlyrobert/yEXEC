@@ -376,6 +376,7 @@ yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, c
    /*---(minimum estimate)---------------*/
    /*> --rce;  c = x_flags [i++];  if (c != ' ' && c != '·')  return rce;             <*/
    c = x_flags [i++];
+   if (c == '·') c = '-';
    rc = yexec_min_in_msec (a_dur, c, a_floor, &x_min);
    if (rc < 0)  return rce;
    if (a_min     != NULL)  *a_min    = c;
@@ -383,6 +384,7 @@ yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, c
    /*---(maximum estimate)---------------*/
    /*> --rce;  c = x_flags [i++];  if (c != ' ' && c != '·')  return rce;             <*/
    c = x_flags [i++];
+   if (c == '·') c = '-';
    rc = yexec_max_in_msec (a_dur, c, x_min  , &x_max);
    if (rc < 0)  return rce;
    if (a_max     != NULL)  *a_max    = c;
