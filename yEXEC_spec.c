@@ -13,7 +13,16 @@ char        s_heartbeat      [LEN_HUND];
 
 char         /*--> write the heartbeat file ----------------------------------*/
 yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
-{
+{  /*---(design)-------------------------*/
+   /*
+    * strftime    %u   dow   1 (mo) - 7 (su)
+    *                           ISO starts on sun and at 0
+    *
+    *             %W   woy   full weeks are 1-52, partial 0 and 53 (YES!!!)
+    *                           ISO makes first partial part of last year ;(
+    *
+    *             both these match yLOG and ySCHED, and everywhere
+    */
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
    char        rc          =    0;
@@ -30,7 +39,7 @@ yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, c
    /*---(break it down)------------------*/
    x_broke   = localtime (&x_now);
    /*---(heartbeat)----------------------*/
-   strftime (t, LEN_TITLE, "%y.%m.%d.%H.%M.%S.%w.%V.%j", x_broke);
+   strftime (t, LEN_TITLE, "%y.%m.%d.%H.%M.%S.%u.%W.%j", x_broke);
    DEBUG_YEXEC  yLOG_info    ("t"         , t);
    sprintf  (s_heartbeat, "%-26.26s  %-10d  %6d", t, x_now, a_rpid);
    if (a_suffix != NULL) {

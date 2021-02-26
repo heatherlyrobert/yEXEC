@@ -33,8 +33,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.1-, prepping for eos, nyx, hypnos, and hannibal"
-#define     P_VERNUM    "1.1n"
-#define     P_VERTXT    "needed a zombie check in yEXEC_find to support kharon --leisurely mode"
+#define     P_VERNUM    "1.1m"
+#define     P_VERTXT    "added flag fancy feedback to speed debugging, WOW"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -48,6 +48,7 @@
 #include <yLOG.h>              /* heatherly logging                           */
 #include <yURG.h>              /* heatherly debugging framework               */
 #include <ySTR.h>              /* heatherly string handling                   */
+#include  <yCOLOR_solo.h>
 
 /*===[[ PUBLIC HEADERS ]]=====================================================*/
 /*---(big standards)------------*/
@@ -110,6 +111,8 @@ struct cLOCAL {
 };
 extern  tLOCAL its;
 
+extern char   s_terse     [LEN_HUND];
+extern char   s_fancy     [LEN_RECD];
 
 void             /* [------] receive signals ---------------------------------*/
 yEXEC__comm        (
@@ -121,9 +124,13 @@ yEXEC__comm        (
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
 extern      char        unit_answer [LEN_RECD];
 
+char*       yexec_base__unit        (char *a_question);
 char        yexec__unit_quiet       (void);
 char        yexec__unit_loud        (void);
 char        yexec__unit_end         (void);
+
+char        yexec_min_in_msec       (int a_dur, char a_min, int a_floor , int *a_mindur);
+char        yexec_max_in_msec       (int a_dur, char a_max, int a_mindur, int *a_maxdur);
 
 char        yexec__unit_heartbeat   (char *a_file, char *a_heartbeat);
 char*       yexec_spec__unit        (char *a_question, char *a_text);

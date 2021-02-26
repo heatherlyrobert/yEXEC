@@ -44,6 +44,7 @@ char       *s_path      = NULL;
 
 
 
+
 /*====================------------------------------------====================*/
 /*===----                             parsing                          ----===*/
 /*====================------------------------------------====================*/
@@ -552,7 +553,7 @@ yEXEC_quick        (char *a_cmd)
 }
 
 char         /*--> verify status of a running job --------[ ------ [ ------ ]-*/
-yEXEC_verify       (char *a_title, int a_rpid, int *a_rc)
+yEXEC_verify       (char *a_title, int a_rpid, int *a_rc2)
 {
    /*---(locals)-------------------------*/
    int       rc        =    0;
@@ -563,7 +564,7 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc)
    DEBUG_YEXEC  yLOG_senter  ("CHK");
    DEBUG_YEXEC  yLOG_snote   (a_title);
    DEBUG_YEXEC  yLOG_svalue  ("pid"       , a_rpid);
-   if (a_rc != NULL)  *a_rc = 0;
+   if (a_rc2 != NULL)  *a_rc2 = 0;
    /*---(check status)------------------*/
    /*> rc = wait4 (a_rpid, &x_status, WNOHANG, NULL);                                 <*/
    rc = waitpid (a_rpid, &x_status, WNOHANG);
@@ -584,7 +585,7 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc)
    if (!WIFEXITED (x_status)) {
       if (WIFSIGNALED (x_status)) {
          x_signal = WTERMSIG (x_status);
-         if (a_rc != NULL)  *a_rc = x_signal;
+         if (a_rc2 != NULL)  *a_rc2 = x_signal;
          switch (x_signal) {
          case SIGTERM : case SIGKILL : case SIGQUIT : case SIGABRT :
             DEBUG_YEXEC  yLOG_snote   ("TERMINATED");
@@ -614,7 +615,7 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc)
             return YEXEC_DIED;
          }
       }
-      if (a_rc != NULL)  *a_rc = -1;
+      if (a_rc2 != NULL)  *a_rc2 = -1;
       DEBUG_YEXEC  yLOG_snote   ("ERROR");
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_ERROR;
@@ -623,7 +624,7 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc)
    DEBUG_YEXEC  yLOG_snote   ("exited");
    x_rc = WEXITSTATUS (x_status);
    DEBUG_YEXEC  yLOG_svalue  ("x_rc"      , x_rc);
-   if (a_rc != NULL)  *a_rc = x_rc;
+   if (a_rc2 != NULL)  *a_rc2 = x_rc;
    /*---(handle launch failures)--------*/
    if (x_rc == 127) {  /* command not found from linux */
       DEBUG_YEXEC  yLOG_snote   ("boom");
@@ -639,25 +640,25 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc)
    /*---(handle errors)-----------------*/
    if (x_rc == -YEXEC_NOPERM) {
       DEBUG_YEXEC  yLOG_snote   ("no permission on files");
-      if (a_rc != NULL)  *a_rc = x_rc;
+      if (a_rc2 != NULL)  *a_rc2 = x_rc;
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_NOPERM;
    }
    if (x_rc == -YEXEC_NOTEXEC) {
       DEBUG_YEXEC  yLOG_snote   ("could not exec process");
-      if (a_rc != NULL)  *a_rc = x_rc;
+      if (a_rc2 != NULL)  *a_rc2 = x_rc;
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_NOTEXEC;
    }
    if (x_rc == -YEXEC_NOCHMOD) {
       DEBUG_YEXEC  yLOG_snote   ("could not chmod output");
-      if (a_rc != NULL)  *a_rc = x_rc;
+      if (a_rc2 != NULL)  *a_rc2 = x_rc;
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_NOCHMOD;
    }
    if (x_rc <    0) {  /* negative returns from linux uchar return */
       DEBUG_YEXEC  yLOG_snote   ("FAILURE");
-      if (a_rc != NULL)  *a_rc = x_rc;
+      if (a_rc2 != NULL)  *a_rc2 = x_rc;
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_FAILURE;
    }
@@ -671,6 +672,90 @@ char
 yEXEC_check        (int a_rpid)
 {
    return yEXEC_verify ("quick", a_rpid, NULL);
+}
+
+char
+yEXEC_detail       (char a_rc, int a_rc2, char *a_desc)
+{
+   if (a_desc == NULL)  return -1;
+   switch (a_rc) {
+   case YEXEC_RUNNING :
+      strlcpy (a_desc, "still running, nothing to report"   , LEN_DESC);
+      break;
+   case YEXEC_NORMAL  :
+      strlcpy (a_desc, "normal completion and return (0)"   , LEN_DESC);
+      break;
+   case YEXEC_FAILURE :
+      sprintf (a_desc, "process ended with failure (%d)"    , a_rc2);
+      break;
+   case YEXEC_NOSUCH  :
+      strlcpy (a_desc, "daemonized and gone, untouchable"   , LEN_DESC);
+      break;
+   case YEXEC_KILLED  :
+      sprintf (a_desc, "terminated with (%2d) "             , a_rc2);
+      switch (a_rc2) {
+      case SIGTERM :  strlcat (a_desc, "SIGTERM", LEN_DESC);  break;
+      case SIGKILL :  strlcat (a_desc, "SIGKILL", LEN_DESC);  break;
+      case SIGQUIT :  strlcat (a_desc, "SIGQUIT", LEN_DESC);  break;
+      case SIGABRT :  strlcat (a_desc, "SIGABRT", LEN_DESC);  break;
+      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      }
+      break;
+   case YEXEC_SEGV    :
+      sprintf (a_desc, "blew itself up with (%2d) "         , a_rc2);
+      switch (a_rc2) {
+      case SIGSEGV :  strlcat (a_desc, "SIGSEGV", LEN_DESC);  break;
+      case SIGFPE  :  strlcat (a_desc, "SIGFPE" , LEN_DESC);  break;
+      case SIGILL  :  strlcat (a_desc, "SIGILL" , LEN_DESC);  break;
+      case SIGBUS  :  strlcat (a_desc, "SIGBUS" , LEN_DESC);  break;
+      case SIGPIPE :  strlcat (a_desc, "SIGPIPE", LEN_DESC);  break;
+      case SIGSYS  :  strlcat (a_desc, "SIGSYS" , LEN_DESC);  break;
+      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      }
+      break;
+   case YEXEC_USER    :
+      sprintf (a_desc, "ipc/user communication (%2d) "      , a_rc2);
+      switch (a_rc2) {
+      case SIGHUP  :  strlcat (a_desc, "SIGHUP" , LEN_DESC);  break;
+      case SIGALRM :  strlcat (a_desc, "SIGALRM", LEN_DESC);  break;
+      case SIGUSR1 :  strlcat (a_desc, "SIGUSR1", LEN_DESC);  break;
+      case SIGUSR2 :  strlcat (a_desc, "SIGUSR2", LEN_DESC);  break;
+      case SIGSTOP :  strlcat (a_desc, "SIGSTOP", LEN_DESC);  break;
+      case SIGTSTP :  strlcat (a_desc, "SIGTSTP", LEN_DESC);  break;
+      case SIGTTIN :  strlcat (a_desc, "SIGTTIN", LEN_DESC);  break;
+      case SIGTTOU :  strlcat (a_desc, "SIGTTOU", LEN_DESC);  break;
+      case SIGURG  :  strlcat (a_desc, "SIGURG" , LEN_DESC);  break;
+      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      }
+      break;
+   case YEXEC_LIMIT   :
+      sprintf (a_desc, "security limits reached (%2d) "     , a_rc2);
+      switch (a_rc2) {
+      case SIGXCPU :  strlcat (a_desc, "SIGXCPU", LEN_DESC);  break;
+      case SIGXFSZ :  strlcat (a_desc, "SIGXFSZ", LEN_DESC);  break;
+      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      }
+      break;
+   case YEXEC_DIED    :
+      sprintf (a_desc, "unknown/uncategorized signal (%2d)" , a_rc2);
+      break;
+   case YEXEC_NOTREAL :
+      sprintf (a_desc, "command not found by shell (%d)"    , a_rc2);
+      break;
+   case YEXEC_NOPERM  :
+      sprintf (a_desc, "no permission on yEXEC log (%d)"    , a_rc2);
+      break;
+   case YEXEC_NOCHMOD :
+      sprintf (a_desc, "could not chmod yEXEC log (%d)"     , a_rc2);
+      break;
+   case YEXEC_NOTEXEC :
+      sprintf (a_desc, "could not execute file (%d)"        , a_rc2);
+      break;
+   default            :
+      sprintf (a_desc, "UNKNOWN, unanticipated (%d)"        , a_rc2);
+      break;
+   }
+   return 0;
 }
 
 char             /* [------] find a running job by name ----------------------*/

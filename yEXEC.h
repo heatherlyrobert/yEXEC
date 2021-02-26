@@ -116,16 +116,16 @@ int         yEXEC_quick             (char *a_cmd);
 int         yEXEC_run               (char *a_title, char *a_user, char *a_cmd);
 int         yEXEC_tight             (char *a_title, char *a_user, char *a_cmd);
 int         yEXEC_full              (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
-char        yEXEC_verify            (char *a_title, int a_rpid, int *rc);
+char        yEXEC_verify            (char *a_title, int a_rpid, int *a_rc2);
 char        yEXEC_check             (int a_rpid);
+char        yEXEC_detail            (char a_rc, int a_rc2, char *a_desc);
 char        yEXEC_find              (char *a_name, int *a_rpid);
 char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);
 char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
 char        yEXEC_dur_in_sec        (char *a_text, int *a_dur);
-char        yexec_min_in_msec       (int a_dur, char a_min, int a_floor , int *a_mindur);
-char        yexec_max_in_msec       (int a_dur, char a_max, int a_mindur, int *a_maxdur);
 char        yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_handoff, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy);
+char        yEXEC_flags_feedback    (char *a_terse, char *a_fancy);
 char        yEXEC_controls          (void);
 
 char        yEXEC_term              (const char *a_func, const int a_exit);
