@@ -40,6 +40,7 @@ char       *s_shell     = NULL;
 
 char       *s_tight     = "/sbin:/bin:/usr/sbin:/usr/bin";
 char       *s_full      = "/sbin:/bin:/usr/sbin:/usr/bin:/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin";
+char        s_direct    = '-';
 char       *s_path      = NULL;
 
 
@@ -79,13 +80,21 @@ yexec_unpoint           (char *a_ptr [])
 char
 yexec_arg               (char *a_src)
 {
-   return strlparse (a_src, s_argw, s_argf, MAX_ARGV, &s_argc, s_argv, LEN_RECD);
+   char        rc          =    0;
+   yURG_clearerror ();
+   rc = strlparse (a_src, s_argw, s_argf, MAX_ARGV, &s_argc, s_argv, LEN_RECD);
+   if (rc < 0)  yURG_error ("  -- FATAL, command line string was unparsable");
+   return rc;
 }
 
 char
 yexec_env               (char *a_src)
 {
-   return strlparse (a_src, s_envw, s_envf, MAX_ARGV, &s_envc, s_envp, LEN_RECD);
+   char        rc          =    0;
+   yURG_clearerror ();
+   rc = strlparse (a_src, s_envw, s_envf, MAX_ARGV, &s_envc, s_envp, LEN_RECD);
+   if (rc < 0)  yURG_error ("  -- FATAL, environment description string was unparsable");
+   return rc;
 }
 
 char       /*--> verify file existance ---------------------------------------*/
@@ -98,33 +107,44 @@ yexec__command          (void)
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
    /*---(defense)------------------------*/
+   yURG_clearerror ();
    DEBUG_YEXEC  yLOG_point   ("*s_argv"   , *s_argv);
    --rce;  if (*s_argv == NULL) {
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
    DEBUG_YEXEC  yLOG_info    ("*s_argv"   , *s_argv);
+   /*---(check for direct path)----------*/
+   if (*s_argv [0] == '!') {
+      DEBUG_YEXEC  yLOG_note    ("set to path outside normal (exceptional)");
+      ++s_argv [0];
+      s_direct = 'y';
+   }
    /*---(check existance)----------------*/
-   rc = stat (*s_argv, &s);
+   rc = lstat (*s_argv, &s);
    DEBUG_YEXEC  yLOG_value   ("stat"      , rc);
    --rce;  if (rc < 0) {
+      yURG_error ("  -- FATAL, executable reference can not be found on filesystem");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
    /*---(check file type)----------------*/
    --rce;  if (S_ISDIR (s.st_mode))  {
+      yURG_error ("  -- FATAL, executable references a directory, not a regular file");
       DEBUG_YEXEC  yLOG_note    ("can not use a directory");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
    DEBUG_YEXEC  yLOG_note    ("not a directory");
    --rce;  if (S_ISLNK (s.st_mode))  {
+      yURG_error ("  -- FATAL, executable references a symbolic link (security risk)");
       DEBUG_YEXEC  yLOG_note    ("can not use a symlink");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
    DEBUG_YEXEC  yLOG_note    ("not a symlink");
    --rce;  if (!S_ISREG (s.st_mode))  {
+      yURG_error ("  -- FATAL, executable references a non-regular file (not allowed)");
       DEBUG_YEXEC  yLOG_note    ("can only use regular files");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
@@ -132,6 +152,7 @@ yexec__command          (void)
    DEBUG_YEXEC  yLOG_note    ("confirmed as regular file");
    /*---(check executable)---------------*/
    --rce;  if (!(s.st_mode & S_IEXEC))  {
+      yURG_error ("  -- FATAL, executable references a file without execute permissions");
       DEBUG_YEXEC  yLOG_note    ("not set as executable");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
@@ -181,10 +202,18 @@ yexec__onpath           (void)
    int         x_pos       =    0;
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(check for absolute)-------------*/
+   yURG_clearerror ();
+   if (s_direct == 'y') {
+      DEBUG_YEXEC  yLOG_note    ("path is direct/exceptional reference");
+      DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+      return 0;
+   }
    /*---(initial path marker)------------*/
    strcpy  (x_cmd , *s_argv);
    DEBUG_YEXEC  yLOG_char    ("x_cmd[0]"  , x_cmd[0]);
    --rce;  if (x_cmd[0] != '/') {
+      yURG_error ("  -- FATAL, executable does not include an absolute path (security risk)");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
@@ -193,6 +222,7 @@ yexec__onpath           (void)
    x_pos = p - x_cmd;
    DEBUG_YEXEC  yLOG_value   ("x_pos"     , x_pos);
    --rce;  if (x_pos < 4) {
+      yURG_error ("  -- FATAL, executable path is too short to be real");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
@@ -204,6 +234,7 @@ yexec__onpath           (void)
    sprintf (x_path, ":%s:", s_path);
    DEBUG_YEXEC  yLOG_info    ("x_path"    , x_path);
    --rce;  if (strstr (x_path, x_dir) == NULL) {
+      yURG_error ("  -- FATAL, executable path not within requested environment path (security risk)");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
@@ -223,8 +254,10 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
    /*---(check title)--------------------*/
+   yURG_clearerror ();
    DEBUG_YEXEC  yLOG_point   ("a_title"   , a_title);
-   --rce;  if (a_title == NULL) {
+   --rce;  if (a_title == NULL || strlen (a_title) <= 0) {
+      yURG_error ("  -- FATAL, run-time title provided is null/empty (not allowed)");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
@@ -232,6 +265,7 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
    rc = yEXEC_userdata (a_user, &s_uid, &s_gid, s_home, NULL);
    DEBUG_YEXEC  yLOG_value   ("user"      , rc);
    --rce;  if (rc < 0) {
+      yURG_error ("  -- FATAL, run-time user %s is not registered (not allowed)", (a_user != NULL) ? a_user : "null/empty");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
@@ -255,28 +289,23 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
    /*---(check path)---------------------*/
    DEBUG_YEXEC  yLOG_char    ("a_path"    , a_path);
    --rce;  switch (a_path) {
-   case YEXEC_TIGHT :
+   case YEXEC_TIGHT  :
       DEBUG_YEXEC  yLOG_note    ("tight path");
       s_path  = s_tight;
       break;
-   case YEXEC_FULL  :
+   case YEXEC_FULL   :
       DEBUG_YEXEC  yLOG_note    ("full path");
       s_path  = s_full;
       break;
-   default          :
+   default           :
       DEBUG_YEXEC  yLOG_note    ("unknown path, set to tight");
       s_path  = s_tight;
       break;
    }
    /*---(check command)------------------*/
    DEBUG_YEXEC  yLOG_point   ("a_cmd"     , a_cmd);
-   --rce;  if (a_cmd == NULL) {
-      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
-      return rce;
-   }
-   x_len = strlen (a_cmd);
-   DEBUG_YEXEC  yLOG_value   ("x_len"     , x_len);
-   --rce;  if (x_len <= 0) {
+   --rce;  if (a_cmd == NULL || strlen (a_cmd) <= 0) {
+      yURG_error ("  -- FATAL, command string provided is null/empty (not allowed)");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }

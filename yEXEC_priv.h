@@ -33,8 +33,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.1-, prepping for eos, nyx, hypnos, and hannibal"
-#define     P_VERNUM    "1.1m"
-#define     P_VERTXT    "added flag fancy feedback to speed debugging, WOW"
+#define     P_VERNUM    "1.1n"
+#define     P_VERTXT    "added specific error messaging to speed data debugging process"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
