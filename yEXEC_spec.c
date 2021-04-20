@@ -60,7 +60,7 @@ yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, c
          return rce;
       }
       /*---(write)-----------------------*/
-      fputs (s_heartbeat, f);
+      fprintf (f, "%s\n", s_heartbeat);
       /*---(close)-----------------------*/
       rc = fclose (f);
       DEBUG_YEXEC  yLOG_value   ("close"     , rc);
@@ -75,15 +75,21 @@ yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, c
 }
 
 char         /*--> read the last heartbeat -----------------------------------*/
-yexec__unit_heartbeat   (char *a_file, char *a_heartbeat)
+yEXEC_heartbeat_check   (char *a_file, char *a_heartbeat)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
    char        rc          =    0;
    FILE       *f           = NULL;
+   int         l           =    0;
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
    /*---(open)---------------------------*/
+   DEBUG_YEXEC  yLOG_point   ("a_file"    , a_file);
+   --rce;  if (a_file == NULL) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
    DEBUG_YEXEC  yLOG_info    ("a_file"    , a_file);
    f = fopen (a_file, "rt");
    DEBUG_YEXEC  yLOG_point   ("f"         , f);
@@ -94,6 +100,8 @@ yexec__unit_heartbeat   (char *a_file, char *a_heartbeat)
    /*---(write)--------------------------*/
    fgets (a_heartbeat, LEN_HUND, f);
    DEBUG_YEXEC  yLOG_info    ("heartbeat" , a_heartbeat);
+   l = strlen (a_heartbeat) - 1;
+   if (a_heartbeat [l] == '\n')  a_heartbeat [l] = '\0';
    /*---(close)--------------------------*/
    rc = fclose (f);
    DEBUG_YEXEC  yLOG_value   ("close"     , rc);
@@ -462,7 +470,7 @@ yexec_spec__unit        (char *a_question, char *a_text)
       snprintf (unit_answer, LEN_RECD, "SPEC heartbeat   : %2d[%s]", strlen (s_heartbeat), s_heartbeat);
    }
    else if (strcmp (a_question, "lastbeat"      )  == 0) {
-      yexec__unit_heartbeat (a_text, x_heartbeat);
+      yEXEC_heartbeat_check (a_text, x_heartbeat);
       snprintf (unit_answer, LEN_RECD, "SPEC lastbeat    : %2d[%s]", strlen (x_heartbeat), x_heartbeat);
    }
    /*---(complete)-----------------------*/

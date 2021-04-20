@@ -33,8 +33,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2a"
-#define     P_VERTXT    "updates for testing in khronos"
+#define     P_VERNUM    "1.2b"
+#define     P_VERTXT    "improved yURG_peek... functions and yURG_msg, _err unit testing"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -148,7 +148,6 @@ char        yexec__unit_end         (void);
 char        yexec_min_in_msec       (int a_dur, char a_min, int a_floor , int *a_mindur);
 char        yexec_max_in_msec       (int a_dur, char a_max, int a_mindur, int *a_maxdur);
 
-char        yexec__unit_heartbeat   (char *a_file, char *a_heartbeat);
 char*       yexec_spec__unit        (char *a_question, char *a_text);
 
 char        yexec__command          (void);

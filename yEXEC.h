@@ -211,10 +211,10 @@ typedef struct spwd      tSHADOW;
 /*---(combination)----------*/
 #define     IF_CCHECK       if (a_act == ACT_CCHECK)
 #define     IF_VCHECK       if (a_act == ACT_VCHECK)
-#define     IF_CREVIEW      if (a_act == ACT_CAUDIT || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY)
-#define     IF_VREVIEW      if (a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY)
-#define     IF_CCENTRAL     if (a_act == ACT_CCHECK || a_act == ACT_CAUDIT || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY)
-#define     IF_VCENTRAL     if (a_act == ACT_VCHECK || a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY)
+#define     IF_CREVIEW      if (a_act == ACT_CAUDIT || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY || a_act == ACT_CNORMAL)
+#define     IF_VREVIEW      if (a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
+#define     IF_CCENTRAL     if (a_act == ACT_CCHECK || a_act == ACT_CAUDIT || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY || a_act == ACT_CNORMAL)
+#define     IF_VCENTRAL     if (a_act == ACT_VCHECK || a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
 
 
 
@@ -231,17 +231,13 @@ char        yEXEC_acceptable_full   (cchar a_runas, cchar *a_home, cchar *a_root
 char        yEXEC_acceptable        (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
 char        yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_file);
 char        yEXEC_central_full      (cchar a_runas, cchar *a_central, cchar *a_name, cchar *a_muser, int a_muid, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc);
-char        yEXEC_central           (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc);
+char        yEXEC_central           (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
 char        yEXEC_act_verify        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
 char        yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate, cchar *a_new);
 char        yEXEC_act_check         (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
 char        yEXEC_act_remove        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name);
 char        yEXEC_act_security      (cchar a_runas, cchar a_act, cchar *a_oneline);
 char        yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_muser, int a_muid, cchar *a_regex, void *a_assimilate);
-char        yEXEC_touch             (cchar *a_file, cchar *a_own, cchar *a_grp, cchar *a_perms);
-char        yEXEC_rm                (cchar *a_file);
-char        yEXEC_mkdir             (cchar *a_dir, cchar *a_own, cchar *a_grp, cchar *a_perms);
-char        yEXEC_rmdir             (cchar *a_dir);
 
 
 /*---(arguments)-------------------------*/
@@ -289,6 +285,7 @@ char        yEXEC_sigsoft           (void);
 int         yEXEC_file_verify       (char *a_name, int n, char *a_recd);
 
 char        yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat);
+char        yEXEC_heartbeat_check   (char *a_file, char *a_heartbeat);
 char        yEXEC_userdata          (char *a_user, int *a_uid, int *a_gid, char *a_dir, char *a_shell);
 char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
 char        yEXEC_daemon            (int a_logger, int *a_rpid);

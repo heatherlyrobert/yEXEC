@@ -398,7 +398,7 @@ yEXEC_acceptable_full    (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_
    if (a_fdesc != NULL)  strlcpy (a_fdesc, a_name + 8, LEN_DESC);
    if (a_dir   != NULL)  strlcpy (a_dir  , x_cwd, LEN_PATH);
    /*---(finish)-------------------------*/
-   yURG_msg ('-', "SUCCESS, crontab file acceptable");
+   yURG_msg ('-', "SUCCESS, job/khronos file acceptable");
    yURG_msg (' ', "");
    /*---(complete)-----------------------*/
    DEBUG_INPT   yLOG_exit    (__FUNCTION__);
@@ -461,7 +461,7 @@ yEXEC_central_full       (cchar a_runas, cchar *a_central, cchar *a_name, cchar 
    if (a_fuid  != NULL)  *a_fuid = x_fuid;
    if (a_fdesc != NULL)  strlcpy (a_fdesc, a_name + strlen (x_fuser) + 1 , LEN_DESC);
    /*---(finish)-------------------------*/
-   yURG_msg ('-', "SUCCESS, crontab file acceptable");
+   yURG_msg ('-', "SUCCESS, job/khronos file acceptable");
    yURG_msg (' ', "");
    /*---(complete)-----------------------*/
    DEBUG_INPT   yLOG_exit    (__FUNCTION__);
@@ -527,7 +527,7 @@ yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_file
 }
 
 char
-yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc)
+yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir)
 {
    char        rce         =  -10;
    char        rc          =    0;
@@ -535,6 +535,7 @@ yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
    int         x_uid       =    0;
    char        x_center    [LEN_PATH]  = "";
    char        x_file      [LEN_PATH]  = "";
+   if (a_dir   != NULL)  strcpy (a_dir  , "");
    rc = yEXEC_whoami (NULL, NULL, &x_uid, NULL, &x_user, 'n');
    --rce;  if (rc < 0) {
       yURG_err ('f', "could not identify current user (yEXEC_whoami)");
@@ -545,6 +546,7 @@ yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
       yURG_err ('f', "could not identify central directory");
       return rce;
    }
+   if (a_dir   != NULL)  strlcpy (a_dir, x_center, LEN_PATH);
    rc = yEXEC_central_full (a_runas, x_center, x_file, x_user, x_uid, a_fuser, a_fuid, a_fdesc);
    return rc;
 }
@@ -858,7 +860,7 @@ yEXEC_act_remove        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(verify contents)--------------------*/
-   rc = yEXEC_central (a_runas, a_name, NULL, NULL, NULL);
+   rc = yEXEC_central (a_runas, a_name, NULL, NULL, NULL, NULL);
    DEBUG_INPT   yLOG_value   ("central"   , rc);
    --rce;  if (rc < 0) {
       if (a_act == ACT_CREMOVE )   yURG_msg_live ();
@@ -988,6 +990,8 @@ yEXEC_act_security      (cchar a_runas, cchar a_act, cchar *a_oneline)
    yURG_msg ('>', "%s", a_oneline);
    if (a_act == ACT_VAUDIT )  yURG_msg ('>', "  option --vaudit, check current central setup and security");
    if (a_act == ACT_VDAEMON)  yURG_msg ('>', "  option --vdaemon, verbosely launch in daemon mode");
+   if (a_act == ACT_VPRICKLY) yURG_msg ('>', "  option --vprickly, verbosely launch in prickly daemon mode");
+   if (a_act == ACT_VNORMAL)  yURG_msg ('>', "  option --vnormal, verbosely launch in normal mode");
    yURG_msg (' ', "");
    yURG_msg ('>', "central directory setup/security...");
    /*---(defense)-------------------------------*/
@@ -1029,53 +1033,9 @@ yEXEC_act_security      (cchar a_runas, cchar a_act, cchar *a_oneline)
 
 
 /*====================------------------------------------====================*/
-/*===----                     reviewing directories                    ----===*/
+/*===----                     review a directory                       ----===*/
 /*====================------------------------------------====================*/
 static void      o___REVIEW__________________o (void) {;}
-
-char
-yEXEC_touch             (cchar *a_file, cchar *a_own, cchar *a_grp, cchar *a_perms)
-{
-   char        x_cmd       [LEN_RECD]  = "";
-   sprintf (x_cmd, "touch %s       > /dev/null  2>&1", a_file);
-   system  (x_cmd);
-   sprintf (x_cmd, "chown %s:%s %s > /dev/null  2>&1", a_own  , a_grp  , a_file);
-   system  (x_cmd);
-   sprintf (x_cmd, "chmod %s %s    > /dev/null  2>&1", a_perms, a_file );
-   system  (x_cmd);
-   return 0;
-}
-
-char
-yEXEC_rm                (cchar *a_file)
-{
-   char        x_cmd       [LEN_RECD]  = "";
-   sprintf (x_cmd, "rm -f %s       > /dev/null  2>&1", a_file);
-   system  (x_cmd);
-   return 0;
-}
-
-char
-yEXEC_mkdir             (cchar *a_dir, cchar *a_own, cchar *a_grp, cchar *a_perms)
-{
-   char        x_cmd       [LEN_RECD]  = "";
-   sprintf (x_cmd, "mkdir %s       > /dev/null  2>&1", a_dir);
-   system  (x_cmd);
-   sprintf (x_cmd, "chown %s:%s %s > /dev/null  2>&1", a_own  , a_grp  , a_dir);
-   system  (x_cmd);
-   sprintf (x_cmd, "chmod %s %s    > /dev/null  2>&1", a_perms, a_dir  );
-   system  (x_cmd);
-   return 0;
-}
-
-char
-yEXEC_rmdir             (cchar *a_dir)
-{
-   char        x_cmd       [LEN_RECD];
-   sprintf (x_cmd, "rm    -fr %s   > /dev/null  2>&1", a_dir);
-   system  (x_cmd);
-   return 0;
-}
 
 char
 yexec_act__filter       (cchar *a_name, cchar *a_prefix, int a_muid)
@@ -1194,6 +1154,7 @@ yexec_act__prepare      (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
    case ACT_AUDIT      : case ACT_CAUDIT     : case ACT_VAUDIT     :
    case ACT_DAEMON     : case ACT_CDAEMON    : case ACT_VDAEMON    :
    case ACT_PRICKLY    : case ACT_CPRICKLY   : case ACT_VPRICKLY   :
+   case ACT_NORMAL     : case ACT_CNORMAL    : case ACT_VNORMAL    :
       rc = yEXEC_act_security (a_runas, a_act, a_oneline);
       if (rc < 0) {
          IF_CREVIEW   yURG_msg_live ();
@@ -1202,13 +1163,11 @@ yexec_act__prepare      (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
          IF_CREVIEW   yURG_msg_mute ();
          DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
          return rce;
+      } else {
+         yURG_msg ('>', "SUCCESS, central directory basic security measures confirmed");
       }
       break;
    }
-   /*> IF_CREVIEW   yURG_msg_live ();                                                 <*/
-   /*> IF_VREVIEW   yURG_msg ('>', "SUCCESS, central directory proper and secure");   <*/
-   /*> IF_CREVIEW   yURG_msg_mute ();                                                 <*/
-   yURG_msg ('>', "SUCCESS, central directory proper and secure");
    /*---(complete)-----------------------*/
    DEBUG_INPT   yLOG_exit    (__FUNCTION__);
    return 0;
@@ -1251,7 +1210,7 @@ yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       rc = yexec_act__filter (x_file->d_name, x_prefix, a_muid);
       if (rc != 0)  ++x_total;
       if (rc <= 0) {
-         DEBUG_INPT   yLOG_note    ("not a valid crontab file");
+         DEBUG_INPT   yLOG_note    ("not a valid job/khronos file");
          continue;
       }
       /*---(filter using regex)-----------------*/
@@ -1270,6 +1229,7 @@ yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
          rc = 0;
          break;
       case ACT_AUDIT     : case ACT_CAUDIT    : case ACT_VAUDIT    :
+      case ACT_NORMAL    : case ACT_CNORMAL   : case ACT_VNORMAL   :
       case ACT_DAEMON    : case ACT_CDAEMON   : case ACT_VDAEMON   :
       case ACT_PRICKLY   : case ACT_CPRICKLY  : case ACT_VPRICKLY  :
          yURG_msg (' ', "");
@@ -1295,32 +1255,43 @@ yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
    /*---(summary)------------------------*/
    rc = 1;
    --rce;  if (x_count <= 0) {
-      DEBUG_INPT   yLOG_note    ("crontab count is zero");
+      DEBUG_INPT   yLOG_note    ("job/khronos count is zero");
       yURG_msg (' ', "");
       IF_VREVIEW  yURG_msg ('>', "WARNING, secure, but no job/khronos files found installed in central directory");
       IF_CREVIEW  yURG_msg_live ();
       IF_CREVIEW  yURG_msg ('>', "WARNING, secure, but no job/khronos files found installed in central directory");
       IF_CREVIEW  yURG_msg_mute ();
       rc = 0;
+      IF_AUDIT    rc = rce;
+      IF_PRICKLY  rc = rce;
    }
    --rce;  if (x_count != x_pass) {
-      DEBUG_INPT   yLOG_note    ("crontab count not equal passed");
+      DEBUG_INPT   yLOG_note    ("job/khronos count not equal passed");
       yURG_msg (' ', "");
-      IF_VREVIEW  yURG_msg ('>', "WARNING, secure, but not all job/khronos files passed, only %d of %d", x_pass, x_count);
-      IF_CREVIEW  yURG_msg_live ();
-      IF_CREVIEW  yURG_msg ('>', "WARNING, secure, but not all job/khronos files passed, only %d of %d", x_pass, x_count);
-      IF_CREVIEW  yURG_msg_mute ();
-      rc = rce;
+      IF_VREVIEW  yURG_msg ('>', "WARNING, secure, but not all job/khronos files passed, only %d of %d passed", x_pass, x_count);
+      if (rc == 1) {
+         IF_CREVIEW  yURG_msg_live ();
+         IF_CREVIEW  yURG_msg ('>', "WARNING, secure, but not all job/khronos files passed, only %d of %d passed", x_pass, x_count);
+         IF_CREVIEW  yURG_msg_mute ();
+      }
+      rc = 0;
+      IF_AUDIT    rc = rce;
+      IF_PRICKLY  rc = rce;
    }
    --rce;  if (x_total != x_count) {
-      DEBUG_INPT   yLOG_note    ("crontab count not equal to total files");
+      DEBUG_INPT   yLOG_note    ("job/khronos count not equal to total files");
       yURG_msg (' ', "");
-      IF_VREVIEW  yURG_msg ('>', "WARNING, secure, but garbage job/khronos file(s) found in central, %d unknown of %d", x_total - x_count, x_total);
-      IF_CREVIEW  yURG_msg_live ();
-      IF_CREVIEW  yURG_msg ('>', "WARNING, secure, but garbage job/khronos file(s) found in central, %d unknown of %d", x_total - x_count, x_total);
-      IF_CREVIEW  yURG_msg_mute ();
-      rc = rce;
+      IF_VREVIEW  yURG_msg ('>', "WARNING, secure, but garbage non-job/khronos file(s) found, %d unknown of %d", x_total - x_count, x_total);
+      if (rc == 1) {
+         IF_CREVIEW  yURG_msg_live ();
+         IF_CREVIEW  yURG_msg ('>', "WARNING, secure, but garbage non-job/khronos file(s) found, %d unknown of %d", x_total - x_count, x_total);
+         IF_CREVIEW  yURG_msg_mute ();
+      }
+      rc = 0;
+      IF_AUDIT    rc = rce;
+      IF_PRICKLY  rc = rce;
    }
+   IF_LIST   rc = 1;
    if (rc == 1) {
       DEBUG_INPT   yLOG_note    ("all results golden");
       yURG_msg (' ', "");
@@ -1328,6 +1299,8 @@ yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       IF_CREVIEW  yURG_msg_live ();
       IF_CREVIEW  yURG_msg ('>', "SUCCESS, environment and %d job/khronos file(s) passed all checks", x_pass);
       IF_CREVIEW  yURG_msg_mute ();
+   }
+   if (rc >= 0) {
       if (x_count > 100) x_count = 100;
       rc = x_count;
    }
