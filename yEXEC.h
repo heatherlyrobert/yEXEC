@@ -108,8 +108,6 @@ typedef struct spwd      tSHADOW;
 #define     YEXEC_BLIND    '-'
 
 
-#define     YEXEC_HOME     "/home/"
-#define     YEXEC_ROOT     "/root"
 #define     YEXEC_CENTRAL  'C'
 #define     YEXEC_LOCAL    'L'
 
@@ -229,11 +227,11 @@ char        yEXEC_mode              (char a_mode, char *a_print);
 
 char        yEXEC_acceptable_full   (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_name, cchar *a_muser, int a_muid, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
 char        yEXEC_acceptable        (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
-char        yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_file);
+char        yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_user, char *a_file);
 char        yEXEC_central_full      (cchar a_runas, cchar *a_central, cchar *a_name, cchar *a_muser, int a_muid, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc);
 char        yEXEC_central           (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
 char        yEXEC_act_verify        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
-char        yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate, cchar *a_new);
+char        yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
 char        yEXEC_act_check         (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
 char        yEXEC_act_remove        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name);
 char        yEXEC_act_security      (cchar a_runas, cchar a_act, cchar *a_oneline);

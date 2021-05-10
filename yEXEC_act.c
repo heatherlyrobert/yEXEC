@@ -226,8 +226,8 @@ yexec__location         (cchar a_runas, cchar a_loc, cchar *a_home, cchar *a_roo
    yURG_msg ('-', "file user is registered with system, %s, uid %d", a_fuser, *a_fuid);
    /*---(name prefix)--------------------*/
    --rce;  if (a_loc == YEXEC_LOCAL) {
-      if (a_runas == 'k')  strcpy (t, "khronos.");
-      else                 strcpy (t, "job.");
+      if (strchr ("Kk", a_runas) != NULL)  strcpy (t, "khronos.");
+      else                                 strcpy (t, "job.");
       if (strncmp (a_name, t, strlen (t)) != 0) {
          yURG_err ('f', "local file name must be prefixed with å%sæ (standard)", t);
          DEBUG_INPT   yLOG_note    ("name does not begin with khronos/job");
@@ -264,7 +264,10 @@ yexec__stats            (cchar a_loc, cchar *a_dir, uchar *a_name, cchar *a_muse
    /*---(header)-------------------------*/
    DEBUG_INPT  yLOG_enter   (__FUNCTION__);
    /*---(get stats)----------------------*/
+   DEBUG_YEXEC  yLOG_info    ("a_dir"     , a_dir);
+   DEBUG_YEXEC  yLOG_info    ("a_name"    , a_name);
    sprintf (x_full, "%s%s", a_dir, a_name);
+   DEBUG_YEXEC  yLOG_info    ("x_full"    , x_full);
    rc = lstat (x_full, &s);
    DEBUG_YEXEC  yLOG_value   ("stat"      , rc);
    --rce;  if (rc < 0) {
@@ -406,13 +409,40 @@ yEXEC_acceptable_full    (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_
 }
 
 char
+yEXEC_local_dir         (cchar a_runas, char *a_root, char *a_home)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   /*---(directories)--------------------*/
+   --rce;  switch (a_runas) {
+   case IAM_KHRONOS  : case IAM_EOS  : case IAM_ASTRAIOS  : case IAM_HYPNOS  : case IAM_HERACLES  :
+      strcpy (a_root, "/root");
+      strcpy (a_home, "/home/");
+      break;
+   case IAM_UKHRONOS : case IAM_UEOS : case IAM_UASTRAIOS : case IAM_UHYPNOS : case IAM_UHERACLES :
+      strcpy (a_root, "/tmp/khronos_test/root");
+      strcpy (a_home, "/tmp/khronos_test/");
+      break;
+   default  :
+      yURG_err ('f', "a_runas (%c) is not recognized", a_runas);
+      return rce;
+      break;
+   }
+   /*---(complete)-----------------------*/
+   return 0;
+}
+
+char
 yEXEC_acceptable         (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir)
 {
    char        rc          =    0;
    char        x_user      [LEN_LABEL] = "";
+   char        x_root      [LEN_PATH]  = "";
+   char        x_home      [LEN_PATH]  = "";
    int         x_uid       =    0;
-   if (rc < 0) rc = yEXEC_whoami (NULL, NULL, &x_uid, NULL, &x_user, 'n');
-   if (rc < 0) rc = yEXEC_acceptable_full (a_runas, YEXEC_HOME, YEXEC_ROOT, a_name, x_user, x_uid, a_fuser, a_fuid, a_fdesc, a_dir);
+   if (rc >= 0) rc = yEXEC_local_dir       (a_runas, x_root, x_home);
+   if (rc >= 0) rc = yEXEC_whoami          (NULL, NULL, &x_uid, NULL, &x_user, 'n');
+   if (rc >= 0) rc = yEXEC_acceptable_full (a_runas, x_home, x_root, a_name, x_user, x_uid, a_fuser, a_fuid, a_fdesc, a_dir);
    return rc;
 }
 
@@ -441,7 +471,7 @@ yEXEC_central_full       (cchar a_runas, cchar *a_central, cchar *a_name, cchar 
       return rce;
    }
    /*---(verify user)--------------------*/
-   rc = yexec__location (a_runas, YEXEC_CENTRAL, YEXEC_HOME, YEXEC_ROOT, a_name, a_muser, a_muid, x_fuser, &x_fuid, x_cwd);
+   rc = yexec__location (a_runas, YEXEC_CENTRAL, "n/a", "n/a", a_name, a_muser, a_muid, x_fuser, &x_fuid, x_cwd);
    DEBUG_INPT  yLOG_value   ("location"  , rc);
    --rce;  if (rc < 0) {
       yURG_msg (' ', "");
@@ -469,10 +499,12 @@ yEXEC_central_full       (cchar a_runas, cchar *a_central, cchar *a_name, cchar 
 }
 
 char
-yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_file)
+yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_user, char *a_file)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
+   char       *p           = NULL;
+   char        t           [LEN_PATH]  = "";
    /*---(directories)--------------------*/
    --rce;  switch (a_runas) {
    case IAM_KHRONOS  :
@@ -501,9 +533,15 @@ yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_file
    /*---(check if file too)--------------*/
    if (a_file == NULL)  return 0;
    /*---(files)--------------------------*/
-   switch (a_runas) {
+   --rce;  switch (a_runas) {
    case IAM_KHRONOS   : case IAM_UKHRONOS  :
-      strlcpy (a_file, a_name, LEN_PATH);
+      DEBUG_INPT   yLOG_info    ("a_name"    , a_name);
+      p = strchr (a_name, '.');
+      DEBUG_INPT   yLOG_point   ("p"         , p);
+      if (p == NULL)  return rce;
+      DEBUG_INPT   yLOG_info    ("a_user"    , a_user);
+      sprintf (a_file, "%s%s", a_user, p);
+      DEBUG_INPT   yLOG_info    ("a_file"    , a_file);
       break;
    case IAM_EOS       : case IAM_UEOS      : 
       strlcpy (a_file, "eos.conf"     , LEN_PATH);
@@ -515,7 +553,9 @@ yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_file
       strlcpy (a_file, "hypnos.conf"  , LEN_PATH);
       break;
    case IAM_HERACLES  : case IAM_UHERACLES : 
-      strlcpy (a_file, a_name, LEN_PATH);
+      p = strchr (a_name, '.');
+      if (p == NULL)  return rce;
+      sprintf (a_file, "%s%s", a_user, p);
       break;
    default  :
       yURG_err ('f', "a_runas (%c) is not recognized", a_runas);
@@ -541,7 +581,7 @@ yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
       yURG_err ('f', "could not identify current user (yEXEC_whoami)");
       return rce;
    }
-   rc = yEXEC_central_dir (a_runas, a_name, x_center, x_file);
+   rc = yEXEC_central_dir (a_runas, a_name, x_center, x_user, x_file);
    --rce;  if (rc < 0) {
       yURG_err ('f', "could not identify central directory");
       return rce;
@@ -557,7 +597,7 @@ yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
 /*====================------------------------------------====================*/
 static void      o___ACTIONS_________________o (void) {;};
 
-static char (*s_assimilate) (cchar a_loc, cchar *a_name);
+static char (*s_assimilate) (cchar a_loc, cchar *a_name, char *a_user, char *a_desc);
 
 char
 yEXEC_act_verify        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate)
@@ -592,7 +632,7 @@ yEXEC_act_verify        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(verify contents)--------------------*/
-   rc = s_assimilate (YEXEC_LOCAL, a_name);
+   rc = s_assimilate (YEXEC_LOCAL, a_name, NULL, NULL);
    DEBUG_INPT   yLOG_value   ("assimilate", rc);
    --rce;  if (rc < 0) {
       if (a_act == ACT_CVERIFY )   yURG_msg_live ();
@@ -698,13 +738,15 @@ yexec_act__intake       (cchar *a_name, cchar *a_new, cchar *a_central)
 }
 
 char
-yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate, cchar *a_new)
+yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
    int         rc          =    0;
    char        x_dir       [LEN_PATH]  = "";
-   char        x_file      [LEN_PATH]  = "";
+   char        x_new       [LEN_PATH]  = "";
+   char        x_user      [LEN_USER]  = "";
+   char        x_desc      [LEN_DESC]  = "";
    /*---(header)-------------------------*/
    DEBUG_INPT  yLOG_enter   (__FUNCTION__);
    DEBUG_INPT  yLOG_point   ("a_runas"   , a_runas);
@@ -732,7 +774,7 @@ yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(verify contents)--------------------*/
-   rc = s_assimilate (YEXEC_LOCAL, a_name);
+   rc = s_assimilate (YEXEC_LOCAL, a_name, x_user, x_desc);
    DEBUG_INPT   yLOG_value   ("assimilate", rc);
    --rce;  if (rc < 0) {
       if (a_act == ACT_CINSTALL)   yURG_msg_live ();
@@ -743,8 +785,9 @@ yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(install file)-----------------------*/
-   yEXEC_central_dir (a_runas, a_new, x_dir, x_file);
-   rc = yexec_act__intake (a_name, x_file, x_dir);
+   yEXEC_central_dir (a_runas, a_name, x_dir, x_user, x_new);
+   DEBUG_INPT   yLOG_info    ("x_new"     , x_new);
+   rc = yexec_act__intake (a_name, x_new, x_dir);
    DEBUG_INPT   yLOG_value   ("intake"    , rc);
    --rce;  if (rc < 0) {
       if (a_act == ACT_CINSTALL)   yURG_msg_live ();
@@ -803,7 +846,7 @@ yEXEC_act_check         (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
    }
    yURG_msg (' ', "");
    /*---(verify contents)--------------------*/
-   rc = s_assimilate (YEXEC_CENTRAL, a_name);
+   rc = s_assimilate (YEXEC_CENTRAL, a_name, NULL, NULL);
    DEBUG_INPT   yLOG_value   ("assimilate", rc);
    --rce;  if (rc < 0) {
       IF_VCENTRAL  yURG_msg ('>', "FAILED, installed job/khronos file not runable, the reasons are shown above");
@@ -836,7 +879,6 @@ yEXEC_act_remove        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
    char        rce         =  -10;
    int         rc          =    0;
    char        x_dir       [LEN_PATH]  = "";
-   char        x_file      [LEN_PATH]  = "";
    char        x_old       [LEN_RECD]  = "";
    char        x_cmd       [LEN_RECD]  = "";
    /*---(header)-------------------------*/
@@ -871,8 +913,8 @@ yEXEC_act_remove        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(remove physical)--------------------*/
-   yEXEC_central_dir (a_runas, a_name, x_dir, x_file);
-   snprintf (x_old, LEN_RECD, "%s%s", x_dir, x_file);
+   yEXEC_central_dir (a_runas, a_name, x_dir, "n/a", NULL);
+   snprintf (x_old, LEN_RECD, "%s%s", x_dir, a_name);
    snprintf (x_cmd, LEN_RECD, "rm -f %s 2> /dev/null", x_old);
    DEBUG_INPT   yLOG_info    ("x_cmd"     , x_cmd);
    rc = system   (x_cmd);
@@ -995,7 +1037,7 @@ yEXEC_act_security      (cchar a_runas, cchar a_act, cchar *a_oneline)
    yURG_msg (' ', "");
    yURG_msg ('>', "central directory setup/security...");
    /*---(defense)-------------------------------*/
-   rc = yEXEC_central_dir  (a_runas, NULL, x_orig, NULL);
+   rc = yEXEC_central_dir  (a_runas, NULL, x_orig, "n/", NULL);
    --rce;  if (rc <  0) {
       DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
@@ -1141,7 +1183,7 @@ yexec_act__prepare      (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(get directory)------------------*/
-   rc = yEXEC_central_dir  (a_runas, NULL, a_dir, NULL);
+   rc = yEXEC_central_dir  (a_runas, NULL, a_dir, "n/a", NULL);
    DEBUG_INPT   yLOG_info    ("a_dir"     , a_dir);
    --rce;  if (rc < 0) {
       DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
