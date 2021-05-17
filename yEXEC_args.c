@@ -7,6 +7,7 @@
 char          g_runas       = '-';
 char          g_runmode     = '-';
 char          g_runfile     [LEN_PATH]  = "";
+char          g_norun       = '-';
 
 
 char          g_silent      [LEN_LABEL] = "";
@@ -26,7 +27,7 @@ char          g_normal      [LEN_SHORT] = "";
 
 char          s_print       [LEN_RECD]  = "";
 
-#define     MAX_OPTS    30
+#define     MAX_OPTS    35
 typedef struct cOPTS  tOPTS;
 struct cOPTS {
    char        option      [LEN_LABEL];
@@ -63,6 +64,8 @@ static const tOPTS   s_opts [MAX_OPTS] = {
    { "prickly"  , "p÷P", "execute specific file in prickly daemon-mode" , "··-", '·' },
    { "normal"   , "nôN", "execute specific file in normal-mode"         , "---", '·' },
    { "reload"   , "H··", "send signal to reload daemon"                 , "··-", '·' },
+   /*---(unit testing)-------------------*/
+   { "norun"    , "-··", "daemons only load data"                       , "---", '·' },
    /*---(sentinal)-----------------------*/
    { ""         , "···", ""                                             , "···", '·' },
    /*---(done)---------------------------*/
@@ -256,6 +259,7 @@ yexec_args__init        (char a_runas, char a_runmode, char *a_runfile)
    }
    g_runas   = a_runas;
    g_runmode = a_runmode;
+   g_norun   = '-';
    strcpy (g_runfile, a_runfile);
    DEBUG_PROG  yLOG_info    ("g_silent"  , g_silent);
    DEBUG_PROG  yLOG_info    ("g_confirm" , g_confirm);
@@ -313,6 +317,11 @@ yEXEC_args_handle       (char *a_runas, char *a_runmode, char *a_runfile, int *i
    --rce;  if (*a_runmode != '-') {
       yURG_err ('F', "run action already set (%c), can not update to å%sæ", *a_runmode, a_arg);
       return rce;
+   }
+   /*---(unit testing stuff)-------------*/
+   if (strcmp (a_arg, "--norun") == 0) {
+      g_norun = 'y';
+      return 1;
    }
    /*---(walk options)-------------------*/
    for (j = 0; j < MAX_OPTS; ++j) {
@@ -542,6 +551,8 @@ char  yEXEC_ifremove  (void) { if (strchr (g_remove , g_runmode) != NULL)  retur
 char  yEXEC_ifdaemon  (void) { if (strchr (g_daemon , g_runmode) != NULL)  return 1; else return 0; }
 char  yEXEC_ifprickly (void) { if (strchr (g_prickly, g_runmode) != NULL)  return 1; else return 0; }
 char  yEXEC_ifnormal  (void) { if (strchr (g_normal , g_runmode) != NULL)  return 1; else return 0; }
+
+char  yEXEC_ifnorun   (void) { if (g_norun != 'y')                         return 1; else return 0; }
 
 
 

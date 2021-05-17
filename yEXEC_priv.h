@@ -6,13 +6,14 @@
 /*===[[ HEADER ]]=============================================================*/
 /*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
 
+#define     P_NAME      "yEXEC"
 #define     P_FOCUS     "PS (programming support)"
 #define     P_NICHE     "ex (process execution)"
 #define     P_SUBJECT   "process control"
 #define     P_PURPOSE   "clear, clean, program launching and tracking"
 
 #define     P_NAMESAKE  "brontes-akmonides (son of the anvil)"
-#define     P_HERITAGE  "thunder, one of the original three cyclops, blacksmith to gods"
+#define     P_HERITAGE  "thunderer, one of the original three cyclops, blacksmith to gods"
 #define     P_IMAGERY   "massive, brutish, immortal giant with a single round eye"
 #define     P_REASON    ""
 
@@ -33,8 +34,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2c"
-#define     P_VERTXT    "updates to support testing khronos, a little missing data"
+#define     P_VERNUM    "1.2d"
+#define     P_VERTXT    "updated ACT for khronos and fixed its unit testing"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -112,9 +113,17 @@ struct cLOCAL {
 };
 extern  tLOCAL its;
 
+
+
+extern char   g_runas;
+extern char   g_runmode;
+extern char   g_runfile     [LEN_PATH];
+extern char   g_norun;
 extern char   s_terse     [LEN_HUND];
 extern char   s_fancy     [LEN_RECD];
 extern char   s_print     [LEN_RECD];
+
+
 
 void             /* [------] receive signals ---------------------------------*/
 yEXEC__comm        (
@@ -129,7 +138,9 @@ extern      char        unit_answer [LEN_RECD];
 char        yexec_act__checkdir     (cchar *a_dir, int a_perms);
 char        yexec_act__filter       (cchar *a_name, cchar *a_prefix, int a_muid);
 char        yexec_act__prepare      (cchar a_pre, cchar a_act, cchar *a_oneline, cchar *a_muser, cchar *a_regex, char *a_prefix, char *a_dir, void *a_assimilate);
-char        yexec_act__assim        (cchar a_loc, cchar *a_name);
+char        yexec_act__assim        (cchar a_runas, cchar a_loc, cchar *a_name, char *r_user, char *r_desc);
+char        yexec_act__mkdir        (void);
+char        yexec_act__rmdir        (void);
 
 char        yexec_args__empty       (void);
 char        yexec_args__init        (char a_runas, char a_runmode, char *a_runfile);

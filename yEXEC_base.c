@@ -4,40 +4,6 @@
 
 
 
-/*
- *
- *   value (same as metis)
- *      A  absolute (life or death)
- *      N  need (clear to objective)
- *      V  valuable (tangible)
- *      c  crave (huge deal
- *      w  want
- *      l  like
- *      m  might
- *
- *   track
- *      C  messages to operator console
- *      Y  special tracking file
- *      y  notes in log
- *      ·  just record as usual
- *
- *   handoff (TBD)
- *      need to allocate codes, but this includes handoffs
- *      to haides (daemons), kharon, artemis, etc.
- *
- *   strict
- *      S  super strict, yell if too short, yell/kill if too long
- *      s  strict, warn of too short, yell/kill of too long
- *      a  advisory warnings only
- *      ·  just record as usual
- *
- *
- *
- *
- *
- *
- */
-
 #define MAX_FLAGS   100
 static struct {
    char        c;   /* category */
@@ -68,11 +34,13 @@ static struct {
    {  2, '>', "tbd"        , ""                                         },
    {  2, '-', "unset"      , ""                                         },
    /*---(strictness)--------*/
-   {  3, 's', "strict"     , ""                                         },
-   {  3, 'r', "rules"      , ""                                         },
-   {  3, 'g', "guides"     , ""                                         },
-   {  3, 'a', "advisory"   , ""                                         },
-   {  3, '-', "unset"      , ""                                         },
+   {  3, 'g', "graceful"   , "TERM if overruns maximum estimate"        },
+   {  3, 'k', "violent"    , "KILL of overruns maximum estimate"        },
+   {  3, ']', "till end"   , "allow to run till end of group"           },
+   {  3, 'r', "rules"      , "notify khaos/sysadmin, and reports"       },
+   {  3, 'w', "warning"    , "note on reports only"                     },
+   {  3, 'a', "advisory"   , "no action, just for planning"             },
+   {  3, '-', "unset"      , "no action"                                },
    /*---(minimum)-----------*/
    {  4, '=', "1.00"       , ""                                         },
    {  4, '9', "0.90"       , ""                                         },
@@ -89,12 +57,8 @@ static struct {
    {  5, 'D', "2.00"       , ""                                         },
    {  5, 'T', "3.00"       , ""                                         },
    {  5, '-', "infinite"   , ""                                         },
-   /*---(remedy)------------*/
-   {  6, 'g', "graceful"   , ""                                         },
-   {  6, 'k', "violent"    , ""                                         },
-   {  6, 'r', "relaunch"   , ""                                         },
-   {  6, ']', "till end"   , ""                                         },
-   {  6, '-', "unset"      , ""                                         },
+   /*---(grouping)----------*/
+   {  6, '·', "unset"      , ""                                         },
    /*---(flexibility)-------*/
    {  7, '=', "none"       , "scheduled time is unmovable"              },
    {  7, '/', "minutes"    , "schedule can be shifted +/- 30min"        },
@@ -103,12 +67,13 @@ static struct {
    {  7, '*', "day"        , "schedule can be shifted +/- 24hrs"        },
    {  7, '-', "unset"      , ""                                         },
    /*---(throttle)----------*/
-   {  8, 'm', "murder"     , "kill process if it exceeds limits"        },
+   {  8, 'g', "graceful"   , "TERM process if it exceeds limits"        },
+   {  8, 'k', "violent"    , "KILL process if it exceeds limits"        },
    {  8, 's', "strict"     , "throttle process to keep in limits"       },
-   {  8, 'r', "rules"      , ""                                         },
-   {  8, 'g', "guides"     , ""                                         },
-   {  8, 'a', "advisory"   , ""                                         },
-   {  8, '-', "unset"      , ""                                         },
+   {  8, 'r', "rules"      , "notify khaos/sysadmin, and reports"       },
+   {  8, 'w', "warning"    , "note on reports only"                     },
+   {  8, 'a', "advisory"   , "no action, just for planning"             },
+   {  8, '-', "unset"      , "no action"                                },
    /*---(cpu use)-----------*/
    {  9, '5', "1.00"       , ""                                         },
    {  9, '4', "0.75"       , ""                                         },
@@ -142,44 +107,6 @@ yEXEC_controls          (void)
 {
    printf ("yEXEC                                                                                                    \n");
    printf ("                                                                                                         \n");
-   printf ("                                          run-time controls                                              \n");
-   printf ("                                                                                                         \n");
-   printf ("     ´---------------------------------------´ ay/s92k ´---------------------------------------´         \n");
-   printf ("     |              ´---------------------------´|||´---------------------------´              |         \n");
-   printf ("     |              |              ´-------------´´´-------------´              |              |         \n");
-   printf ("     |              |              |              |              |              |              |         \n");
-   printf ("-----³-----    -----³-----    -----³-----    -----³-----    -----³-----    -----³-----    -----³-----    \n");
-   printf ("importance     tracking       hand-off       strictness     minimum        maximum        remedy         \n");
-   printf ("a absolute     C console      ^ tbd          S full         = 1.00         = 1.00         g graceful     \n");
-   printf ("n need         Y formal       | tbd          s loose        9 0.90         1 1.10         k kill         \n");
-   printf ("v value        y informal     / tbd          a adisory      8 0.80         2 1.20         r relaunch     \n");
-   printf ("c crave        - passive      < tbd          - passive      7 0.70         3 1.30         ] let till end \n");
-   printf ("w want                        > tbd                         6 0.60         4 1.40         · allow fail   \n");
-   printf ("l like                        · none                        h 0.50         H 1.50                        \n");
-   printf ("m might                                                     q 0.25         D 2.00                        \n");
-   printf ("- tbd                                                       t 0.10         T 3.00                        \n");
-   printf ("          H = value                                         z 0.00         X infinite                    \n");
-   printf ("    ´---- M = want                                                                                       \n");
-   printf ("   quick  L = like                                                                                       \n");
-   printf ("                                                                                                         \n");
-   printf ("                                                                                                         \n");
-   printf ("                                            metis tagging                                                \n");
-   printf ("                                                                                                         \n");
-   printf ("          ´-----------------------------------´ wdto- ´-----------------------------------´              \n");
-   printf ("          |                   ´------------------´|´------------------´                   |              \n");
-   printf ("          |                   |                   |                   |                   |              \n");
-   printf ("     -----³-----         -----³-----         -----³-----         -----³-----         -----³-----         \n");
-   printf ("     urgency             importance           estimate            progress            sharing            \n");
-   printf ("     ! now-now           ! now-now            * huge              - backlog           y public           \n");
-   printf ("     t today             a absolute           8 eight hrs         < starting          w work-team        \n");
-   printf ("     s soonest           n need               4 four hrs          o active            - private          \n");
-   printf ("     d days              v value              2 two hrs           > checking                             \n");
-   printf ("     w weeks             c crave              1 one hr            # complete                             \n");
-   printf ("     m months            w want               m 30m               x cancelled                            \n");
-   printf ("     y years             l like               s 15m                                                      \n");
-   printf ("     - backlog           m might              ! 5m                                                       \n");
-   printf ("                         - tbd                                                                           \n");
-   printf ("                                                                                                         \n");
    printf ("                                                                                                         \n");
    printf ("                                                                                                         \n");
    printf ("               ´----------------------------´ process statuses ´-------------------------´               \n");
@@ -198,25 +125,25 @@ yEXEC_controls          (void)
    printf ("                                                                                                         \n");
    printf (" version ii                                                                                              \n");
    printf ("                                                                                                         \n");
-   printf ("IMPORTANCE |                                       | REMEDY       \n");
-   printf ("a absolute |                                       | g graceful   \n");
-   printf ("n need     |              JOB CONTROL              | k kill       \n");
-   printf ("v value    |               (7 chars)               | r relaunch   \n");
-   printf ("c crave    ³-------´                       ´-------³ ] let to end \n");
-   printf ("w want     |       |                       |       | · allow fail \n");
-   printf ("l like             ´------´ ay/s92k ´------´                      \n");
+   printf ("IMPORTANCE |                                       | GROUPING     \n");
+   printf ("a absolute |                                       | è to ÿ       \n");
+   printf ("n need     |              JOB CONTROL              | · unset      \n");
+   printf ("v value    |               (7 chars)               |              \n");
+   printf ("c crave    ³-------´                       ´-------³              \n");
+   printf ("w want     |       |                       |       |              \n");
+   printf ("l like             ´------´ ay/s92· ´------´                      \n");
    printf ("m might   ´------------------´   ´------------------´             \n");
    printf ("- tbd     |       ´-----------´´´-----------´       |             \n");
    printf ("          |       |            |            |       |             \n");
    printf ("----------³  -----³-----  -----³-----  -----³-----  ³----------   \n");
    printf ("TRACKING     HAND-OFF     STRICTNESS   MINIMUM       MAXIMUM      \n");
-   printf ("p profile    ^ tbd        s strict     = 1.00        = 1.00       \n");
-   printf ("u usage      | tbd        r rules      9 0.90        1 1.10       \n");
-   printf ("c console    / tbd        g guides     7 0.75        2 1.25       \n");
-   printf ("y beg/end    < tbd        a advisory   h 0.50        H 1.50       \n");
-   printf ("- none       > tbd        - passive    q 0.25        D 2.00       \n");
-   printf ("             · none                    t 0.10        T 3.00       \n");
-   printf ("                                       - 0.00        - infinite   \n");
+   printf ("p profile    ^ tbd        g graceful   = 1.00        = 1.00       \n");
+   printf ("u usage      | tbd        k violent    9 0.90        1 1.10       \n");
+   printf ("c console    / tbd        ] till end   7 0.75        2 1.25       \n");
+   printf ("y beg/end    < tbd        r rules      h 0.50        H 1.50       \n");
+   printf ("- none       > tbd        w warning    q 0.25        D 2.00       \n");
+   printf ("             · none       a advisory   t 0.10        T 3.00       \n");
+   printf ("                          - passive    - 0.00        - infinite   \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
@@ -226,13 +153,13 @@ yEXEC_controls          (void)
    printf ("          |       |            |            |       |             \n");
    printf ("----------³  -----³-----  -----³-----  -----³-----  ³----------   \n");
    printf ("FLEX         THROTTLE     CPU/USE      DISK/USE     NET/USE       \n");
-   printf ("= none       s strict     5 full       5 full       5 full        \n");
-   printf ("/ minutes    r rules      4 high       4 high       4 high        \n");
-   printf ("+ hours      g guides     3 half       3 half       3 half        \n");
-   printf ("* day        a advisory   2 low        2 low        2 low         \n");
-   printf ("· unset      - passive    1 trivial    1 trivial    1 trivial     \n");
-   printf ("                          - unset      - unset      - unset       \n");
-   printf ("                                                                  \n");
+   printf ("= none       g graceful   5 full       5 full       5 full        \n");
+   printf ("/ minutes    k violent    4 high       4 high       4 high        \n");
+   printf ("+ hours      t throttle   3 half       3 half       3 half        \n");
+   printf ("* day        r rules      2 low        2 low        2 low         \n");
+   printf ("· unset      w warning    1 trivial    1 trivial    1 trivial     \n");
+   printf ("             a advisory   - unset      - unset      - unset       \n");
+   printf ("             - passive                                            \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
@@ -421,11 +348,11 @@ yexec_max_in_msec       (int a_dur, char a_max, int a_mindur, int *a_maxdur)
    case 'T' : *a_maxdur =  a_dur * 3.00;      break;  
    case 'X' :
    case '·' :
-   case '-' : *a_maxdur =  9999999;             break;  
-   default  : *a_maxdur =  9999999; rc = rce;   break;
+   case '-' : *a_maxdur =   900000;           break;   /* 15min */
+   default  : *a_maxdur =   900000; rc = rce; break;   /* 15min */
    }
    /*---(correct)------------------------*/
-   if (*a_maxdur > 9999999)     *a_maxdur = 9999999;
+   if (*a_maxdur > 86400001)    *a_maxdur = 86400001;  /* 24hrs */
    if (*a_maxdur < a_mindur)    *a_maxdur = a_mindur;
    /*---(complete)-----------------------*/
    return rc;

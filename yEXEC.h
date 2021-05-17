@@ -101,6 +101,16 @@ typedef struct spwd      tSHADOW;
 #define     YEXEC_NOTEXEC  '}'
 #define     YEXEC_NOPERM   '~'
 
+#define     YEXEC_OVER     'O'
+#define     YEXEC_CPU      'C'
+#define     YEXEC_DISK     'D'
+#define     YEXEC_NET      'N'
+
+#define     YEXEC_BADDS    "#?{|}~"
+#define     YEXEC_BOOMS    "MHLde"
+#define     YEXEC_KILLS    "T"
+#define     YEXEC_FAILS    "Fw"
+
 #define     YEXEC_UNIT     "/tmp/yEXEC_unit.execution_feedback"
 
 #define     YEXEC_STDALL   'a'
@@ -213,6 +223,8 @@ typedef struct spwd      tSHADOW;
 #define     IF_VREVIEW      if (a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
 #define     IF_CCENTRAL     if (a_act == ACT_CCHECK || a_act == ACT_CAUDIT || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY || a_act == ACT_CNORMAL)
 #define     IF_VCENTRAL     if (a_act == ACT_VCHECK || a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
+/*---(unit testing)---------*/
+#define     IF_NORUN        if (yEXEC_ifnorun   () == 1)
 
 
 
@@ -225,16 +237,17 @@ char        yEXEC_iam               (char a_iam , char *a_print);
 char        yEXEC_mode              (char a_mode, char *a_print);
 
 
-char        yEXEC_acceptable_full   (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_name, cchar *a_muser, int a_muid, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
-char        yEXEC_acceptable        (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
+char        yEXEC_acceptable_full   (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir);
+char        yEXEC_acceptable        (cchar a_runas, cchar *a_name, char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir);
 char        yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_user, char *a_file);
-char        yEXEC_central_full      (cchar a_runas, cchar *a_central, cchar *a_name, cchar *a_muser, int a_muid, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc);
-char        yEXEC_central           (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir);
+char        yEXEC_central_full      (cchar a_runas, cchar *a_central, cchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_fdesc);
+char        yEXEC_central           (cchar a_runas, cchar *a_name, char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir);
 char        yEXEC_act_verify        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
 char        yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
 char        yEXEC_act_check         (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate);
 char        yEXEC_act_remove        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name);
 char        yEXEC_act_security      (cchar a_runas, cchar a_act, cchar *a_oneline);
+char        yEXEC_act_fix           (cchar a_runas, cchar a_act, cchar *a_oneline);
 char        yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_muser, int a_muid, cchar *a_regex, void *a_assimilate);
 
 
@@ -254,6 +267,7 @@ char        yEXEC_iffix             (void);
 char        yEXEC_ifdaemon          (void);
 char        yEXEC_ifprickly         (void);
 char        yEXEC_ifnormal          (void);
+char        yEXEC_ifnorun           (void);
 
 
 char        yEXEC_runable           (char *a_title, char *a_user, char  *a_cmd, char a_path);
@@ -263,6 +277,7 @@ int         yEXEC_tight             (char *a_title, char *a_user, char *a_cmd);
 int         yEXEC_full              (char *a_title, char *a_user, char *a_cmd, char a_shell, char a_path, char a_fork, char *a_output);
 char        yEXEC_verify            (char *a_title, int a_rpid, int *a_rc2);
 char        yEXEC_check             (int a_rpid);
+char        yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_grace, int a_peers);
 char        yEXEC_detail            (char a_rc, int a_rc2, char *a_desc);
 char        yEXEC_find              (char *a_name, int *a_rpid);
 char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);

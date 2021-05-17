@@ -29,7 +29,7 @@ SCRP          (SIGN) verify reaction to user/config signals                    
 
    COND       prepare for run                                                    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((01.001))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
      exec     initialize the system                yexec__unit_quiet                                                                                                                 i_equal     0                                                                                                    
-     code     create working variable              - - - - - - - - - - - - -   int   x_rpid  = -1;                                                                                                                                                                                                        
+     local    create working variable              - - - - - - - - - - - - -   int   x_rpid  = -1;                                                                                                                                                                                                        
 
    REUSE -a-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   - - - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 
@@ -111,7 +111,7 @@ SCRP          (SIGN) verify reaction to job control signals                    
 
    COND       prepare for run                                                    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((01.001))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
      exec     initialize the system                yexec__unit_quiet                                                                                                                 i_equal     0                                                                                                    
-     code     create working variable              - - - - - - - - - - - - -   int   x_rpid  = -1;                                                                                                                                                                                                        
+     local    create working variable              - - - - - - - - - - - - -   int   x_rpid  = -1;                                                                                                                                                                                                        
 
    REUSE -a-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   - - - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 
@@ -231,7 +231,7 @@ SCRP          (SIGN) verify reaction to termination signals                    
 
    COND       prepare for run                                                    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((01.001))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
      exec     initialize the system                yexec__unit_quiet                                                                                                                 i_equal     0                                                                                                    
-     code     create working variable              - - - - - - - - - - - - -   int   x_rpid  = -1;                                                                                                                                                                                                        
+     local    create working variable              - - - - - - - - - - - - -   int   x_rpid  = -1;                                                                                                                                                                                                        
 
    REUSE -a-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   - - - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 
@@ -290,7 +290,7 @@ SCRP          (SIGN) verify reaction to termination signals                    
      get      ... check the signal log             yexec_sign__unit            "unit"                 , 3                                                                            s_equal     SIGN unit   ( 3) :   4  ¬¬[¬¬.¬¬.¬¬.¬¬.¬¬.¬¬.¬.¬¬.¬¬¬  ¬¬¬¬¬¬¬¬¬¬  ¬¬¬¬¬¬  yexec  SIGTERM (15) ¬¬¬¬¬¬¬¬¬¬¬ 
      get      ... check the local log              yexec_sign__unit            "local"                , 3                                                                            s_equal     SIGN local  ( 3) :   4  ¬¬[¬¬.¬¬.¬¬.¬¬.¬¬.¬¬.¬.¬¬.¬¬¬  ¬¬¬¬¬¬¬¬¬¬  ¬¬¬¬¬¬  local  SIGTERM (15) ¬¬¬¬¬¬¬¬¬¬¬ 
 
-   COND (D)   verify it is still here                                            - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((01.001))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+   COND (4)   verify it is still here                                            - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -   ((01.001))  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
      code     wait a second                        - - - - - - - - - - - - -   sleep (1);                                                                                                                                                                                                                 
      exec     check for existance                  yEXEC_find                  "unit_daemon"          , &x_rpid                                                                      i_equal     1                                                                                                    
      echo     ... check the pid                    - - - - - - - - - - - - -   x_rpid                                                                                                i_greater   0

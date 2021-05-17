@@ -355,7 +355,7 @@ yexec__stats            (cchar a_loc, cchar *a_dir, uchar *a_name, cchar *a_muse
 }
 
 char
-yEXEC_acceptable_full    (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_name, cchar *a_muser, int a_muid, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir)
+yEXEC_acceptable_full    (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
@@ -367,10 +367,10 @@ yEXEC_acceptable_full    (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_
    DEBUG_INPT  yLOG_enter   (__FUNCTION__);
    yURG_msg ('>', "local file verification...");
    /*---(defaults)-----------------------*/
-   if (a_fuser != NULL)  strcpy (a_fuser, "");
-   if (a_fuid  != NULL)  *a_fuid = -1;
-   if (a_fdesc != NULL)  strcpy (a_fdesc, "");
-   if (a_dir   != NULL)  strcpy (a_dir  , "");
+   if (r_fuser != NULL)  strcpy (r_fuser, "");
+   if (r_fuid  != NULL)  *r_fuid = -1;
+   if (r_fdesc != NULL)  strcpy (r_fdesc, "");
+   if (r_dir   != NULL)  strcpy (r_dir  , "");
    /*---(naming)-------------------------*/
    rc = yexec__naming (a_name);
    DEBUG_INPT  yLOG_value   ("naming"    , rc);
@@ -396,10 +396,10 @@ yEXEC_acceptable_full    (cchar a_runas, cchar *a_home, cchar *a_root, cchar *a_
       return rce;
    }
    /*---(update globals)-----------------*/
-   if (a_fuser != NULL)  strlcpy (a_fuser, x_fuser, LEN_USER);
-   if (a_fuid  != NULL)  *a_fuid = x_fuid;
-   if (a_fdesc != NULL)  strlcpy (a_fdesc, a_name + 8, LEN_DESC);
-   if (a_dir   != NULL)  strlcpy (a_dir  , x_cwd, LEN_PATH);
+   if (r_fuser != NULL)  strlcpy (r_fuser, x_fuser, LEN_USER);
+   if (r_fuid  != NULL)  *r_fuid = x_fuid;
+   if (r_fdesc != NULL)  strlcpy (r_fdesc, a_name + 8, LEN_DESC);
+   if (r_dir   != NULL)  strlcpy (r_dir  , x_cwd, LEN_PATH);
    /*---(finish)-------------------------*/
    yURG_msg ('-', "SUCCESS, job/khronos file acceptable");
    yURG_msg (' ', "");
@@ -433,7 +433,7 @@ yEXEC_local_dir         (cchar a_runas, char *a_root, char *a_home)
 }
 
 char
-yEXEC_acceptable         (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir)
+yEXEC_acceptable         (cchar a_runas, cchar *a_name, char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir)
 {
    char        rc          =    0;
    char        x_user      [LEN_LABEL] = "";
@@ -442,12 +442,12 @@ yEXEC_acceptable         (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
    int         x_uid       =    0;
    if (rc >= 0) rc = yEXEC_local_dir       (a_runas, x_root, x_home);
    if (rc >= 0) rc = yEXEC_whoami          (NULL, NULL, &x_uid, NULL, &x_user, 'n');
-   if (rc >= 0) rc = yEXEC_acceptable_full (a_runas, x_home, x_root, a_name, x_user, x_uid, a_fuser, a_fuid, a_fdesc, a_dir);
+   if (rc >= 0) rc = yEXEC_acceptable_full (a_runas, x_home, x_root, a_name, x_user, x_uid, r_fuser, r_fuid, r_fdesc, r_dir);
    return rc;
 }
 
 char
-yEXEC_central_full       (cchar a_runas, cchar *a_central, cchar *a_name, cchar *a_muser, int a_muid, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc)
+yEXEC_central_full       (cchar a_runas, cchar *a_central, cchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_fdesc)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
@@ -459,9 +459,9 @@ yEXEC_central_full       (cchar a_runas, cchar *a_central, cchar *a_name, cchar 
    DEBUG_INPT  yLOG_enter   (__FUNCTION__);
    yURG_msg ('>', "central file check...");
    /*---(defaults)-----------------------*/
-   if (a_fuser != NULL)  strcpy (a_fuser, "");
-   if (a_fuid  != NULL)  *a_fuid = -1;
-   if (a_fdesc != NULL)  strcpy (a_fdesc, "");
+   if (r_fuser != NULL)  strcpy (r_fuser, "");
+   if (r_fuid  != NULL)  *r_fuid = -1;
+   if (r_fdesc != NULL)  strcpy (r_fdesc, "");
    /*---(naming)-------------------------*/
    rc = yexec__naming (a_name);
    DEBUG_INPT  yLOG_value   ("naming"    , rc);
@@ -487,9 +487,9 @@ yEXEC_central_full       (cchar a_runas, cchar *a_central, cchar *a_name, cchar 
       return rce;
    }
    /*---(update globals)-----------------*/
-   if (a_fuser != NULL)  strlcpy (a_fuser, x_fuser, LEN_USER);
-   if (a_fuid  != NULL)  *a_fuid = x_fuid;
-   if (a_fdesc != NULL)  strlcpy (a_fdesc, a_name + strlen (x_fuser) + 1 , LEN_DESC);
+   if (r_fuser != NULL)  strlcpy (r_fuser, x_fuser, LEN_USER);
+   if (r_fuid  != NULL)  *r_fuid = x_fuid;
+   if (r_fdesc != NULL)  strlcpy (r_fdesc, a_name + strlen (x_fuser) + 1 , LEN_DESC);
    /*---(finish)-------------------------*/
    yURG_msg ('-', "SUCCESS, job/khronos file acceptable");
    yURG_msg (' ', "");
@@ -536,11 +536,15 @@ yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_user
    --rce;  switch (a_runas) {
    case IAM_KHRONOS   : case IAM_UKHRONOS  :
       DEBUG_INPT   yLOG_info    ("a_name"    , a_name);
-      p = strchr (a_name, '.');
-      DEBUG_INPT   yLOG_point   ("p"         , p);
-      if (p == NULL)  return rce;
-      DEBUG_INPT   yLOG_info    ("a_user"    , a_user);
-      sprintf (a_file, "%s%s", a_user, p);
+      if (strncmp (a_name, "khronos.", 8) == 0) {
+         p = strchr (a_name, '.');
+         DEBUG_INPT   yLOG_point   ("p"         , p);
+         if (p == NULL)  return rce;
+         DEBUG_INPT   yLOG_info    ("a_user"    , a_user);
+         sprintf (a_file, "%s%s", a_user, p);
+      } else {
+         strcpy (a_file, a_name);
+      }
       DEBUG_INPT   yLOG_info    ("a_file"    , a_file);
       break;
    case IAM_EOS       : case IAM_UEOS      : 
@@ -553,9 +557,17 @@ yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_user
       strlcpy (a_file, "hypnos.conf"  , LEN_PATH);
       break;
    case IAM_HERACLES  : case IAM_UHERACLES : 
-      p = strchr (a_name, '.');
-      if (p == NULL)  return rce;
-      sprintf (a_file, "%s%s", a_user, p);
+      DEBUG_INPT   yLOG_info    ("a_name"    , a_name);
+      if (strncmp (a_name, "job.", 4) == 0) {
+         p = strchr (a_name, '.');
+         DEBUG_INPT   yLOG_point   ("p"         , p);
+         if (p == NULL)  return rce;
+         DEBUG_INPT   yLOG_info    ("a_user"    , a_user);
+         sprintf (a_file, "%s%s", a_user, p);
+      } else {
+         strcpy (a_file, a_name);
+      }
+      DEBUG_INPT   yLOG_info    ("a_file"    , a_file);
       break;
    default  :
       yURG_err ('f', "a_runas (%c) is not recognized", a_runas);
@@ -567,7 +579,7 @@ yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_user
 }
 
 char
-yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, int *a_fuid, char *a_fdesc, char *a_dir)
+yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir)
 {
    char        rce         =  -10;
    char        rc          =    0;
@@ -575,7 +587,7 @@ yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
    int         x_uid       =    0;
    char        x_center    [LEN_PATH]  = "";
    char        x_file      [LEN_PATH]  = "";
-   if (a_dir   != NULL)  strcpy (a_dir  , "");
+   if (r_dir   != NULL)  strcpy (r_dir  , "");
    rc = yEXEC_whoami (NULL, NULL, &x_uid, NULL, &x_user, 'n');
    --rce;  if (rc < 0) {
       yURG_err ('f', "could not identify current user (yEXEC_whoami)");
@@ -586,8 +598,8 @@ yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
       yURG_err ('f', "could not identify central directory");
       return rce;
    }
-   if (a_dir   != NULL)  strlcpy (a_dir, x_center, LEN_PATH);
-   rc = yEXEC_central_full (a_runas, x_center, x_file, x_user, x_uid, a_fuser, a_fuid, a_fdesc);
+   if (r_dir   != NULL)  strlcpy (r_dir, x_center, LEN_PATH);
+   rc = yEXEC_central_full (a_runas, x_center, x_file, x_user, x_uid, r_fuser, r_fuid, r_fdesc);
    return rc;
 }
 
@@ -597,7 +609,7 @@ yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *a_fuser, 
 /*====================------------------------------------====================*/
 static void      o___ACTIONS_________________o (void) {;};
 
-static char (*s_assimilate) (cchar a_loc, cchar *a_name, char *a_user, char *a_desc);
+static char (*s_assimilate) (cchar a_runas, cchar a_loc, cchar *a_name, char *r_user, char *r_desc);
 
 char
 yEXEC_act_verify        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_name, void *a_assimilate)
@@ -632,7 +644,7 @@ yEXEC_act_verify        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(verify contents)--------------------*/
-   rc = s_assimilate (YEXEC_LOCAL, a_name, NULL, NULL);
+   rc = s_assimilate (a_runas, YEXEC_LOCAL, a_name, NULL, NULL);
    DEBUG_INPT   yLOG_value   ("assimilate", rc);
    --rce;  if (rc < 0) {
       if (a_act == ACT_CVERIFY )   yURG_msg_live ();
@@ -774,7 +786,7 @@ yEXEC_act_install       (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
       return rce;
    }
    /*---(verify contents)--------------------*/
-   rc = s_assimilate (YEXEC_LOCAL, a_name, x_user, x_desc);
+   rc = s_assimilate (a_runas, YEXEC_LOCAL, a_name, x_user, x_desc);
    DEBUG_INPT   yLOG_value   ("assimilate", rc);
    --rce;  if (rc < 0) {
       if (a_act == ACT_CINSTALL)   yURG_msg_live ();
@@ -846,7 +858,7 @@ yEXEC_act_check         (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
    }
    yURG_msg (' ', "");
    /*---(verify contents)--------------------*/
-   rc = s_assimilate (YEXEC_CENTRAL, a_name, NULL, NULL);
+   rc = s_assimilate (a_runas, YEXEC_CENTRAL, a_name, NULL, NULL);
    DEBUG_INPT   yLOG_value   ("assimilate", rc);
    --rce;  if (rc < 0) {
       IF_VCENTRAL  yURG_msg ('>', "FAILED, installed job/khronos file not runable, the reasons are shown above");
@@ -1069,6 +1081,32 @@ yEXEC_act_security      (cchar a_runas, cchar a_act, cchar *a_oneline)
    yURG_msg ('-', "SUCCESS, central directory basic security measures confirmed");
    /*---(complete)-----------------------*/
    DEBUG_INPT   yLOG_exit    (__FUNCTION__);
+   return 0;
+}
+
+char
+yEXEC_act_fix           (cchar a_runas, cchar a_act, cchar *a_oneline)
+{
+   switch (a_runas) {
+   case IAM_KHRONOS :
+      chown  ("/var", 0   , 0   );
+      chmod  ("/var", 0755);
+      chown  ("/var/spool", 0   , 0   );
+      chmod  ("/var/spool", 0755);
+      chown  ("/var/spool/khronos", 0   , 0   );
+      chmod  ("/var/spool/khronos", 0700);
+      break;
+   case IAM_UKHRONOS :
+      chown  ("/tmp", 0   , 0   );
+      chmod  ("/tmp", 0755);
+      chown  ("/tmp/khronos_test", 0   , 0   );
+      chmod  ("/tmp/khronos_test", 0755);
+      chown  ("/tmp/khronos_test/khronos", 0   , 0   );
+      chmod  ("/tmp/khronos_test/khronos", 0700);
+      system ("rm -f /tmp/khronos_test/khronos/*~");
+      system ("rm -f /tmp/khronos_test/khronos/.*");
+      break;
+   }
    return 0;
 }
 
@@ -1352,9 +1390,56 @@ yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
 }
 
 char
-yexec_act__assim        (cchar a_loc, cchar *a_name)
+yexec_act__assim        (cchar a_runas, cchar a_loc, cchar *a_name, char *r_user, char *r_desc)
 {
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   char        x_user      [LEN_USER]  = "";
+   int         x_uid       =    0;
+   char        x_desc      [LEN_DESC]  = "";
+   char        x_dir       [LEN_PATH]  = "";
+   /*---(default)------------------------*/
+   if (r_user != NULL)  strlcpy (r_user, ""       , LEN_USER);
+   if (r_desc != NULL)  strlcpy (r_desc, ""       , LEN_DESC);
+   /*---(parse file)---------------------*/
+   --rce;  if (a_loc == YEXEC_CENTRAL)   rc = yEXEC_central    (a_runas, a_name, &x_user, &x_uid, &x_desc, x_dir);
+   else if    (a_loc == YEXEC_LOCAL  )   rc = yEXEC_acceptable (a_runas, a_name, &x_user, &x_uid, &x_desc, x_dir);
+   else                                  return rce;
+   --rce;  if (rc < 0)                   return rce;
+   /*---(save back)----------------------*/
+   if (r_user != NULL)  strlcpy (r_user, x_user, LEN_USER);
+   if (r_desc != NULL)  strlcpy (r_desc, x_desc, LEN_DESC);
+   /*---(trouble)------------------------*/
    if (strstr (a_name, "bad") != NULL)  return -10;
+   /*---(complete)-----------------------*/
+   return 0;
+}
+
+char
+yexec_act__mkdir        (void)
+{
+   switch (g_runas) {
+   case IAM_UKHRONOS :
+      yURG_mkdir ("/tmp/khronos_test/"       , "root"   , "root"  , "0755");
+      yURG_mkdir ("/tmp/khronos_test/khronos", "root"   , "root"  , "0700");
+      yURG_mkdir ("/tmp/khronos_test/root"   , "root"   , "root"  , "0700");
+      yURG_mkdir ("/tmp/khronos_test/member" , "member" , "root"  , "0700");
+      yURG_mkdir ("/tmp/khronos_test/machine", "machine", "root"  , "0700");
+      yURG_mkdir ("/tmp/khronos_test/monkey" , "monkey" , "root"  , "0700");
+      break;
+   }
+   return 0;
+}
+
+char
+yexec_act__rmdir        (void)
+{
+   switch (g_runas) {
+   case IAM_UKHRONOS :
+      yURG_rmdir ("/tmp/khronos_test/");
+      break;
+   }
    return 0;
 }
 

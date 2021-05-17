@@ -713,6 +713,13 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc2)
       DEBUG_YEXEC  yLOG_sexit   ("CHK");
       return YEXEC_NOCHMOD;
    }
+   if (x_rc == SIGTERM) {
+      DEBUG_YEXEC  yLOG_snote   ("graceful shutdown handled properly");
+      if (a_rc2 != NULL)  *a_rc2 = x_rc;
+      DEBUG_YEXEC  yLOG_snote   ("TERMINATED");
+      DEBUG_YEXEC  yLOG_sexit   ("CHK");
+      return YEXEC_KILLED;
+   }
    if (x_rc <    0) {  /* negative returns from linux uchar return */
       DEBUG_YEXEC  yLOG_snote   ("FAILURE");
       if (a_rc2 != NULL)  *a_rc2 = x_rc;
@@ -726,13 +733,53 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc2)
 }
 
 char
-yEXEC_check        (int a_rpid)
+yEXEC_check             (int a_rpid)
 {
    return yEXEC_verify ("quick", a_rpid, NULL);
 }
 
 char
-yEXEC_detail       (char a_rc, int a_rc2, char *a_desc)
+yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_grace, int a_peers)
+{
+   if (a_strict == 0) return 0;
+   DEBUG_YEXEC  yLOG_complex ("timing"    , "%5d, %c, %5dm, %5dd, %5dg", a_rpid, a_strict, a_max, a_dur, a_grace);
+   switch (a_strict) {
+   case 'g' :
+      if (a_dur >= a_max + a_grace) {
+         DEBUG_YEXEC  yLOG_note    ("violent termination, since graceful ignored");
+         kill (a_rpid, SIGKILL);
+      } else if (a_dur >= a_max) {
+         DEBUG_YEXEC  yLOG_note    ("graceful termination request");
+         kill (a_rpid, SIGTERM);
+      } else {
+         DEBUG_YEXEC  yLOG_note    ("too early for graceful termination");
+      }
+      break;
+   case 'k' :
+      if (a_dur >= a_max) {
+         DEBUG_YEXEC  yLOG_note    ("violent termination");
+         kill (a_rpid, SIGKILL);
+      } else {
+         DEBUG_YEXEC  yLOG_note    ("too early for violent termination");
+      }
+      break;
+   case ']' :
+      if (a_peers == 0) {
+         if (a_dur >= a_max) {
+            DEBUG_YEXEC  yLOG_note    ("violent, end-of-peers, termination");
+            kill (a_rpid, SIGKILL);
+         }
+      }
+      break;
+   default  :
+      DEBUG_YEXEC  yLOG_note    ("nothing to do");
+      break;
+   }
+   return 0;
+}
+
+char
+yEXEC_detail            (char a_rc, int a_rc2, char *a_desc)
 {
    if (a_desc == NULL)  return -1;
    switch (a_rc) {
