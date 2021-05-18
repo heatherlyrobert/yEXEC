@@ -34,8 +34,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2d"
-#define     P_VERTXT    "updated ACT for khronos and fixed its unit testing"
+#define     P_VERNUM    "1.2e"
+#define     P_VERTXT    "all unit testing passed"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"

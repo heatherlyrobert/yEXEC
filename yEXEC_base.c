@@ -58,7 +58,7 @@ static struct {
    {  5, 'T', "3.00"       , ""                                         },
    {  5, '-', "infinite"   , ""                                         },
    /*---(grouping)----------*/
-   {  6, '·', "unset"      , ""                                         },
+   {  6, '-', "unset"      , ""                                         },
    /*---(flexibility)-------*/
    {  7, '=', "none"       , "scheduled time is unmovable"              },
    {  7, '/', "minutes"    , "schedule can be shifted +/- 30min"        },
@@ -69,7 +69,7 @@ static struct {
    /*---(throttle)----------*/
    {  8, 'g', "graceful"   , "TERM process if it exceeds limits"        },
    {  8, 'k', "violent"    , "KILL process if it exceeds limits"        },
-   {  8, 's', "strict"     , "throttle process to keep in limits"       },
+   {  8, 't', "throttle"   , "throttle process to keep in limits"       },
    {  8, 'r', "rules"      , "notify khaos/sysadmin, and reports"       },
    {  8, 'w', "warning"    , "note on reports only"                     },
    {  8, 'a', "advisory"   , "no action, just for planning"             },
