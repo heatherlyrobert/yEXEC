@@ -741,16 +741,18 @@ yEXEC_check             (int a_rpid)
 char
 yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_grace, int a_peers)
 {
-   if (a_strict == 0) return 0;
+   if (a_strict == 0) return '-';
    DEBUG_YEXEC  yLOG_complex ("timing"    , "%5d, %c, %5dm, %5dd, %5dg", a_rpid, a_strict, a_max, a_dur, a_grace);
    switch (a_strict) {
    case 'g' :
       if (a_dur >= a_max + a_grace) {
          DEBUG_YEXEC  yLOG_note    ("violent termination, since graceful ignored");
          kill (a_rpid, SIGKILL);
+         return 'k';
       } else if (a_dur >= a_max) {
          DEBUG_YEXEC  yLOG_note    ("graceful termination request");
          kill (a_rpid, SIGTERM);
+         return 'g';
       } else {
          DEBUG_YEXEC  yLOG_note    ("too early for graceful termination");
       }
@@ -759,6 +761,7 @@ yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_
       if (a_dur >= a_max) {
          DEBUG_YEXEC  yLOG_note    ("violent termination");
          kill (a_rpid, SIGKILL);
+         return 'k';
       } else {
          DEBUG_YEXEC  yLOG_note    ("too early for violent termination");
       }
@@ -768,6 +771,7 @@ yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_
          if (a_dur >= a_max) {
             DEBUG_YEXEC  yLOG_note    ("violent, end-of-peers, termination");
             kill (a_rpid, SIGKILL);
+            return 'k';
          }
       }
       break;
@@ -775,7 +779,7 @@ yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_
       DEBUG_YEXEC  yLOG_note    ("nothing to do");
       break;
    }
-   return 0;
+   return '-';
 }
 
 char
@@ -948,6 +952,183 @@ yEXEC_find         (char *a_name, int *a_rpid)
    DEBUG_YEXEC  yLOG_sint    (c);
    DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
    return c;
+}
+
+
+
+/*====================------------------------------------====================*/
+/*===----                        measuring usage                       ----===*/
+/*====================------------------------------------====================*/
+static void      o___USAGE___________________o (void) {;}
+
+/*
+ *   /proc/stat        cpu usage
+ *   /proc/cpuinfo     cpu details, including MHz
+ *   /proc/meminfo     memory avail, alloc, etc.
+ *
+ *   /proc/pid/stat    lots of stuff
+ *   /proc/pid/statm   ???
+ *   /proc/pid/io      bytes read, bytes written
+ *   /proc/pid/status  lots, but has sleeping, running, etc
+ *   /proc/pid/limits  getrlimit (), getslimit ()
+ *
+ *   /proc/pid/smaps   shared library coolness
+ *
+ *
+ *   MUST CONVERT FROM JIFFIES to cpu msec
+ *
+ *   HOW TO SCALE from cpu to cpu to block procs into needed categories
+ *
+ */
+
+char
+yEXEC_cpu_main          (long *a_utime, long *a_stime, long *a_idle)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   int         rce         =  -10;
+   int         rc          =    0;
+   FILE       *f;
+   char        x_recd      [LEN_RECD]  = "";
+   char       *p           = NULL;
+   char       *r           = NULL;
+   char        c           =    0;
+   /*---(header)------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(open stat file)-----------------*/
+   f = fopen ("/proc/stat", "rt");
+   DEBUG_YEXEC  yLOG_spoint  (f);
+   --rce;  if (f == NULL) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(read line)---------------------*/
+   fgets (x_recd, LEN_RECD, f);
+   p = strtok_r (x_recd, " ", &r);
+   while (p != NULL && c <  5) {
+      switch (c) {
+      case  1 :
+         if (a_utime != NULL)  *a_utime = atol (p);
+         break;
+      case  3 :
+         if (a_stime != NULL)  *a_stime = atol (p);
+         break;
+      case  4 :
+         if (a_idle  != NULL)  *a_idle  = atol (p);
+         break;
+      }
+      ++c;
+      p = strtok_r (NULL  , " ", &r);
+   }
+   /*---(close file)--------------------*/
+   rc = fclose (f);
+   DEBUG_YEXEC  yLOG_sint    (rc);
+   --rce;  if (f <  0) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(complete)----------------------*/
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   return 0;
+}
+
+char
+yEXEC_mem_main          (void)
+{
+}
+
+char
+yEXEC_net_main          (void)
+{
+}
+
+char
+yEXEC_cpu_proc          (int a_rpid, char *a_state, long *a_utime, long *a_stime, char *a_snice)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   int         rce         =  -10;
+   int         rc          =    0;
+   FILE       *f;
+   char        x_name      [LEN_HUND]  = "";
+   char        x_recd      [LEN_RECD]  = "";
+   char       *p           = NULL;
+   char       *r           = NULL;
+   char        c           =    0;
+   char        x_state     =  '-';
+   long        x_utime     =    0;
+   long        x_stime     =    0;
+   char        x_snice     =    0;
+   /*---(header)------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defaults)----------------------*/
+   if (a_state != NULL)  *a_state = '-';
+   if (a_utime != NULL)  *a_utime = 0;
+   if (a_stime != NULL)  *a_stime = 0;
+   if (a_snice != NULL)  *a_snice = 20;
+   /*---(open proc)----------------------*/
+   sprintf (x_name, "/proc/%d/stat", a_rpid);
+   f = fopen (x_name, "rt");
+   DEBUG_YEXEC  yLOG_spoint  (f);
+   --rce;  if (f == NULL) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(read line)---------------------*/
+   fgets (x_recd, LEN_RECD, f);
+   p = strtok_r (x_recd, " ", &r);
+   DEBUG_YEXEC  yLOG_spoint  (p);
+   --rce;  if (p == NULL) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   while (p != NULL && c < 20) {
+      printf ("%2d  %-10p  %-10.10s\n", c, p, p);
+      switch (c) {
+      case  2 :
+         if (a_state != NULL)  *a_state = p [0];
+         break;
+      case 13 :
+         if (a_utime != NULL)  *a_utime = atol (p);
+         break;
+      case 14 :
+         if (a_stime != NULL)  *a_stime = atol (p);
+         break;
+      case 17 :
+         if (a_snice != NULL)  *a_snice = atoi (p);
+         break;
+      }
+      ++c;
+      p = strtok_r (NULL  , " ", &r);
+   }
+   DEBUG_YEXEC  yLOG_sint    (c);
+   --rce;  if (c <  20) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(close file)--------------------*/
+   rc = fclose (f);
+   DEBUG_YEXEC  yLOG_sint    (rc);
+   --rce;  if (f <  0) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(complete)----------------------*/
+   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   return 0;
+}
+
+char
+yEXEC_mem_proc          (void)
+{
+}
+
+char
+yEXEC_net_proc          (void)
+{
+}
+
+char
+yEXEC_tracking          (FILE *a_file, int a_rpid, char a_track)
+{
 }
 
 
