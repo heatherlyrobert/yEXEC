@@ -25,7 +25,7 @@ char          g_daemon      [LEN_SHORT] = "";
 char          g_prickly     [LEN_SHORT] = "";
 char          g_normal      [LEN_SHORT] = "";
 
-char          s_print       [LEN_RECD]  = "";
+static char   s_print       [LEN_RECD]  = "";
 
 #define     MAX_OPTS    35
 typedef struct cOPTS  tOPTS;

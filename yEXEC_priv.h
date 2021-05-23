@@ -34,8 +34,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2f"
-#define     P_VERTXT    "added proc cpu monitoring and unit tested it"
+#define     P_VERNUM    "1.2g"
+#define     P_VERTXT    "great on memory monitor, added proc/lib structs and some unit"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -121,8 +121,9 @@ extern char   g_runfile     [LEN_PATH];
 extern char   g_norun;
 extern char   s_terse     [LEN_HUND];
 extern char   s_fancy     [LEN_RECD];
-extern char   s_print     [LEN_RECD];
 
+typedef struct cPROC tPROC;
+typedef struct cLIB  tLIB;
 
 
 void             /* [------] receive signals ---------------------------------*/
@@ -166,6 +167,13 @@ char        yexec__setpath          (char a_path);
 char        yexec__onpath           (void);
 char*       yexec_proc__unit        (char *a_question, int a_num);
 char        yexec_proc__unit_read   (char a_type, char *a_info);
+
+char        yexec_mon__pwipe        (tPROC *a_new);
+char*       yexec_mon__pmemory      (tPROC *a_cur);
+char        yexec_mon__pnew         (tPROC **a_new, int a_rpid, char *a_name);
+char        yexec_mon__pfree        (tPROC **a_old);
+char        yexec_mon__ppurge       (void);
+char*       yexec_mon__unit         (char *a_question, int n);
 
 char*       yexec_tty__unit         (char *a_question);
 

@@ -1041,8 +1041,9 @@ yEXEC_net_main          (void)
 {
 }
 
+
 char
-yEXEC_cpu_proc          (int a_rpid, char *a_state, long *a_utime, long *a_stime, char *a_snice)
+yEXEC_mem_proc_OLD      (int a_rpid, long *a_total, long *a_text, long *a_data, long *a_stack, long *a_heap, long *a_libs)
 {
    /*---(locals)-----------+-----+-----+-*/
    int         rce         =  -10;
@@ -1050,59 +1051,56 @@ yEXEC_cpu_proc          (int a_rpid, char *a_state, long *a_utime, long *a_stime
    FILE       *f;
    char        x_name      [LEN_HUND]  = "";
    char        x_recd      [LEN_RECD]  = "";
+   int         i           =    0;
    char       *p           = NULL;
    char       *r           = NULL;
-   char        c           =    0;
-   char        x_state     =  '-';
-   long        x_utime     =    0;
-   long        x_stime     =    0;
-   char        x_snice     =    0;
+   char        x_perm      [LEN_TERSE] = "";
    /*---(header)------------------------*/
    DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
    /*---(defaults)----------------------*/
-   if (a_state != NULL)  *a_state = '-';
-   if (a_utime != NULL)  *a_utime = 0;
-   if (a_stime != NULL)  *a_stime = 0;
-   if (a_snice != NULL)  *a_snice = 20;
+   if (a_total != NULL)  *a_total = 0;
+   if (a_text  != NULL)  *a_text  = 0;
+   if (a_data  != NULL)  *a_data  = 0;
+   if (a_stack != NULL)  *a_heap  = 0;
+   if (a_heap  != NULL)  *a_heap  = 0;
+   if (a_libs  != NULL)  *a_libs  = 0;
    /*---(open proc)----------------------*/
-   sprintf (x_name, "/proc/%d/stat", a_rpid);
+   /*> sprintf (x_name, "/proc/%d/smaps", a_rpid);                                    <*/
+   sprintf (x_name, "/proc/%d/status", a_rpid);
    f = fopen (x_name, "rt");
    DEBUG_YEXEC  yLOG_spoint  (f);
    --rce;  if (f == NULL) {
       DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
-   /*---(read line)---------------------*/
-   fgets (x_recd, LEN_RECD, f);
-   p = strtok_r (x_recd, " ", &r);
-   DEBUG_YEXEC  yLOG_spoint  (p);
-   --rce;  if (p == NULL) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
-   }
-   while (p != NULL && c < 20) {
-      printf ("%2d  %-10p  %-10.10s\n", c, p, p);
-      switch (c) {
-      case  2 :
-         if (a_state != NULL)  *a_state = p [0];
+   /*---(read stanza)-----------------*/
+   for (i = 0; i < 25; ++i) {
+      fgets (x_recd, LEN_RECD, f);
+      /*> printf ("%2d, %s\n", i, x_recd);                                            <*/
+      p = strtok_r (x_recd, " \t", &r);
+      /*> printf ("    %p\n", p);                                                     <*/
+      if (p == NULL) break;
+      p = strtok_r (NULL  , " \t", &r);
+      /*> printf ("    %p\n", p);                                                     <*/
+      if (p == NULL) break;
+      switch (i) {
+      case 12 : /* VmSize  */
+         /*> printf ("%2d, %5ld, %s\n", i, atol (p), p);                              <*/
+         if (a_total != NULL)  *a_total += atol (p);
          break;
-      case 13 :
-         if (a_utime != NULL)  *a_utime = atol (p);
+      case 17 : /* VmData  */
+         /*> printf ("%2d, %5ld, %s\n", i, atol (p), p);                              <*/
+         if (a_data  != NULL)  *a_data  += atol (p);
          break;
-      case 14 :
-         if (a_stime != NULL)  *a_stime = atol (p);
+      case 18 :  /* VmStk   */
+         /*> printf ("%2d, %5ld, %s\n", i, atol (p), p);                              <*/
+         if (a_stack != NULL)  *a_stack += atol (p);
          break;
-      case 17 :
-         if (a_snice != NULL)  *a_snice = atoi (p);
+      case 19 : /* VmExe   */
+         /*> printf ("%2d, %5ld, %s\n", i, atol (p), p);                              <*/
+         if (a_text  != NULL)  *a_text  += atol (p);
          break;
       }
-      ++c;
-      p = strtok_r (NULL  , " ", &r);
-   }
-   DEBUG_YEXEC  yLOG_sint    (c);
-   --rce;  if (c <  20) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
    }
    /*---(close file)--------------------*/
    rc = fclose (f);
@@ -1114,11 +1112,6 @@ yEXEC_cpu_proc          (int a_rpid, char *a_state, long *a_utime, long *a_stime
    /*---(complete)----------------------*/
    DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
    return 0;
-}
-
-char
-yEXEC_mem_proc          (void)
-{
 }
 
 char

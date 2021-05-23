@@ -284,7 +284,9 @@ char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);
 char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
 char        yEXEC_cpu_main          (long *a_utime, long *a_stime, long *a_idle);
-char        yEXEC_cpu_proc          (int a_rpid, char *a_state, long *a_utime, long *a_stime, char *a_snice);
+char        yEXEC_cpu_proc          (int a_rpid, char a_cpu, char *a_state, long *a_utime, long *a_stime, char *a_snice);
+char        yEXEC_mem_proc          (int a_rpid, char a_mem, long *a_total, long *a_true, long *a_text, long *a_data, long *a_heap, long *a_stack, long *a_kern, long *a_libs, long *a_empty, char *a_flag);
+char        yEXEC_mem_proc_OLD      (int a_rpid, long *a_total, long *a_text, long *a_data, long *a_stack, long *a_heap, long *a_libs);
 
 char        yEXEC_dur_in_sec        (char *a_text, int *a_dur);
 char        yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_handoff, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy);
