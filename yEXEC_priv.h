@@ -34,8 +34,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2g"
-#define     P_VERTXT    "great on memory monitor, added proc/lib structs and some unit"
+#define     P_VERNUM    "1.2h"
+#define     P_VERTXT    "proc/lib cursoring and finding unit tested"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -49,7 +49,8 @@
 #include    <yLOG.h>         /* CUSTOM : heatherly process logging            */
 #include    <yURG.h>         /* CUSTOM : heatherly debugging framework        */
 #include    <ySTR.h>         /* CUSTOM : heatherly string handling            */
-#include    <yCOLOR_solo.h>  /* CUSTOM : heatherly color management           */
+#include    <yCOLOR_solo.h>  /* CUSTOM : heatherly color constants            */
+#include    <yDLST_solo.h>   /* CUSTOM : heatherly list constants             */
 #include    <yREGEX.h>       /* CUSTOM : heatherly regular expressions        */
 
 /*===[[ PUBLIC HEADERS ]]=====================================================*/
@@ -168,11 +169,24 @@ char        yexec__onpath           (void);
 char*       yexec_proc__unit        (char *a_question, int a_num);
 char        yexec_proc__unit_read   (char a_type, char *a_info);
 
-char        yexec_mon__pwipe        (tPROC *a_new);
+/*---(support)--------------*/
+char        yexec_mon__pwipe        (tPROC *a_new, char a_type);
 char*       yexec_mon__pmemory      (tPROC *a_cur);
-char        yexec_mon__pnew         (tPROC **a_new, int a_rpid, char *a_name);
+char        yexec_mon__lwipe        (tLIB *a_new, char a_type);
+char*       yexec_mon__lmemory      (tLIB *a_cur);
+/*---(malloc)---------------*/
+char        yexec_mon__pnew         (tPROC **a_new, int a_rpid, char *a_name, long a_inode);
 char        yexec_mon__pfree        (tPROC **a_old);
+char        yexec_mon__lnew         (tLIB **a_new, char *a_name, long a_inode);
+char        yexec_mon__lfree        (tLIB **a_old);
+/*---(mass)-----------------*/
 char        yexec_mon__ppurge       (void);
+char        yexec_mon__lpurge       (void);
+/*---(cursoring)------------*/
+char        yexec_mon__by_cursor    (char a_type, char a_move, void **a_curr);
+char        yexec_mon__by_rpid      (int a_rpid, tPROC **a_curr);
+char        yexec_mon__by_inode     (int a_inode, tLIB **a_curr);
+/*---(unit test)------------*/
 char*       yexec_mon__unit         (char *a_question, int n);
 
 char*       yexec_tty__unit         (char *a_question);

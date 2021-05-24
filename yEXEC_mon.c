@@ -10,6 +10,7 @@ static      char        s_print     [LEN_RECD] = "";
 
 typedef struct cPROC tPROC;
 typedef struct cLIB  tLIB;
+typedef struct cTIE  tTIE;
 
 static struct cPROC {
    /*---(master)------------*/
@@ -44,15 +45,15 @@ static struct cPROC {
    /*---(procs)-------------*/
    tPROC      *p_prev;
    tPROC      *p_next;
-   int         p_count;
    /*---(libs)--------------*/
-   tLIB       *l_head;
-   tLIB       *l_tail;
-   int         l_count;
+   tTIE       *t_head;
+   tTIE       *t_tail;
+   int         t_count;
    /*---(done)--------------*/
 };
 tPROC      *p_head      = NULL;
 tPROC      *p_tail      = NULL;
+tPROC      *p_curr      = NULL;
 int         p_count     = 0;
 
 static struct cLIB {
@@ -66,18 +67,34 @@ static struct cLIB {
    long        m_data;
    long        m_proc;
    /*---(procs)-------------*/
-   tPROC      *p_head;
-   tPROC      *p_tail;
-   int         p_count;
+   tTIE       *t_head;
+   tTIE       *t_tail;
+   int         t_count;
    /*---(libs)--------------*/
    tLIB       *l_prev;
    tLIB       *l_next;
-   int         l_count;
    /*---(done)--------------*/
 };
 tLIB       *l_head      = NULL;
 tLIB       *l_tail      = NULL;
+tLIB       *l_curr      = NULL;
 int         l_count     = 0;
+
+static struct cTIE {
+   /*---(memory)------------*/
+   long        m_data;
+   long        m_heap;
+   /*---(ties)--------------*/
+   tTIE       *t_prev;
+   tTIE       *t_next;
+   /*---(links)-------------*/
+   tPROC      *t_proc;
+   tLIB       *t_lib;
+   /*---(done)--------------*/
+};
+tLIB       *t_head      = NULL;
+tLIB       *t_tail      = NULL;
+int         t_count     = 0;
 
 
 
@@ -87,12 +104,19 @@ int         l_count     = 0;
 static void  o___SUPPORT_________o () { return; }
 
 char
-yexec_mon__pwipe        (tPROC *a_new)
+yexec_mon__pwipe        (tPROC *a_new, char a_type)
 {
+   /*---(design)-------------------------*/
+   /*
+    *  a_type == '*' means everything, '-' means just statistics
+    *
+    */
    /*---(master)-------------------------*/
-   a_new->rpid     = 0;
-   a_new->name [0] = '\0';
-   a_new->inode    = 0;
+   if (a_type == '*') {
+      a_new->rpid     = 0;
+      a_new->name [0] = '\0';
+      a_new->inode    = 0;
+   }
    /*---(cpu)----------------------------*/
    a_new->c_state  = '-';
    a_new->c_utime  = 0;
@@ -119,12 +143,13 @@ yexec_mon__pwipe        (tPROC *a_new)
    a_new->n_write  = 0;
    a_new->n_flag   = '-';
    /*---(procs)--------------------------*/
-   a_new->p_prev   = NULL;
-   a_new->p_next   = NULL;
-   a_new->p_count  = 0;
-   a_new->l_head   = NULL;
-   a_new->l_tail   = NULL;
-   a_new->l_count  = 0;
+   if (a_type == '*') {
+      a_new->p_prev   = NULL;
+      a_new->p_next   = NULL;
+      a_new->t_head   = NULL;
+      a_new->t_tail   = NULL;
+      a_new->t_count  = 0;
+   }
    /*---(done)---------------------------*/
    return 0;
 }
@@ -133,10 +158,14 @@ char*
 yexec_mon__pmemory      (tPROC *a_cur)
 {
    int         n           =    0;
-   strlcpy (s_print, "å___._____.__________.___.___.______æ", LEN_RECD);
-   ++n;  if (a_cur->rpid        >= 0)           s_print [n] = 'X';
+   if (a_cur == NULL) {
+      strlcpy (s_print, "n/a", LEN_RECD);
+      return s_print;
+   }
+   strlcpy (s_print, "å___._____.__________.___.___.__.___æ", LEN_RECD);
+   ++n;  if (a_cur->rpid        >  0)           s_print [n] = 'X';
    ++n;  if (a_cur->name    [0] != '\0')        s_print [n] = 'X';
-   ++n;  if (a_cur->inode       >= 0)           s_print [n] = 'X';
+   ++n;  if (a_cur->inode       >  0)           s_print [n] = 'X';
    ++n;
    ++n;  if (a_cur->c_state     != '-')         s_print [n] = 'X';
    ++n;  if (a_cur->c_utime     >  0)           s_print [n] = 'X';
@@ -165,11 +194,68 @@ yexec_mon__pmemory      (tPROC *a_cur)
    ++n;
    ++n;  if (a_cur->p_prev      != NULL)        s_print [n] = 'X';
    ++n;  if (a_cur->p_next      != NULL)        s_print [n] = 'X';
-   ++n;  if (a_cur->p_count     >  0)           s_print [n] = 'X';
    ++n;
-   ++n;  if (a_cur->l_head      != NULL)        s_print [n] = 'X';
-   ++n;  if (a_cur->l_tail      != NULL)        s_print [n] = 'X';
-   ++n;  if (a_cur->l_count     >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->t_head      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->t_tail      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->t_count     >  0)           s_print [n] = 'X';
+   return s_print;
+}
+
+char
+yexec_mon__lwipe        (tLIB *a_new, char a_type)
+{
+   /*---(design)-------------------------*/
+   /*
+    *  a_type == '*' means everything, '-' means just statistics
+    *
+    */
+   /*---(master)-------------------------*/
+   if (a_type == '*') {
+      a_new->terse [0] = '\0';
+      a_new->name [0]  = '\0';
+      a_new->inode     = 0;
+   }
+   /*---(memory--------------------------*/
+   a_new->m_full   = 0;
+   a_new->m_text   = 0;
+   a_new->m_data   = 0;
+   a_new->m_proc   = 0;
+   /*---(links)--------------------------*/
+   if (a_type == '*') {
+      a_new->l_prev   = NULL;
+      a_new->l_next   = NULL;
+      a_new->t_head   = NULL;
+      a_new->t_tail   = NULL;
+      a_new->t_count  = 0;
+   }
+   /*---(done)---------------------------*/
+   return 0;
+}
+
+char*
+yexec_mon__lmemory      (tLIB *a_cur)
+{
+   int         n           =    0;
+   if (a_cur == NULL) {
+      strlcpy (s_print, "n/a", LEN_RECD);
+      return s_print;
+   }
+   strlcpy (s_print, "å___.____.__.___æ", LEN_RECD);
+   ++n;  if (a_cur->terse   [0] != '\0')        s_print [n] = 'X';
+   ++n;  if (a_cur->name    [0] != '\0')        s_print [n] = 'X';
+   ++n;  if (a_cur->inode       >  0)           s_print [n] = 'X';
+   ++n;
+   ++n;  if (a_cur->m_full      >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->m_text      >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->m_data      >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->m_proc      >  0)           s_print [n] = 'X';
+   ++n;
+   ++n;  if (a_cur->l_prev      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->l_next      != NULL)        s_print [n] = 'X';
+   ++n;
+   ++n;  if (a_cur->t_head      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->t_tail      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->t_count     >  0)           s_print [n] = 'X';
    return s_print;
 }
 
@@ -181,45 +267,45 @@ yexec_mon__pmemory      (tPROC *a_cur)
 static void  o___MALLOC__________o () { return; }
 
 char
-yexec_mon__pnew         (tPROC **a_new, int a_rpid, char *a_name)
+yexec_mon__pnew         (tPROC **a_new, int a_rpid, char *a_name, long a_inode)
 {
    /*---(locals)-----------+-----------+-*/
    char        rce         =  -10;
    tPROC      *x_new       = NULL;
    int         x_tries     =    0;
    /*---(header)-------------------------*/
-   DEBUG_DEPS   yLOG_senter  (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_senter  (__FUNCTION__);
    /*---(defense)------------------------*/
-   DEBUG_DEPS   yLOG_spoint  ("a_new");
+   DEBUG_YEXEC   yLOG_spoint  ("a_new");
    --rce;  if (a_new == NULL) {
-      DEBUG_DEPS   yLOG_snote  ("no return pointer");
-      DEBUG_DEPS   yLOG_sexitr (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote  ("no return pointer");
+      DEBUG_YEXEC   yLOG_sexitr (__FUNCTION__, rce);
       return rce;
    }
-   DEBUG_DEPS   yLOG_spoint  (*a_new);
+   DEBUG_YEXEC   yLOG_spoint  (*a_new);
    --rce;  if (*a_new != NULL) {
-      DEBUG_DEPS   yLOG_snote  ("return pointer already assigned");
-      DEBUG_DEPS   yLOG_sexitr (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote  ("return pointer already assigned");
+      DEBUG_YEXEC   yLOG_sexitr (__FUNCTION__, rce);
       return rce;
    }
    /*---(create)-------------------------*/
-   DEBUG_DEPS   yLOG_snote   ("malloc");
+   DEBUG_YEXEC   yLOG_snote   ("malloc");
    while (x_new == NULL && x_tries < 10) {
       x_new = (tPROC *) malloc (sizeof (tPROC));
-      DEBUG_DEPS   yLOG_sint    (sizeof (tPROC));
-      DEBUG_DEPS   yLOG_spoint  (x_new);
+      DEBUG_YEXEC   yLOG_sint    (sizeof (tPROC));
+      DEBUG_YEXEC   yLOG_spoint  (x_new);
       ++x_tries;
    }
-   DEBUG_DEPS   yLOG_sint    (x_tries);
+   DEBUG_YEXEC   yLOG_sint    (x_tries);
    --rce;  if (x_new == NULL) {
-      DEBUG_DEPS   yLOG_snote  ("FAILED");
-      DEBUG_DEPS   yLOG_sexitr (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote  ("FAILED");
+      DEBUG_YEXEC   yLOG_sexitr (__FUNCTION__, rce);
       return rce;
    }
    /*---(wipe)---------------------------*/
-   yexec_mon__pwipe (x_new);
+   yexec_mon__pwipe (x_new, '*');
    /*---(proc list)----------------------*/
-   DEBUG_DEPS   yLOG_snote   ("list");
+   DEBUG_YEXEC   yLOG_snote   ("list");
    if (p_tail == NULL) {
       p_head         = x_new;
    } else {
@@ -228,16 +314,17 @@ yexec_mon__pnew         (tPROC **a_new, int a_rpid, char *a_name)
    }
    p_tail         = x_new;
    ++p_count;
-   DEBUG_DEPS   yLOG_sint    (p_count);
+   DEBUG_YEXEC   yLOG_sint    (p_count);
    /*---(populate)-----------------------*/
    x_new->rpid    = a_rpid;
    strlcpy (x_new->name, a_name, LEN_TITLE);
+   x_new->inode   = a_inode;
    /*---(save back)----------------------*/
-   DEBUG_DEPS   yLOG_snote   ("save");
+   DEBUG_YEXEC   yLOG_snote   ("save");
    *a_new = x_new;
-   DEBUG_DEPS   yLOG_spoint  (*a_new);
+   DEBUG_YEXEC   yLOG_spoint  (*a_new);
    /*---(complete)-----------------------*/
-   DEBUG_DEPS   yLOG_sexit   (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
    return 0;
 }
 
@@ -248,36 +335,143 @@ yexec_mon__pfree        (tPROC **a_old)
    char        rce         =  -10;
    tPROC      *x_old       = NULL;
    /*---(header)-------------------------*/
-   DEBUG_DEPS   yLOG_senter  (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_senter  (__FUNCTION__);
    /*---(defense: null cell)-------------*/
-   DEBUG_DEPS   yLOG_spoint  (a_old);
+   DEBUG_YEXEC   yLOG_spoint  (a_old);
    --rce;  if (a_old       == NULL) {
-      DEBUG_DEPS   yLOG_snote  ("no proc pointer");
-      DEBUG_DEPS   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote  ("no proc pointer");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
-   DEBUG_DEPS   yLOG_spoint  (*a_old);
+   DEBUG_YEXEC   yLOG_spoint  (*a_old);
    --rce;  if (*a_old      == NULL) {
-      DEBUG_DEPS   yLOG_snote  ("proc pointer already empty");
-      DEBUG_DEPS   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote  ("proc pointer already empty");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
    x_old = *a_old;
    /*---(remove from dependency list)----*/
-   DEBUG_DEPS   yLOG_snote   ("main list");
+   DEBUG_YEXEC   yLOG_snote   ("main list");
    if (x_old->p_next != NULL) x_old->p_next->p_prev   = x_old->p_prev;
    else                       p_tail                  = x_old->p_prev;
    if (x_old->p_prev != NULL) x_old->p_prev->p_next   = x_old->p_next;
    else                       p_head                  = x_old->p_next;
    --p_count;
    /*---(free)---------------------------*/
-   DEBUG_DEPS   yLOG_spoint  (*a_old);
+   DEBUG_YEXEC   yLOG_spoint  (*a_old);
    free (*a_old);
    *a_old = NULL;
    /*---(complete)-----------------------*/
-   DEBUG_DEPS   yLOG_sexit   (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
    return 0;
 }
+
+char
+yexec_mon__lnew         (tLIB **a_new, char *a_name, long a_inode)
+{
+   /*---(locals)-----------+-----------+-*/
+   char        rce         =  -10;
+   tLIB       *x_new       = NULL;
+   int         x_tries     =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC   yLOG_senter  (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC   yLOG_spoint  ("a_new");
+   --rce;  if (a_new == NULL) {
+      DEBUG_YEXEC   yLOG_snote  ("no return pointer");
+      DEBUG_YEXEC   yLOG_sexitr (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC   yLOG_spoint  (*a_new);
+   --rce;  if (*a_new != NULL) {
+      DEBUG_YEXEC   yLOG_snote  ("return pointer already assigned");
+      DEBUG_YEXEC   yLOG_sexitr (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(create)-------------------------*/
+   DEBUG_YEXEC   yLOG_snote   ("malloc");
+   while (x_new == NULL && x_tries < 10) {
+      x_new = (tLIB *) malloc (sizeof (tLIB));
+      DEBUG_YEXEC   yLOG_sint    (sizeof (tLIB));
+      DEBUG_YEXEC   yLOG_spoint  (x_new);
+      ++x_tries;
+   }
+   DEBUG_YEXEC   yLOG_sint    (x_tries);
+   --rce;  if (x_new == NULL) {
+      DEBUG_YEXEC   yLOG_snote  ("FAILED");
+      DEBUG_YEXEC   yLOG_sexitr (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(wipe)---------------------------*/
+   yexec_mon__lwipe (x_new, '*');
+   /*---(proc list)----------------------*/
+   DEBUG_YEXEC   yLOG_snote   ("list");
+   if (l_tail == NULL) {
+      l_head         = x_new;
+   } else {
+      x_new->l_prev  = l_tail;
+      l_tail->l_next = x_new;
+   }
+   l_tail         = x_new;
+   ++l_count;
+   DEBUG_YEXEC   yLOG_sint    (l_count);
+   /*---(populate)-----------------------*/
+   strlcpy (x_new->terse, a_name, LEN_TITLE);
+   strlcpy (x_new->name , a_name, LEN_TITLE);
+   x_new->inode   = a_inode;
+   /*---(save back)----------------------*/
+   DEBUG_YEXEC   yLOG_snote   ("save");
+   *a_new = x_new;
+   DEBUG_YEXEC   yLOG_spoint  (*a_new);
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
+   return 0;
+}
+
+char         /*-> destroy a single dependency --------[ leaf   [fp.B42.102.E0]*/ /*-[11.0000.034.5]-*/ /*-[--.---.---.--]-*/
+yexec_mon__lfree        (tLIB **a_old)
+{
+   /*---(locals)-----------+-----------+-*/
+   char        rce         =  -10;
+   tLIB       *x_old       = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC   yLOG_senter  (__FUNCTION__);
+   /*---(defense: null cell)-------------*/
+   DEBUG_YEXEC   yLOG_spoint  (a_old);
+   --rce;  if (a_old       == NULL) {
+      DEBUG_YEXEC   yLOG_snote  ("no proc pointer");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC   yLOG_spoint  (*a_old);
+   --rce;  if (*a_old      == NULL) {
+      DEBUG_YEXEC   yLOG_snote  ("proc pointer already empty");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   x_old = *a_old;
+   /*---(remove from dependency list)----*/
+   DEBUG_YEXEC   yLOG_snote   ("main list");
+   if (x_old->l_next != NULL) x_old->l_next->l_prev   = x_old->l_prev;
+   else                       l_tail                  = x_old->l_prev;
+   if (x_old->l_prev != NULL) x_old->l_prev->l_next   = x_old->l_next;
+   else                       l_head                  = x_old->l_next;
+   --l_count;
+   /*---(free)---------------------------*/
+   DEBUG_YEXEC   yLOG_spoint  (*a_old);
+   free (*a_old);
+   *a_old = NULL;
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
+   return 0;
+}
+
+
+
+/*====================------------------------------------====================*/
+/*===----                       mass data changes                      ----===*/
+/*====================------------------------------------====================*/
+static void  o___MASS____________o () { return; }
 
 char
 yexec_mon__ppurge       (void)
@@ -288,8 +482,300 @@ yexec_mon__ppurge       (void)
       yexec_mon__pfree (&x_curr);
       x_curr = p_head;
    }
+   p_head = p_tail = p_curr = NULL;
+   p_count = 0;
    return 0;
 }
+
+char
+yexec_mon__lpurge       (void)
+{
+   tLIB       *x_curr      = NULL;
+   x_curr = l_head;
+   while (x_curr != NULL) {
+      yexec_mon__lfree (&x_curr);
+      x_curr = l_head;
+   }
+   l_head = l_tail = l_curr = NULL;
+   l_count = 0;
+   return 0;
+}
+
+
+
+/*====================------------------------------------====================*/
+/*===----                       mass data changes                      ----===*/
+/*====================------------------------------------====================*/
+static void  o___FIND____________o () { return; }
+
+#define  IF_PROC   if (a_type == 'p')
+#define  ELSE_LIB  else
+
+char
+yexec_mon__by_cursor    (char a_type, char a_move, void **a_curr)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   tPROC      *p_temp      = NULL;
+   tLIB       *l_temp      = NULL;
+   void       *x_curr      = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defaults)-----------------------*/
+   if (a_curr != NULL)  *a_curr = NULL;
+   IF_PROC  x_curr = p_temp = p_curr;
+   ELSE_LIB x_curr = l_temp = l_curr;
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (x_curr);
+   --rce;  if (x_curr == NULL) {
+      /*---(non-bounce)------------------*/
+      if (strchr (YDLST_DREL, a_move) != NULL) {
+         IF_PROC  p_curr = p_temp;
+         ELSE_LIB l_curr = l_temp;
+         DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+      /*---(bounce types)----------------*/
+      IF_PROC  x_curr = p_temp = p_head;
+      ELSE_LIB x_curr = l_temp = l_head;
+      DEBUG_YEXEC   yLOG_spoint  (x_curr);
+      if (x_curr == NULL) {
+         DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+   }
+   /*---(switch)-------------------------*/
+   DEBUG_YEXEC  yLOG_schar   (a_move);
+   --rce;  switch (a_move) {
+   case YDLST_HEAD : case YDLST_DHEAD :
+      IF_PROC  x_curr = p_temp = p_head;
+      ELSE_LIB x_curr = l_temp = l_head;
+      break;
+   case YDLST_PREV : case YDLST_DPREV :
+      IF_PROC  x_curr = p_temp = p_temp->p_prev;
+      ELSE_LIB x_curr = l_temp = l_temp->l_prev;
+      break;
+   case YDLST_CURR : case YDLST_DCURR :
+      break;
+   case YDLST_NEXT : case YDLST_DNEXT :
+      IF_PROC  x_curr = p_temp = p_temp->p_next;
+      ELSE_LIB x_curr = l_temp = l_temp->l_next;
+      break;
+   case YDLST_TAIL : case YDLST_DTAIL :
+      IF_PROC  x_curr = p_temp = p_tail;
+      ELSE_LIB x_curr = l_temp = l_tail;
+      break;
+   default         :
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_spoint  (x_curr);
+   /*---(check end)----------------------*/
+   --rce;  if (x_curr == NULL) {
+      /*---(bounce off ends)-------------*/
+      if (a_move == YDLST_PREV) {
+         IF_PROC  x_curr = p_temp = p_head;
+         ELSE_LIB x_curr = l_temp = l_head;
+      }
+      if (a_move == YDLST_NEXT) {
+         IF_PROC  x_curr = p_temp = p_tail;
+         ELSE_LIB x_curr = l_temp = l_tail;
+      }
+      /*---(no bounce)-------------------*/
+      if (x_curr == NULL) {
+         IF_PROC  p_curr = p_temp;
+         ELSE_LIB l_curr = l_temp;
+         DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+      /*---(mark trouble)----------------*/
+      DEBUG_YEXEC   yLOG_snote   ("BOUNCE");
+      rc = rce;
+      /*---(done)------------------------*/
+   }
+   /*---(normal result)------------------*/
+   IF_PROC  p_curr = p_temp;
+   ELSE_LIB l_curr = l_temp;
+   if (a_curr != NULL) {
+      IF_PROC  *a_curr = p_curr;
+      ELSE_LIB *a_curr = l_curr;
+   }
+   /*---(complete)-----------------------*/
+   DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
+   return rc;
+}
+
+char
+yexec_mon__by_rpid      (int a_rpid, tPROC **a_curr)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   tPROC      *p_temp      = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defaults)-----------------------*/
+   if (a_curr != NULL)  *a_curr = NULL;
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (p_head);
+   --rce;  if (p_head == NULL) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(walk)---------------------------*/
+   p_temp = p_head;
+   while (p_temp != NULL) {
+      if (p_temp->rpid == a_rpid) {
+         p_curr = p_temp;
+         break;
+      }
+      p_temp = p_temp->p_next;
+   }
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (p_temp);
+   --rce;  if (p_temp == NULL) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(normal result)------------------*/
+   if (a_curr != NULL)  *a_curr = p_curr;
+   /*---(complete)-----------------------*/
+   DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
+   return rc;
+}
+
+char
+yexec_mon__by_inode     (int a_inode, tLIB **a_curr)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   tLIB       *l_temp      = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defaults)-----------------------*/
+   if (a_curr != NULL)  *a_curr = NULL;
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (l_head);
+   --rce;  if (l_head == NULL) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(walk)---------------------------*/
+   l_temp = l_head;
+   while (l_temp != NULL) {
+      if (l_temp->inode == a_inode) {
+         l_curr = l_temp;
+         break;
+      }
+      l_temp = l_temp->l_next;
+   }
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (l_temp);
+   --rce;  if (l_temp == NULL) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(normal result)------------------*/
+   if (a_curr != NULL)  *a_curr = l_curr;
+   /*---(complete)-----------------------*/
+   DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
+   return rc;
+}
+
+char
+yexec_mon__proc         (int a_rpid, char *a_name, long a_inode)
+{
+}
+
+char
+yexec_mon__lcursor      (char a_move, tLIB **a_curr)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   tLIB       *x_curr      = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defaults)-----------------------*/
+   if (a_curr != NULL)  *a_curr = NULL;
+   x_curr = l_curr;
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (x_curr);
+   --rce;  if (x_curr == NULL) {
+      /*---(non-bounce)------------------*/
+      if (strchr (YDLST_DREL, a_move) != NULL) {
+         l_curr = x_curr;
+         DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+      /*---(bounce types)----------------*/
+      x_curr = l_head;
+      DEBUG_YEXEC   yLOG_spoint  (x_curr);
+      if (x_curr == NULL) {
+         DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+   }
+   /*---(switch)-------------------------*/
+   DEBUG_YEXEC  yLOG_schar   (a_move);
+   --rce;  switch (a_move) {
+   case YDLST_HEAD : case YDLST_DHEAD :
+      x_curr = l_head;
+      break;
+   case YDLST_PREV : case YDLST_DPREV :
+      x_curr = x_curr->l_prev;;
+      break;
+   case YDLST_CURR : case YDLST_DCURR :
+      x_curr = x_curr;
+      break;
+   case YDLST_NEXT : case YDLST_DNEXT :
+      x_curr = x_curr->l_next;;
+      break;
+   case YDLST_TAIL : case YDLST_DTAIL :
+      x_curr = l_tail;
+      break;
+   default         :
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_spoint  (x_curr);
+   /*---(check end)----------------------*/
+   --rce;  if (x_curr == NULL) {
+      /*---(bounce off ends)-------------*/
+      if (a_move == YDLST_PREV)   x_curr = l_head;
+      if (a_move == YDLST_NEXT)   x_curr = l_tail;
+      /*---(no bounce)-------------------*/
+      if (x_curr == NULL) {
+         l_curr = x_curr;
+         DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+      /*---(mark trouble)----------------*/
+      DEBUG_YEXEC   yLOG_snote   ("BOUNCE");
+      rc = rce;
+      /*---(done)------------------------*/
+   }
+   /*---(normal result)------------------*/
+   l_curr = x_curr;
+   if (a_curr != NULL)  *a_curr = l_curr;
+   /*---(complete)-----------------------*/
+   DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
+   return rc;
+}
+
+char
+yexec_mon__lfind        (int a_rpid, char *a_name, long a_inode)
+{
+}
+
+
+
+/*====================------------------------------------====================*/
+/*===----                     gathering statistics                     ----===*/
+/*====================------------------------------------====================*/
+static void  o___STATS___________o () { return; }
 
 char
 yEXEC_cpu_proc          (int a_rpid, char a_cpu, char *a_state, long *a_utime, long *a_stime, char *a_snice)
@@ -553,6 +1039,7 @@ yexec_mon__unit         (char *a_question, int n)
    tLIB       *x_lib       = NULL;
    char        rc          =    0;
    int         c           =    0;
+   char        t           [LEN_RECD]  = "[]";
    /*---(preprare)-----------------------*/
    strcpy (unit_answer, "MON              : question not understood");
    /*---(dependency list)----------------*/
@@ -563,6 +1050,34 @@ yexec_mon__unit         (char *a_question, int n)
    }
    else if (strcmp (a_question, "p_list"      )   == 0) {
       snprintf (unit_answer, LEN_RECD, "MON p_list       : num=%4d, head=%-10p, tail=%p", p_count, p_head, p_tail);
+   }
+   else if (strcmp (a_question, "l_count"  )      == 0) {
+      x_lib = l_head; while (x_lib != NULL) { ++x_fore; x_lib = x_lib->l_next; }
+      x_lib = l_tail; while (x_lib != NULL) { ++x_back; x_lib = x_lib->l_prev; }
+      snprintf (unit_answer, LEN_RECD, "MON l_count      : num=%4d, fore=%4d, back=%4d", l_count, x_fore, x_back);
+   }
+   else if (strcmp (a_question, "l_list"      )   == 0) {
+      snprintf (unit_answer, LEN_RECD, "MON l_list       : num=%4d, head=%-10p, tail=%p", l_count, l_head, l_tail);
+   }
+   else if (strcmp (a_question, "p_curr"   )      == 0) {
+      x_proc = p_curr;
+      if (x_proc != NULL) {
+         sprintf  (t, "%2då%.16sæ", strlen (x_proc->name), x_proc->name);
+         snprintf (unit_answer, LEN_RECD, "MON p_curr       : %-20.20s  %5d  %d", t, x_proc->rpid, x_proc->inode);
+      } else {
+         snprintf (unit_answer, LEN_RECD, "MON p_curr       :  0[]                      -  -");
+      }
+      return unit_answer;
+   }
+   else if (strcmp (a_question, "l_curr"   )      == 0) {
+      x_lib  = l_curr;
+      if (x_lib != NULL) {
+         sprintf  (t, "%2då%.16sæ", strlen (x_lib->terse), x_lib->terse);
+         snprintf (unit_answer, LEN_RECD, "MON l_curr       : %-20.20s  %d", t, x_lib->inode);
+      } else {
+         snprintf (unit_answer, LEN_RECD, "MON l_curr       :  0[]                      -  -");
+      }
+      return unit_answer;
    }
    /*---(complete)-----------------------*/
    return unit_answer;

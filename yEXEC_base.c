@@ -591,6 +591,8 @@ yexec__unit_loud        (void)
 char       /*----: stop logging ----------------------------------------------*/
 yexec__unit_end         (void)
 {
+   yexec_mon__lpurge ();
+   yexec_mon__ppurge ();
    yLOGS_end     ();
    return 0;
 }
