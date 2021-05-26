@@ -34,8 +34,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2h"
-#define     P_VERTXT    "proc/lib cursoring and finding unit tested"
+#define     P_VERNUM    "1.2i"
+#define     P_VERTXT    "exec/proc hooking and unhooking built and unit tested"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -123,7 +123,9 @@ extern char   g_norun;
 extern char   s_terse     [LEN_HUND];
 extern char   s_fancy     [LEN_RECD];
 
+typedef struct cEXEC tEXEC;
 typedef struct cPROC tPROC;
+typedef struct cTIE  tTIE;
 typedef struct cLIB  tLIB;
 
 
@@ -170,22 +172,46 @@ char*       yexec_proc__unit        (char *a_question, int a_num);
 char        yexec_proc__unit_read   (char a_type, char *a_info);
 
 /*---(support)--------------*/
+char*       yexec_mon__ememory      (tEXEC *a_cur);
+char        yexec_mon__ewipe        (tEXEC *a_new, char a_type);
 char        yexec_mon__pwipe        (tPROC *a_new, char a_type);
 char*       yexec_mon__pmemory      (tPROC *a_cur);
-char        yexec_mon__lwipe        (tLIB *a_new, char a_type);
-char*       yexec_mon__lmemory      (tLIB *a_cur);
+char        yexec_mon__lwipe        (tLIB  *a_new, char a_type);
+char*       yexec_mon__lmemory      (tLIB  *a_cur);
 /*---(malloc)---------------*/
-char        yexec_mon__pnew         (tPROC **a_new, int a_rpid, char *a_name, long a_inode);
-char        yexec_mon__pfree        (tPROC **a_old);
-char        yexec_mon__lnew         (tLIB **a_new, char *a_name, long a_inode);
-char        yexec_mon__lfree        (tLIB **a_old);
+char        yexec_mon__shared_new   (char a_type, void **a_new, char a_force);
+char        yexec_mon__enew         (void **a_new);
+char        yexec_mon__eforce       (void **a_new);
+char        yexec_mon__pnew         (void **a_new);
+char        yexec_mon__pforce       (void **a_new);
+char        yexec_mon__tnew         (void **a_new);
+char        yexec_mon__tforce       (void **a_new);
+char        yexec_mon__lnew         (void **a_new);
+char        yexec_mon__lforce       (void **a_new);
+char        yexec_mon__efree        (void **a_old);
+char        yexec_mon__pfree        (void **a_old);
+char        yexec_mon__tfree        (void **a_old);
+char        yexec_mon__lfree        (void **a_old);
 /*---(mass)-----------------*/
+char        yexec_mon__epurge       (void);
 char        yexec_mon__ppurge       (void);
+char        yexec_mon__tpurge       (void);
 char        yexec_mon__lpurge       (void);
 /*---(cursoring)------------*/
 char        yexec_mon__by_cursor    (char a_type, char a_move, void **a_curr);
 char        yexec_mon__by_rpid      (int a_rpid, tPROC **a_curr);
-char        yexec_mon__by_inode     (int a_inode, tLIB **a_curr);
+char        yexec_mon__by_inode     (int a_inode, void **a_curr);
+/*---(helpers)--------------*/
+char        yexec_mon__hook_exec    (tPROC *a_proc, char *a_name);
+char        yexec_mon__unhook_exec  (tPROC *a_proc);
+char        yexec_mon__hook_proc    (tPROC **a_proc, int a_rpid);
+char        yexec_mon__unhook_proc  (tPROC **a_proc);
+/*---(monitor)--------------*/
+char        yexec_mon__cpu_detail   (int a_rpid, char *a_name, int *a_ppid, char *a_land, char *a_state, long *a_utime, long *a_stime, char *a_snice);
+char        yexec_mon__cpu          (tPROC *a_proc);
+char        yexec_mon__mem_detail   (int a_rpid, long *a_max, long *a_base, long *a_min, long *a_text, long *a_data, long *a_heap, long *a_stack, long *a_kern, long *a_libs, long *a_empty);
+char        yexec_mon__mem          (tPROC *a_proc);
+char        yexec_mon__review       (void);
 /*---(unit test)------------*/
 char*       yexec_mon__unit         (char *a_question, int n);
 
