@@ -18,7 +18,7 @@ static struct cEXEC {
    char        name        [LEN_TITLE];
    long        inode;
    /*---(memory)------------*/
-   int         m_code;
+   int         m_text;
    /*---(size)--------------*/
    int         s_total;
    int         s_text;
@@ -96,10 +96,15 @@ static struct cLIB {
    char        name        [LEN_TITLE];
    long        inode;
    /*---(memory)------------*/
-   long        m_full;
-   long        m_text;
-   long        m_data;
-   long        m_proc;
+   int         m_full;
+   int         m_text;
+   int         m_data;
+   /*---(size)--------------*/
+   int         s_total;
+   int         s_text;
+   int         s_data;
+   int         s_bss;
+   int         s_disk;
    /*---(procs)-------------*/
    tTIE       *t_head;
    tTIE       *t_tail;
@@ -121,9 +126,14 @@ static struct cTIE {
    /*---(ties)--------------*/
    tTIE       *m_prev;
    tTIE       *m_next;
-   /*---(links)-------------*/
-   tPROC      *t_proc;
-   tLIB       *t_lib;
+   /*---(proc link)---------*/
+   tPROC      *p_link;
+   tTIE       *p_prev;
+   tTIE       *p_next;
+   /*---(lib link)----------*/
+   tLIB       *l_link;
+   tTIE       *l_prev;
+   tTIE       *l_next;
    /*---(done)--------------*/
 };
 tTIE       *t_head      = NULL;
@@ -146,11 +156,12 @@ yexec_mon__ememory      (tEXEC *a_cur)
       strlcpy (s_print, "n/a", LEN_RECD);
       return s_print;
    }
-   strlcpy (s_print, "е__.______.__.___ж", LEN_RECD);
+   strlcpy (s_print, "е__._._____.__.___ж", LEN_RECD);
    ++n;  if (a_cur->name [0]    != '\0')        s_print [n] = 'X';
    ++n;  if (a_cur->inode       >  0)           s_print [n] = 'X';
    ++n;
-   ++n;  if (a_cur->m_code      >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->m_text      >  0)           s_print [n] = 'X';
+   ++n;
    ++n;  if (a_cur->s_total     >  0)           s_print [n] = 'X';
    ++n;  if (a_cur->s_text      >  0)           s_print [n] = 'X';
    ++n;  if (a_cur->s_data      >  0)           s_print [n] = 'X';
@@ -175,7 +186,7 @@ yexec_mon__ewipe        (tEXEC *a_new, char a_type)
     *
     */
    /*---(memory)-------------------------*/
-   a_new->m_code   = 0;
+   a_new->m_text   = 0;
    /*---(master)-------------------------*/
    if (a_type == '-')  return 0;
    a_new->name [0] = '\0';
@@ -314,11 +325,16 @@ yexec_mon__lwipe        (tLIB *a_new, char a_type)
       a_new->name [0]  = '\0';
       a_new->inode     = 0;
    }
-   /*---(memory--------------------------*/
+   /*---(memory)-------------------------*/
    a_new->m_full   = 0;
    a_new->m_text   = 0;
    a_new->m_data   = 0;
-   a_new->m_proc   = 0;
+   /*---(size)---------------------------*/
+   a_new->s_total  = 0;
+   a_new->s_text   = 0;
+   a_new->s_data   = 0;
+   a_new->s_bss    = 0;
+   a_new->s_disk   = 0;
    /*---(links)--------------------------*/
    if (a_type == '*') {
       a_new->m_prev   = NULL;
@@ -339,7 +355,7 @@ yexec_mon__lmemory      (tLIB *a_cur)
       strlcpy (s_print, "n/a", LEN_RECD);
       return s_print;
    }
-   strlcpy (s_print, "е___.____.__.___ж", LEN_RECD);
+   strlcpy (s_print, "е___.___._____.__.___ж", LEN_RECD);
    ++n;  if (a_cur->terse   [0] != '\0')        s_print [n] = 'X';
    ++n;  if (a_cur->name    [0] != '\0')        s_print [n] = 'X';
    ++n;  if (a_cur->inode       >  0)           s_print [n] = 'X';
@@ -347,7 +363,12 @@ yexec_mon__lmemory      (tLIB *a_cur)
    ++n;  if (a_cur->m_full      >  0)           s_print [n] = 'X';
    ++n;  if (a_cur->m_text      >  0)           s_print [n] = 'X';
    ++n;  if (a_cur->m_data      >  0)           s_print [n] = 'X';
-   ++n;  if (a_cur->m_proc      >  0)           s_print [n] = 'X';
+   ++n;
+   ++n;  if (a_cur->s_total     >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->s_text      >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->s_data      >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->s_bss       >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->s_disk      >  0)           s_print [n] = 'X';
    ++n;
    ++n;  if (a_cur->m_prev      != NULL)        s_print [n] = 'X';
    ++n;  if (a_cur->m_next      != NULL)        s_print [n] = 'X';
@@ -355,6 +376,57 @@ yexec_mon__lmemory      (tLIB *a_cur)
    ++n;  if (a_cur->t_head      != NULL)        s_print [n] = 'X';
    ++n;  if (a_cur->t_tail      != NULL)        s_print [n] = 'X';
    ++n;  if (a_cur->t_count     >  0)           s_print [n] = 'X';
+   return s_print;
+}
+
+char
+yexec_mon__twipe        (tTIE *a_new, char a_type)
+{
+   /*---(design)-------------------------*/
+   /*
+    *  a_type == '*' means everything, '-' means just statistics
+    *
+    */
+   /*---(memory--------------------------*/
+   a_new->m_data   = 0;
+   a_new->m_heap   = 0;
+   /*---(links)--------------------------*/
+   if (a_type == '*') {
+      a_new->m_prev   = NULL;
+      a_new->m_next   = NULL;
+      a_new->p_link   = NULL;
+      a_new->p_prev   = NULL;
+      a_new->p_next   = NULL;
+      a_new->l_link   = NULL;
+      a_new->l_prev   = NULL;
+      a_new->l_next   = NULL;
+   }
+   /*---(done)---------------------------*/
+   return 0;
+}
+
+char*
+yexec_mon__tmemory      (tTIE *a_cur)
+{
+   int         n           =    0;
+   if (a_cur == NULL) {
+      strlcpy (s_print, "n/a", LEN_RECD);
+      return s_print;
+   }
+   strlcpy (s_print, "е__.__.___.___ж", LEN_RECD);
+   ++n;  if (a_cur->m_data      >  0)           s_print [n] = 'X';
+   ++n;  if (a_cur->m_heap      >  0)           s_print [n] = 'X';
+   ++n;
+   ++n;  if (a_cur->m_prev      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->m_next      != NULL)        s_print [n] = 'X';
+   ++n;
+   ++n;  if (a_cur->p_link      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->p_prev      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->p_next      != NULL)        s_print [n] = 'X';
+   ++n;
+   ++n;  if (a_cur->l_link      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->l_prev      != NULL)        s_print [n] = 'X';
+   ++n;  if (a_cur->l_next      != NULL)        s_print [n] = 'X';
    return s_print;
 }
 
@@ -446,12 +518,12 @@ yexec_mon__shared_new   (char a_type, void **a_new, char a_force)
       ++p_count;
       break;
    case 'T' :
-      /*> x_tie  = (tTIE *) x_new;                                                    <* 
-       *> yexec_mon__twipe (x_tie, '*');                                              <* 
-       *> if    (t_tail == NULL) { t_head = x_tie; }                                  <* 
-       *> else { x_tie->m_prev  = t_tail; t_tail->m_next = x_tie; }                   <* 
-       *> t_tail = x_tie;                                                             <* 
-       *> ++t_count;                                                                  <*/
+      x_tie  = (tTIE *) x_new;
+      yexec_mon__twipe (x_tie, '*');
+      if    (t_tail == NULL) { t_head = x_tie; }
+      else { x_tie->m_prev  = t_tail; t_tail->m_next = x_tie; }
+      t_tail = x_tie;
+      ++t_count;
       break;
    case 'L' :
       x_lib  = (tLIB *) x_new;
@@ -525,7 +597,6 @@ yexec_mon__shared_free  (char a_type, void **a_old)
       else                        l_tail                   = x_lib->m_prev;
       if (x_lib->m_prev != NULL)  x_lib->m_prev->m_next    = x_lib->m_next;
       else                        l_head                   = x_lib->m_next;
-      l_tail = x_lib;
       --l_count;
       break;
    }
@@ -833,11 +904,23 @@ yexec_mon__hook_exec    (tPROC *a_proc, char *a_name)
       return rce;
    }
    DEBUG_YEXEC  yLOG_spoint  (a_name);
-   --rce;  if (a_name == NULL) {
+   --rce;  if (a_name == NULL || strlen (a_name) <= 0) {
       DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
    DEBUG_YEXEC  yLOG_snote   (a_name);
+   /*---(pre-check)----------------------*/
+   --rce;  if (a_proc->e_link != NULL) {
+      if (strcmp (a_proc->e_link->name, a_name) == 0) {
+         DEBUG_YEXEC  yLOG_snote   ("already attached correctly");
+         DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+         return 2;
+      } else {
+         DEBUG_YEXEC  yLOG_snote   ("already attached, unhook before repeating");
+         DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+   }
    /*---(walk)---------------------------*/
    e_temp = e_head;
    while (e_temp != NULL) {
@@ -880,6 +963,109 @@ yexec_mon__hook_exec    (tPROC *a_proc, char *a_name)
    a_proc->e_link = e_curr;
    /*---(update count)-------------------*/
    ++e_curr->p_count;
+   /*---(complete)-----------------------*/
+   DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
+   return rc;
+}
+
+char
+yexec_mon__hook_lib     (tPROC *a_proc, char *a_name)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   tTIE       *t_temp      = NULL;
+   tLIB       *l_temp      = NULL;
+   char       *p           = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (a_proc);
+   --rce;  if (a_proc == NULL) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_spoint  (a_name);
+   --rce;  if (a_name == NULL || strlen (a_name) <= 0) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_snote   (a_name);
+   /*---(walk)---------------------------*/
+   t_temp = a_proc->t_head;
+   while (t_temp != NULL) {
+      if (t_temp->l_link != NULL && strcmp (t_temp->l_link->name, a_name) == 0) {
+         t_curr = t_temp;
+         DEBUG_YEXEC  yLOG_snote   ("existing tie/lib");
+         DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
+         return 0;
+      }
+      t_temp = t_temp->l_next;
+   }
+   /*---(add tie)------------------------*/
+   DEBUG_YEXEC  yLOG_snote   ("add tie");
+   rc = yexec_mon__tnew (&t_temp);
+   DEBUG_YEXEC  yLOG_sint    (rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   t_temp->p_link = a_proc;
+   t_curr = t_temp;
+   rc = 1;
+   DEBUG_YEXEC  yLOG_spoint  (t_curr);
+   /*---(walk)---------------------------*/
+   l_temp = l_head;
+   while (l_temp != NULL) {
+      if (strcmp (l_temp->name, a_name) == 0) {
+         l_curr = l_temp;
+         break;
+      }
+      l_temp = l_temp->m_next;
+   }
+   DEBUG_YEXEC  yLOG_spoint  (l_curr);
+   /*---(add lib)------------------------*/
+   if (l_temp == NULL) {
+      DEBUG_YEXEC  yLOG_snote   ("add lib");
+      rc = yexec_mon__lnew (&l_temp);
+      DEBUG_YEXEC  yLOG_sint    (rc);
+      --rce;  if (rc < 0) {
+         DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+         return rce;
+      }
+      l_curr = l_temp;
+   }
+   /*---(add name)-----------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (l_curr);
+   strlcpy (l_curr->name , a_name, LEN_TITLE);
+   p = strrchr (a_name, '/');
+   if (p == NULL)  p = a_name;
+   else            ++p;
+   strlcpy (l_curr->terse, p, LEN_TITLE);
+   rc = 1;
+   /*---(hook tie to proc)---------------*/
+   if (a_proc->t_head == NULL) {
+      DEBUG_DATA   yLOG_snote  ("first");
+      a_proc->t_head  = a_proc->t_tail = t_temp;
+   } else {
+      DEBUG_DATA   yLOG_snote   ("append");
+      t_temp->p_prev          = a_proc->t_tail;
+      a_proc->t_tail->p_next  = t_temp;
+      a_proc->t_tail          = t_temp;
+   }
+   ++(a_proc->t_count);
+   /*---(hook tie to lib)----------------*/
+   t_temp->l_link = l_temp;
+   if (l_curr->t_head == NULL) {
+      DEBUG_DATA   yLOG_snote  ("first");
+      l_curr->t_head  = l_curr->t_tail = t_temp;
+   } else {
+      DEBUG_DATA   yLOG_snote   ("append");
+      t_temp->l_prev          = l_curr->t_tail;
+      l_curr->t_tail->l_next  = t_temp;
+      l_curr->t_tail          = t_temp;
+   }
+   ++(l_curr->t_count);
    /*---(complete)-----------------------*/
    DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
    return rc;
@@ -944,8 +1130,64 @@ yexec_mon__unhook_proc  (tPROC **a_proc)
    }
    /*---(unlink exec)--------------------*/
    rc = yexec_mon__unhook_exec (*a_proc);
+   rc = yexec_mon__unhook_lib  (*a_proc);
    /*---(remove base)--------------------*/
    rc = yexec_mon__pfree (a_proc);
+   /*---(complete)-----------------------*/
+   DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
+   return rc;
+}
+
+char
+yexec_mon__unhook_lib   (tPROC *a_proc)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   char        rc          =    0;
+   tTIE       *x_tie       = NULL;
+   tLIB       *x_lib       = NULL;
+   tTIE       *x_next      = NULL;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_spoint  (a_proc);
+   --rce;  if (a_proc == NULL) {
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   x_tie  = a_proc->t_head;
+   DEBUG_YEXEC  yLOG_spoint  (x_tie);
+   if (x_tie == NULL) {
+      DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
+      return 0;
+   }
+   /*---(cycle ties)---------------------*/
+   while (x_tie != NULL) {
+      /*---(save pointers)---------------*/
+      x_next = x_tie->p_next;
+      x_lib  = x_tie->l_link;
+      /*---(remove tie from proc)--------*/
+      if (x_tie->p_next != NULL)  x_tie->p_next->p_prev  = x_tie->p_prev;
+      else                        a_proc->t_tail         = x_tie->p_prev;
+      if (x_tie->p_prev != NULL)  x_tie->p_prev->p_next  = x_tie->p_next;
+      else                        a_proc->t_head         = x_tie->p_next;
+      x_tie->p_link = NULL;
+      --(a_proc->t_count);
+      /*---(remove tie from lib)---------*/
+      if (x_tie->l_next != NULL)  x_tie->l_next->l_prev  = x_tie->l_prev;
+      else                        x_lib->t_tail          = x_tie->l_prev;
+      if (x_tie->l_prev != NULL)  x_tie->l_prev->l_next  = x_tie->l_next;
+      else                        x_lib->t_head          = x_tie->p_next;
+      x_tie->p_link = NULL;
+      --(x_lib->t_count);
+      /*---(remove tie from master)------*/
+      rc = yexec_mon__tfree (&x_tie);
+      /*---(check on library)------------*/
+      if (x_lib->t_count <= 0)  yexec_mon__lfree (&x_lib);
+      /*---(next)------------------------*/
+      x_tie = x_next;
+      /*---(done)------------------------*/
+   }
    /*---(complete)-----------------------*/
    DEBUG_YDLST  yLOG_sexit   (__FUNCTION__);
    return rc;
@@ -1368,7 +1610,7 @@ yexec_mon__review       (void)
    while ((x_file = readdir (x_dir)) != NULL) {
       /*---(simple filtering)-------------------*/
       if (rc != 0)  ++x_total;
-      if (strchr (LTRS_NUMBER, x_file->d_name [0]) == NULL) {
+      if (strchr (YSTR_NUMBER, x_file->d_name [0]) == NULL) {
          DEBUG_INPT   yLOG_note    ("not leading number");
          continue;
       }
@@ -1434,10 +1676,13 @@ yexec_mon__unit         (char *a_question, int n)
    tEXEC      *x_exec      = NULL;
    tPROC      *x_proc      = NULL;
    tLIB       *x_lib       = NULL;
+   tTIE       *x_tie       = NULL;
    char        rc          =    0;
    int         c           =    0;
    char        t           [LEN_RECD]  = "[]";
    char        s           [LEN_RECD]  = "";
+   char        u           [LEN_RECD]  = "";
+   char        w           [LEN_RECD]  = "";
    /*---(preprare)-----------------------*/
    strcpy (unit_answer, "MON              : question not understood");
    /*---(dependency list)----------------*/
@@ -1465,6 +1710,14 @@ yexec_mon__unit         (char *a_question, int n)
    else if (strcmp (a_question, "l_list"      )   == 0) {
       snprintf (unit_answer, LEN_RECD, "MON l_list       : num=%4d, head=%-10p, tail=%p", l_count, l_head, l_tail);
    }
+   else if (strcmp (a_question, "t_count"  )      == 0) {
+      x_tie = t_head; while (x_tie != NULL) { ++x_fore; x_tie = x_tie->m_next; }
+      x_tie = t_tail; while (x_tie != NULL) { ++x_back; x_tie = x_tie->m_prev; }
+      snprintf (unit_answer, LEN_RECD, "MON t_count      : num=%4d, fore=%4d, back=%4d", t_count, x_fore, x_back);
+   }
+   else if (strcmp (a_question, "t_list"      )   == 0) {
+      snprintf (unit_answer, LEN_RECD, "MON t_list       : num=%4d, head=%-10p, tail=%p", t_count, t_head, t_tail);
+   }
    else if (strcmp (a_question, "p_entry"  )      == 0) {
       x_proc = p_head;
       while (x_proc != NULL) {
@@ -1475,15 +1728,19 @@ yexec_mon__unit         (char *a_question, int n)
       if (x_proc != NULL) {
          strcpy (t, " -еж");
          strcpy (s, "-");
+         strcpy (u, " -еж");
+         strcpy (w, " -еж");
          if (x_proc->e_link != NULL) {
             sprintf  (t, "%2dе%.10sж", strlen (x_proc->e_link->name), x_proc->e_link->name);
             sprintf  (s, "%d", x_proc->e_link->inode);
          }
-         snprintf (unit_answer, LEN_RECD, "MON p_entry (%2d) : %-5d %-14.14s %-9.9s %-5d %c  %c %7d %7d %2d %c",
+         if (x_proc->t_head)   sprintf  (u, "%2dе%.10sж", strlen (x_proc->t_head->l_link), x_proc->t_head->l_link);
+         if (x_proc->t_tail)   sprintf  (w, "%2dе%.10sж", strlen (x_proc->t_tail->l_link), x_proc->t_tail->l_link);
+         snprintf (unit_answer, LEN_RECD, "MON p_entry (%2d) : %-5d %-14.14s %-9.9s %-5d %c   %2d %-14.14s %s",
                n, x_proc->rpid, t, s, x_proc->ppid, x_proc->land,
-               x_proc->c_state, x_proc->c_utime, x_proc->c_stime, x_proc->c_snice, x_proc->c_flag);
+               x_proc->t_count, u, w);
       } else {
-         snprintf (unit_answer, LEN_RECD, "MON p_entry (%2d) : -      -еж           -         -     -  -       -       -  - -", n);
+         snprintf (unit_answer, LEN_RECD, "MON p_entry (%2d) : -      -еж           -         -     -    -  -еж            -еж", n);
       }
       return unit_answer;
    }
@@ -1500,6 +1757,42 @@ yexec_mon__unit         (char *a_question, int n)
                n, t, x_exec->inode, x_exec->p_count, x_exec->p_head, x_exec->p_tail);
       } else {
          snprintf (unit_answer, LEN_RECD, "MON e_entry (%2d) :  -еж           -            - -          -", n);
+      }
+      return unit_answer;
+   }
+   else if (strcmp (a_question, "t_entry"  )      == 0) {
+      x_tie  = t_head;
+      while (x_tie != NULL) {
+         if (c == n)  break;
+         ++c;
+         x_tie = x_tie->m_next;
+      }
+      if (x_tie != NULL) {
+         strcpy (t, " -еж");
+         strcpy (u, " -еж");
+         if (x_tie->p_link != NULL && x_tie->p_link->e_link)  sprintf  (t, "%2dе%.10sж", strlen (x_tie->p_link->e_link->name), x_tie->p_link->e_link->name);
+         if (x_tie->l_link != NULL)  sprintf  (u, "%2dе%.10sж", strlen (x_tie->l_link->terse), x_tie->l_link->terse);
+         snprintf (unit_answer, LEN_RECD, "MON t_entry (%2d) : %-5d  %-14.14s %-14.14s   %7d %7d",
+               n, x_tie->p_link->rpid, t, u, x_tie->m_data, x_tie->m_heap);
+      } else {
+         snprintf (unit_answer, LEN_RECD, "MON t_entry (%2d) : -       -еж            -еж                   -       -", n);
+      }
+      return unit_answer;
+   }
+   else if (strcmp (a_question, "l_entry"  )      == 0) {
+      x_lib  = l_head;
+      while (x_lib != NULL) {
+         if (c == n)  break;
+         ++c;
+         x_lib = x_lib->m_next;
+      }
+      if (x_lib != NULL) {
+         sprintf  (t, "%2dе%.10sж", strlen (x_lib->terse), x_lib->terse);
+         sprintf  (u, "%2dе%.20sж", strlen (x_lib->name ), x_lib->name);
+         snprintf (unit_answer, LEN_RECD, "MON l_entry (%2d) : %-14.14s %-24.24s  %-9ld  %2d  %7d",
+               n, t, u, x_lib->inode, x_lib->t_count, x_lib->m_text);
+      } else {
+         snprintf (unit_answer, LEN_RECD, "MON l_entry (%2d) :  -еж            -еж                      -           -        -", n);
       }
       return unit_answer;
    }

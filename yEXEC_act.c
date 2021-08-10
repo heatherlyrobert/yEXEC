@@ -46,7 +46,7 @@ yexec__naming           (uchar *a_name)
    l = strlen (a_name);
    DEBUG_INPT   yLOG_value   ("l"         , l);
    --rce;  for (i = 0; i < l; ++i) {
-      if (strchr (LTRS_FILES, a_name [i]) == NULL) {
+      if (strchr (YSTR_FILES, a_name [i]) == NULL) {
          yURG_err ('f', "file name has an illegal character (%c) at position %d (security risk)", a_name [i], i);
          DEBUG_INPT   yLOG_complex ("bad char"  , "can not include %c at %d", a_name [i], i);
          DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
@@ -98,7 +98,7 @@ yexec__naming           (uchar *a_name)
 }
 
 char
-yexec__location         (cchar a_runas, cchar a_loc, cchar *a_home, cchar *a_root, uchar *a_name, cchar *a_muser, int a_muid, char *a_fuser, int *a_fuid, char *a_dir)
+yexec__location         (cchar a_runas, cchar a_loc, cchar *a_home, cchar *a_root, uchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_dir)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
@@ -133,45 +133,47 @@ yexec__location         (cchar a_runas, cchar a_loc, cchar *a_home, cchar *a_roo
    }
    DEBUG_INPT   yLOG_info    ("a_muser"   , a_muser);
    DEBUG_INPT   yLOG_value   ("a_muid"    , a_muid);
-   --rce;  if (a_fuser == NULL) {
+   DEBUG_INPT   yLOG_point   ("r_fuser"   , r_fuser);
+   --rce;  if (r_fuser == NULL) {
       DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
-   strcpy (a_fuser, "");
-   --rce;  if (a_fuid  == NULL) {
+   strcpy (r_fuser, "");
+   DEBUG_INPT   yLOG_point   ("r_fuid"    , r_fuid);
+   --rce;  if (r_fuid  == NULL) {
       DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
-   *a_fuid  = -1;
-   --rce;  if (a_dir   == NULL) {
+   *r_fuid  = -1;
+   --rce;  if (r_dir   == NULL) {
       DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
-   strcpy (a_dir, "");
+   strcpy (r_dir, "");
    /*---(check directory)----------------*/
-   p = getcwd (a_dir, LEN_PATH);
+   p = getcwd (r_dir, LEN_PATH);
    DEBUG_INPT   yLOG_point   ("getcwd"    , p);
    --rce;  if (p == NULL) {
       yURG_err ('f', "can not obtain current working directory");
       DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
-   if (a_loc == YEXEC_LOCAL)  strlcat (a_dir, "/", LEN_PATH);
-   DEBUG_INPT   yLOG_info    ("a_dir"     , a_dir);
-   yURG_msg ('-', "current working directory is å%sæ", a_dir);
+   if (a_loc == YEXEC_LOCAL)  strlcat (r_dir, "/", LEN_PATH);
+   DEBUG_INPT   yLOG_info    ("r_dir"     , r_dir);
+   yURG_msg ('-', "current working directory is å%sæ", r_dir);
    /*---(check normal install)-----------*/
    --rce;  if (a_loc == YEXEC_LOCAL && a_muid != 0) {
       sprintf (t, "%s%s", a_home, a_muser);
       DEBUG_INPT   yLOG_info    ("expect"    , t);
       /*> yURG_msg ('-', "compare to å%sæ", t);                                       <*/
       l = strlen (t);
-      if (strncmp (a_dir, t, l) != 0) {
+      if (strncmp (r_dir, t, l) != 0) {
          yURG_err ('f', "user not in or below their own home directory (security risk)");
          DEBUG_INPT   yLOG_note    ("user not in or below their own home directory");
          DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
          return rce;
       }
-      strlcpy (a_fuser, a_muser, LEN_USER);
+      strlcpy (r_fuser, a_muser, LEN_USER);
       yURG_msg ('-', "normal user file in or below their own home directory");
    }
    /*---(check root install)-------------*/
@@ -179,19 +181,19 @@ yexec__location         (cchar a_runas, cchar a_loc, cchar *a_home, cchar *a_roo
       DEBUG_INPT   yLOG_note    ("root user verifying");
       sprintf (t, "%s", a_root);
       l = strlen (t);
-      DEBUG_INPT   yLOG_complex ("cdir"      , "%2d å%sæ vs å%sæ", l, t, a_dir);
-      if (strncmp (a_dir, t, l) == 0) {
+      DEBUG_INPT   yLOG_complex ("cdir"      , "%2d å%sæ vs å%sæ", l, t, r_dir);
+      if (strncmp (r_dir, t, l) == 0) {
          DEBUG_INPT   yLOG_note    ("root in root user home directory tree");
-         strlcpy (a_fuser, "root", LEN_USER);
+         strlcpy (r_fuser, "root", LEN_USER);
          yURG_msg ('-', "root user file in or below root home directory");
       } else {
          sprintf (t, "%s", a_home);
          l = strlen (t);
-         if (strncmp (a_dir, t, l) == 0) {
+         if (strncmp (r_dir, t, l) == 0) {
             DEBUG_INPT   yLOG_note    ("root in another user home directory tree");
-            strlcpy  (x_user, a_dir + l, LEN_PATH);
+            strlcpy  (x_user, r_dir + l, LEN_PATH);
             strldchg (x_user, '/', '\0', LEN_PATH);
-            strlcpy (a_fuser, x_user, LEN_USER);
+            strlcpy (r_fuser, x_user, LEN_USER);
             yURG_msg ('-', "root user file in or below %s users home directory", x_user);
          } else {
             yURG_err ('f', "root, but not in or below any valid user home directory (security risk)");
@@ -206,24 +208,24 @@ yexec__location         (cchar a_runas, cchar a_loc, cchar *a_home, cchar *a_roo
       /*---(verify user)--------------------*/
       strlcpy  (x_user, a_name, LEN_USER);
       strldchg (x_user, '.', '\0', LEN_USER);
-      strlcpy  (a_fuser, x_user, LEN_USER);
-      yURG_msg ('-', "central file prefix is å%sæ", a_fuser);
+      strlcpy  (r_fuser, x_user, LEN_USER);
+      yURG_msg ('-', "central file prefix is å%sæ", r_fuser);
    }
-   DEBUG_INPT   yLOG_info    ("a_fuser"    , a_fuser);
+   DEBUG_INPT   yLOG_info    ("r_fuser"    , r_fuser);
    /*---(check for registered)-----------*/
-   rc = yEXEC_userdata (a_fuser, a_fuid, NULL, NULL, NULL);
+   rc = yEXEC_userdata (r_fuser, r_fuid, NULL, NULL, NULL);
    DEBUG_INPT   yLOG_value   ("userdata"  , rc);
    if (rc < 0) {
       if (a_loc == YEXEC_LOCAL) {
          yURG_err ('f', "user directory not associated with a registered user (security risk)");
       } else {
-         yURG_err ('f', "user name prefix å%sæ not registered on system (security risk)", a_fuser);
+         yURG_err ('f', "user name prefix å%sæ not registered on system (security risk)", r_fuser);
       }
       DEBUG_INPT   yLOG_note    ("user is not registered in the system");
       DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
-   yURG_msg ('-', "file user is registered with system, %s, uid %d", a_fuser, *a_fuid);
+   yURG_msg ('-', "file user is registered with system, %s, uid %d", r_fuser, *r_fuid);
    /*---(name prefix)--------------------*/
    --rce;  if (a_loc == YEXEC_LOCAL) {
       if (strchr ("Kk", a_runas) != NULL)  strcpy (t, "khronos.");
@@ -238,7 +240,7 @@ yexec__location         (cchar a_runas, cchar a_loc, cchar *a_home, cchar *a_roo
    }
    --rce;  if (a_loc == YEXEC_CENTRAL) {
       if (a_muid != 0) {
-         if (strcmp (a_muser, a_fuser) != 0) {
+         if (strcmp (a_muser, r_fuser) != 0) {
             yURG_err ('f', "run-time user å%sæ can not review this file (security risk)", a_muser);
             DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
             return rce;
@@ -579,7 +581,7 @@ yEXEC_central_dir       (cchar a_runas, cchar *a_name, char *a_dir, char *a_user
 }
 
 char
-yEXEC_central            (cchar a_runas, cchar *a_name, /*->>-*/ char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir)
+yEXEC_central            (cchar a_runas, cchar *a_name, char *r_fuser, int *r_fuid, char *r_fdesc, char *r_dir)
 {
    char        rce         =  -10;
    char        rc          =    0;
@@ -1143,7 +1145,7 @@ yexec_act__filter       (cchar *a_name, cchar *a_prefix, int a_muid)
    l = strlen (a_name);
    DEBUG_INPT   yLOG_value   ("l"         , l);
    --rce;  for (i = 0; i < l; ++i) {
-      if (strchr (LTRS_FILES, a_name [i]) == NULL) {
+      if (strchr (YSTR_FILES, a_name [i]) == NULL) {
          DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
          return rce;
       }
@@ -1294,7 +1296,7 @@ yEXEC_act_review        (cchar a_runas, cchar a_act, cchar *a_oneline, cchar *a_
          continue;
       }
       /*---(filter using regex)-----------------*/
-      rc = yREGEX_exec (x_file->d_name);
+      rc = yREGEX_filter (x_file->d_name);
       DEBUG_INPT   yLOG_value   ("exec"      , rc);
       if (rc <= 0) {
          DEBUG_INPT   yLOG_note    ("does not match regex, skipping");

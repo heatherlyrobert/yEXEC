@@ -260,7 +260,7 @@ yEXEC_dur_in_sec        (char *a_text, int *a_dur)
    case '!' : *a_dur = 60 * 5;        return 0;  break;
    }
    /*---(find unit)----------------------*/
-   if (x_len > 1 && strchr (LTRS_NUMBER, t [x_len - 1]) == NULL) {
+   if (x_len > 1 && strchr (YSTR_NUMBER, t [x_len - 1]) == NULL) {
       x_unit = t [--x_len];
       t [x_len] = '\0';
    }
@@ -591,7 +591,6 @@ yexec__unit_loud        (void)
 char       /*----: stop logging ----------------------------------------------*/
 yexec__unit_end         (void)
 {
-   yexec_mon__lpurge ();
    yexec_mon__ppurge ();
    yLOGS_end     ();
    return 0;

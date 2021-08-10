@@ -219,10 +219,10 @@ typedef struct spwd      tSHADOW;
 /*---(combination)----------*/
 #define     IF_CCHECK       if (a_act == ACT_CCHECK)
 #define     IF_VCHECK       if (a_act == ACT_VCHECK)
-#define     IF_CREVIEW      if (a_act == ACT_CAUDIT || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY || a_act == ACT_CNORMAL)
-#define     IF_VREVIEW      if (a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
-#define     IF_CCENTRAL     if (a_act == ACT_CCHECK || a_act == ACT_CAUDIT || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY || a_act == ACT_CNORMAL)
-#define     IF_VCENTRAL     if (a_act == ACT_VCHECK || a_act == ACT_VAUDIT || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
+#define     IF_CREVIEW      if (a_act == ACT_CAUDIT  || a_act == ACT_CDAEMON || a_act == ACT_CPRICKLY || a_act == ACT_CNORMAL)
+#define     IF_VREVIEW      if (a_act == ACT_VAUDIT  || a_act == ACT_VDAEMON || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
+#define     IF_CCENTRAL     if (a_act == ACT_CCHECK  || a_act == ACT_CAUDIT  || a_act == ACT_CDAEMON  || a_act == ACT_CPRICKLY || a_act == ACT_CNORMAL)
+#define     IF_VCENTRAL     if (a_act == ACT_VCHECK  || a_act == ACT_VAUDIT  || a_act == ACT_VDAEMON  || a_act == ACT_VPRICKLY || a_act == ACT_VNORMAL)
 /*---(unit testing)---------*/
 #define     IF_NORUN        if (yEXEC_ifnorun   () == 1)
 

@@ -34,8 +34,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2i"
-#define     P_VERTXT    "exec/proc hooking and unhooking built and unit tested"
+#define     P_VERNUM    "1.2j"
+#define     P_VERTXT    "cleaned up unit testing, again"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -98,6 +98,8 @@ typedef struct stat      tSTAT;
 typedef struct termios   tTERMIOS;
 
 
+#define     SIMPLIFIER     /**/
+#define     FACTCHECK      /**/
 
 #define          SUCCESS          0
 #define          NOT_READY       -1
@@ -153,7 +155,7 @@ char        yexec_args__clearmode   (char *a_runas, char *a_runmode, char *a_run
 char*       yexec_args__unit        (char *a_question);
 
 char        yexec__naming           (uchar *a_name);
-char        yexec__location         (cchar a_pre, cchar a_loc, cchar *a_home, cchar *a_root, uchar *a_name, cchar *a_muser, int a_muid, char *a_fuser, int *a_fuid, char *a_dir);
+char        yexec__location         (cchar a_pre, cchar a_loc, cchar *a_home, cchar *a_root, uchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_dir);
 char        yexec__stats            (cchar a_loc, cchar *a_dir, uchar *a_name, cchar *a_muser, int a_muid, uchar *a_user, int a_uid);
 char*       yexec_base__unit        (char *a_question);
 char        yexec__unit_quiet       (void);
@@ -206,6 +208,8 @@ char        yexec_mon__hook_exec    (tPROC *a_proc, char *a_name);
 char        yexec_mon__unhook_exec  (tPROC *a_proc);
 char        yexec_mon__hook_proc    (tPROC **a_proc, int a_rpid);
 char        yexec_mon__unhook_proc  (tPROC **a_proc);
+char        yexec_mon__hook_lib     (tPROC *a_proc, char *a_name);
+char        yexec_mon__unhook_lib   (tPROC *a_proc);
 /*---(monitor)--------------*/
 char        yexec_mon__cpu_detail   (int a_rpid, char *a_name, int *a_ppid, char *a_land, char *a_state, long *a_utime, long *a_stime, char *a_snice);
 char        yexec_mon__cpu          (tPROC *a_proc);

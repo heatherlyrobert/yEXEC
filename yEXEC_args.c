@@ -33,7 +33,7 @@ struct cOPTS {
    char        option      [LEN_LABEL];
    char        levels      [LEN_SHORT];
    char        desc        [LEN_DESC];
-   char        file        [LEN_TERSE];  /*  eos/ast/hyp  han  khr  */
+   char        file        [LEN_TERSE];  /*  eos/ast/hyp  herc  khro  */
    char        run_as;
 };
 static const tOPTS   s_opts [MAX_OPTS] = {
@@ -535,24 +535,24 @@ yEXEC_final             (int a_uid)
 /*====================------------------------------------====================*/
 static void      o___SHORTCUT________________o (void) {;};
 
-char  yEXEC_ifsilent  (void) { if (strchr (g_silent , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifverbose (void) { if (strchr (g_verbose, g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifconfirm (void) { if (strchr (g_confirm, g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifsilent  (void) { if (strchr (g_silent , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifverbose (void) { if (strchr (g_verbose, g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifconfirm (void) { if (strchr (g_confirm, g_runmode) != NULL)  return 1; else return 0; }
 
-char  yEXEC_ifhelp    (void) { if (g_runmode == ACT_HELP)                  return 1; else return 0; }
-char  yEXEC_ifversion (void) { if (g_runmode == ACT_VERSION)               return 1; else return 0; }
-char  yEXEC_ifverify  (void) { if (strchr (g_verify , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifinstall (void) { if (strchr (g_install, g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_iflist    (void) { if (strchr (g_list   , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifcheck   (void) { if (strchr (g_check  , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifaudit   (void) { if (strchr (g_audit  , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_iffix     (void) { if (strchr (g_fix    , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifremove  (void) { if (strchr (g_remove , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifdaemon  (void) { if (strchr (g_daemon , g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifprickly (void) { if (strchr (g_prickly, g_runmode) != NULL)  return 1; else return 0; }
-char  yEXEC_ifnormal  (void) { if (strchr (g_normal , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifhelp    (void) { if (g_runmode == ACT_HELP)                  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifversion (void) { if (g_runmode == ACT_VERSION)               return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifverify  (void) { if (strchr (g_verify , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifinstall (void) { if (strchr (g_install, g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_iflist    (void) { if (strchr (g_list   , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifcheck   (void) { if (strchr (g_check  , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifaudit   (void) { if (strchr (g_audit  , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_iffix     (void) { if (strchr (g_fix    , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifremove  (void) { if (strchr (g_remove , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifdaemon  (void) { if (strchr (g_daemon , g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifprickly (void) { if (strchr (g_prickly, g_runmode) != NULL)  return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifnormal  (void) { if (strchr (g_normal , g_runmode) != NULL)  return 1; else return 0; }
 
-char  yEXEC_ifnorun   (void) { if (g_norun != 'y')                         return 1; else return 0; }
+FACTCHECK  char  yEXEC_ifnorun   (void) { if (g_norun != 'y')                         return 1; else return 0; }
 
 
 
