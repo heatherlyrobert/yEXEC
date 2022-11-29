@@ -13,6 +13,7 @@
 #define     P_PURPOSE   "clear, clean, program launching and tracking"
 
 #define     P_NAMESAKE  "brontes-akmonides (son of the anvil)"
+#define     P_PRONOUNCE "brahn·tees ahk·moh·nee·dais"
 #define     P_HERITAGE  "thunderer, one of the original three cyclops, blacksmith to gods"
 #define     P_IMAGERY   "massive, brutish, immortal giant with a single round eye"
 #define     P_REASON    ""
@@ -26,6 +27,7 @@
 
 #define     P_SYSTEM    "gnu/linux   (powerful, ubiquitous, technical, and hackable)"
 #define     P_LANGUAGE  "ansi-c      (wicked, limitless, universal, and everlasting)"
+#define     P_COMPILER  "gcc 5.3.0"
 #define     P_CODESIZE  "small       (appoximately 1,000 slocl)"
 #define     P_DEPENDS   "ySTR"
 
@@ -34,8 +36,8 @@
 
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2j"
-#define     P_VERTXT    "cleaned up unit testing, again"
+#define     P_VERNUM    "1.2k"
+#define     P_VERTXT    "fixed testing issues and made a quiet heartbeat version"
 
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -96,6 +98,7 @@ typedef struct dirent    tDIRENT;
 typedef struct sigaction tSIGACT;
 typedef struct stat      tSTAT;
 typedef struct termios   tTERMIOS;
+typedef struct rusage    tRUSE;
 
 
 #define     SIMPLIFIER     /**/
@@ -141,22 +144,22 @@ yEXEC__comm        (
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
 extern      char        unit_answer [LEN_RECD];
 
-char        yexec_act__checkdir     (cchar *a_dir, int a_perms);
-char        yexec_act__filter       (cchar *a_name, cchar *a_prefix, int a_muid);
-char        yexec_act__prepare      (cchar a_pre, cchar a_act, cchar *a_oneline, cchar *a_muser, cchar *a_regex, char *a_prefix, char *a_dir, void *a_assimilate);
-char        yexec_act__assim        (cchar a_runas, cchar a_loc, cchar *a_name, char *r_user, char *r_desc);
-char        yexec_act__mkdir        (void);
-char        yexec_act__rmdir        (void);
+/*> char        yexec_act__checkdir     (cchar *a_dir, int a_perms);                                                                                                     <* 
+ *> char        yexec_act__filter       (cchar *a_name, cchar *a_prefix, int a_muid);                                                                                    <* 
+ *> char        yexec_act__prepare      (cchar a_pre, cchar a_act, cchar *a_oneline, cchar *a_muser, cchar *a_regex, char *a_prefix, char *a_dir, void *a_assimilate);   <* 
+ *> char        yexec_act__assim        (cchar a_runas, cchar a_loc, cchar *a_name, char *r_user, char *r_desc);                                                         <* 
+ *> char        yexec_act__mkdir        (void);                                                                                                                          <* 
+ *> char        yexec_act__rmdir        (void);                                                                                                                          <*/
 
-char        yexec_args__empty       (void);
-char        yexec_args__init        (char a_runas, char a_runmode, char *a_runfile);
-char        yexec_args__single      (char *a_levels, char n);
-char        yexec_args__clearmode   (char *a_runas, char *a_runmode, char *a_runfile);
-char*       yexec_args__unit        (char *a_question);
+/*> char        yexec_args__empty       (void);                                              <* 
+ *> char        yexec_args__init        (char a_runas, char a_runmode, char *a_runfile);     <* 
+ *> char        yexec_args__single      (char *a_levels, char n);                            <* 
+ *> char        yexec_args__clearmode   (char *a_runas, char *a_runmode, char *a_runfile);   <* 
+ *> char*       yexec_args__unit        (char *a_question);                                  <*/
 
-char        yexec__naming           (uchar *a_name);
-char        yexec__location         (cchar a_pre, cchar a_loc, cchar *a_home, cchar *a_root, uchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_dir);
-char        yexec__stats            (cchar a_loc, cchar *a_dir, uchar *a_name, cchar *a_muser, int a_muid, uchar *a_user, int a_uid);
+/*> char        yexec__naming           (uchar *a_name);                                                                                                                                <* 
+ *> char        yexec__location         (cchar a_pre, cchar a_loc, cchar *a_home, cchar *a_root, uchar *a_name, cchar *a_muser, int a_muid, char *r_fuser, int *r_fuid, char *r_dir);   <* 
+ *> char        yexec__stats            (cchar a_loc, cchar *a_dir, uchar *a_name, cchar *a_muser, int a_muid, uchar *a_user, int a_uid);                                               <*/
 char*       yexec_base__unit        (char *a_question);
 char        yexec__unit_quiet       (void);
 char        yexec__unit_loud        (void);

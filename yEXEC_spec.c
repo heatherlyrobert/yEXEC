@@ -2,6 +2,11 @@
 #include   "yEXEC.h"
 #include   "yEXEC_priv.h"
 
+/*
+ *  heartbeats help identify frozen and zombie daemons
+ *
+ *
+ */
 
 
 /*====================------------------------------------====================*/
@@ -12,7 +17,7 @@ static void      o___HEARTBEAT_______________o (void) {;}
 char        s_heartbeat      [LEN_HUND];
 
 char         /*--> write the heartbeat file ----------------------------------*/
-yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
+yexec__heartbeat        (char a_loud, int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
 {  /*---(design)-------------------------*/
    /*
     * strftime    %u   dow   1 (mo) - 7 (su)
@@ -31,47 +36,59 @@ yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, c
    char        t           [LEN_TITLE] = "";
    FILE       *f           = NULL;
    /*---(header)-------------------------*/
-   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_enter   (__FUNCTION__); }
    /*---(set time)-----------------------*/
    if (a_now > 0)  x_now  = a_now;
    else            x_now  = time (NULL);
-   DEBUG_YEXEC  yLOG_value   ("x_now"     , x_now);
+   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_value   ("x_now"     , x_now); }
    /*---(break it down)------------------*/
    x_broke   = localtime (&x_now);
    /*---(heartbeat)----------------------*/
    strftime (t, LEN_TITLE, "%y.%m.%d.%H.%M.%S.%u.%W.%j", x_broke);
-   DEBUG_YEXEC  yLOG_info    ("t"         , t);
+   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_info    ("t"         , t); }
    sprintf  (s_heartbeat, "%-26.26s  %-10d  %6d", t, x_now, a_rpid);
    if (a_suffix != NULL) {
       strlcat (s_heartbeat, "  "    , LEN_HUND);
       strlcat (s_heartbeat, a_suffix, LEN_HUND);
    }
-   DEBUG_YEXEC  yLOG_info    ("heartbeat" , s_heartbeat);
+   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_info    ("heartbeat" , s_heartbeat); }
    if (a_heartbeat != NULL)  strlcpy (a_heartbeat, s_heartbeat, LEN_HUND);
-   DEBUG_YEXEC  yLOG_point   ("a_file"    , a_file);
+   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_point   ("a_file"    , a_file); }
    /*---(write file)---------------------*/
    if (a_file != NULL) {
       /*---(open)------------------------*/
-      DEBUG_YEXEC  yLOG_info    ("a_file"    , a_file);
+      if (a_loud == 'y') { DEBUG_YEXEC  yLOG_info    ("a_file"    , a_file); }
       f = fopen (a_file, "wt");
-      DEBUG_YEXEC  yLOG_point   ("f"         , f);
+      if (a_loud == 'y') { DEBUG_YEXEC  yLOG_point   ("f"         , f); }
       --rce;  if (rc < 0) {
-         DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+         if (a_loud == 'y') { DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce); }
          return rce;
       }
       /*---(write)-----------------------*/
       fprintf (f, "%s\n", s_heartbeat);
       /*---(close)-----------------------*/
       rc = fclose (f);
-      DEBUG_YEXEC  yLOG_value   ("close"     , rc);
+      if (a_loud == 'y') { DEBUG_YEXEC  yLOG_value   ("close"     , rc); }
       --rce;  if (rc < 0) {
-         DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+         if (a_loud == 'y') { DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce); }
          return rce;
       }
    }
    /*---(complete------------------------*/
-   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_exit    (__FUNCTION__); }
    return 0;
+}
+
+char         /*--> write the heartbeat file ----------------------------------*/
+yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
+{
+   return yexec__heartbeat ('y', a_rpid, a_now, a_suffix, a_file, a_heartbeat);
+}
+
+char         /*--> write the heartbeat file ----------------------------------*/
+yEXEC_heartquiet        (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
+{
+   return yexec__heartbeat ('-', a_rpid, a_now, a_suffix, a_file, a_heartbeat);
 }
 
 char         /*--> read the last heartbeat -----------------------------------*/
@@ -313,7 +330,8 @@ yexec__foad        (void)
          _exit (0);
       } else {
          DEBUG_YEXEC  yLOG_info   ("child"     , "quick wait to allow parent to die");
-         sleep (0.25);
+         /*> sleep (0.25);                                                            <*/
+         sleep (1);
       }
       /*---(prepare for next)------------*/
       x_rpid  = getpid();

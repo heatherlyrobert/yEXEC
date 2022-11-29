@@ -451,18 +451,18 @@ yexec_mon__shared_new   (char a_type, void **a_new, char a_force)
    tTIE       *x_tie       = NULL;
    tLIB       *x_lib       = NULL;
    /*---(header)-------------------------*/
-   DEBUG_DATA   yLOG_senter  (__FUNCTION__);
-   DEBUG_DATA   yLOG_schar   (a_type);
+   DEBUG_YEXEC   yLOG_senter  (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_schar   (a_type);
    /*---(check return)-------------------*/
-   DEBUG_DATA   yLOG_spoint  (a_new);
+   DEBUG_YEXEC   yLOG_spoint  (a_new);
    --rce;  if (a_new == NULL) {
-      DEBUG_DATA   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
-   DEBUG_DATA   yLOG_spoint  (*a_new);
+   DEBUG_YEXEC   yLOG_spoint  (*a_new);
    --rce;  if (a_force != 'y' && *a_new != NULL) {
-      DEBUG_DATA   yLOG_snote   ("already set");
-      DEBUG_DATA   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote   ("already set");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
    /*---(default)------------------------*/
@@ -482,21 +482,21 @@ yexec_mon__shared_new   (char a_type, void **a_new, char a_force)
       x_size = sizeof (tLIB );
       break;
    default  :
-      DEBUG_DATA   yLOG_snote   ("unknown type");
-      DEBUG_DATA   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote   ("unknown type");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
-   DEBUG_DATA   yLOG_sint    (x_size);
+   DEBUG_YEXEC   yLOG_sint    (x_size);
    /*---(allocate)-----------------------*/
    while (x_new == NULL) {
       ++x_tries;
       x_new = malloc (x_size);
       if (x_tries > 3)   break;
    }
-   DEBUG_DATA   yLOG_sint    (x_tries);
-   DEBUG_DATA   yLOG_spoint  (x_new);
+   DEBUG_YEXEC   yLOG_sint    (x_tries);
+   DEBUG_YEXEC   yLOG_spoint  (x_new);
    --rce;  if (x_new == NULL) {
-      DEBUG_DATA   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
    /*---(wipe, attach, and increment)----*/
@@ -537,7 +537,7 @@ yexec_mon__shared_new   (char a_type, void **a_new, char a_force)
    /*---(save return)--------------------*/
    *a_new = x_new;
    /*---(complete)-----------------------*/
-   DEBUG_DATA   yLOG_sexit   (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
    return rc;
 }
 
@@ -551,18 +551,18 @@ yexec_mon__shared_free  (char a_type, void **a_old)
    tTIE       *x_tie       = NULL;
    tLIB       *x_lib       = NULL;
    /*---(header)-------------------------*/
-   DEBUG_DATA   yLOG_senter  (__FUNCTION__);
-   DEBUG_DATA   yLOG_schar   (a_type);
+   DEBUG_YEXEC   yLOG_senter  (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_schar   (a_type);
    /*---(check return)-------------------*/
-   DEBUG_DATA   yLOG_spoint  (a_old);
+   DEBUG_YEXEC   yLOG_spoint  (a_old);
    --rce;  if (a_old == NULL) {
-      DEBUG_DATA   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
-   DEBUG_DATA   yLOG_spoint  (*a_old);
+   DEBUG_YEXEC   yLOG_spoint  (*a_old);
    --rce;  if (*a_old == NULL) {
-      DEBUG_DATA   yLOG_snote   ("never set");
-      DEBUG_DATA   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote   ("never set");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
    /*---(detach and decrement)-----------*/
@@ -604,7 +604,7 @@ yexec_mon__shared_free  (char a_type, void **a_old)
    free (*a_old);
    *a_old = NULL;
    /*---(complete)-----------------------*/
-   DEBUG_DATA   yLOG_sexit   (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
    return 0;
 }
 
@@ -615,8 +615,8 @@ yexec_mon__shared_purge (char a_type)
    char        rce         =  -10;
    void       *x_curr      = NULL;
    /*---(header)-------------------------*/
-   DEBUG_DATA   yLOG_senter  (__FUNCTION__);
-   DEBUG_DATA   yLOG_schar   (a_type);
+   DEBUG_YEXEC   yLOG_senter  (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_schar   (a_type);
    /*---(prepare)------------------------*/
    --rce;  switch (a_type) {
    case 'E' :
@@ -631,8 +631,8 @@ yexec_mon__shared_purge (char a_type)
    case 'L' :
       x_curr = l_head;
       break;
-      DEBUG_DATA   yLOG_snote   ("unknown type");
-      DEBUG_DATA   yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_snote   ("unknown type");
+      DEBUG_YEXEC   yLOG_sexitr  (__FUNCTION__, rce);
       return rce;
    }
    while (x_curr != NULL) {
@@ -675,7 +675,7 @@ yexec_mon__shared_purge (char a_type)
       break;
    }
    /*---(complete)-----------------------*/
-   DEBUG_DATA   yLOG_sexit   (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
    return 0;
 }
 
@@ -951,10 +951,10 @@ yexec_mon__hook_exec    (tPROC *a_proc, char *a_name)
    a_proc->p_prev  = a_proc->p_next = NULL;
    /*---(link exec to proc)--------------*/
    if (e_curr->p_head == NULL) {
-      DEBUG_DATA   yLOG_snote  ("first");
+      DEBUG_YEXEC   yLOG_snote  ("first");
       e_curr->p_head  = e_curr->p_tail = a_proc;
    } else {
-      DEBUG_DATA   yLOG_snote   ("append");
+      DEBUG_YEXEC   yLOG_snote   ("append");
       a_proc->p_prev          = e_curr->p_tail;
       e_curr->p_tail->p_next  = a_proc;
       e_curr->p_tail          = a_proc;
@@ -1045,10 +1045,10 @@ yexec_mon__hook_lib     (tPROC *a_proc, char *a_name)
    rc = 1;
    /*---(hook tie to proc)---------------*/
    if (a_proc->t_head == NULL) {
-      DEBUG_DATA   yLOG_snote  ("first");
+      DEBUG_YEXEC   yLOG_snote  ("first");
       a_proc->t_head  = a_proc->t_tail = t_temp;
    } else {
-      DEBUG_DATA   yLOG_snote   ("append");
+      DEBUG_YEXEC   yLOG_snote   ("append");
       t_temp->p_prev          = a_proc->t_tail;
       a_proc->t_tail->p_next  = t_temp;
       a_proc->t_tail          = t_temp;
@@ -1057,10 +1057,10 @@ yexec_mon__hook_lib     (tPROC *a_proc, char *a_name)
    /*---(hook tie to lib)----------------*/
    t_temp->l_link = l_temp;
    if (l_curr->t_head == NULL) {
-      DEBUG_DATA   yLOG_snote  ("first");
+      DEBUG_YEXEC   yLOG_snote  ("first");
       l_curr->t_head  = l_curr->t_tail = t_temp;
    } else {
-      DEBUG_DATA   yLOG_snote   ("append");
+      DEBUG_YEXEC   yLOG_snote   ("append");
       t_temp->l_prev          = l_curr->t_tail;
       l_curr->t_tail->l_next  = t_temp;
       l_curr->t_tail          = t_temp;
@@ -1597,34 +1597,34 @@ yexec_mon__review       (void)
    char        x_prefix    [LEN_USER]  = "";
    char        x_central   [LEN_PATH]  = "";
    /*---(header)-------------------------*/
-   DEBUG_INPT   yLOG_enter   (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
    /*---(defense)------------------------*/
    x_dir = opendir ("/proc");
-   DEBUG_INPT   yLOG_point   ("x_dir"     , x_dir);
+   DEBUG_YEXEC   yLOG_point   ("x_dir"     , x_dir);
    --rce;  if (x_dir == NULL) {
-      DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
    /*---(walk files)---------------------*/
-   DEBUG_INPT   yLOG_note    ("walk through processes");
+   DEBUG_YEXEC   yLOG_note    ("walk through processes");
    while ((x_file = readdir (x_dir)) != NULL) {
       /*---(simple filtering)-------------------*/
       if (rc != 0)  ++x_total;
       if (strchr (YSTR_NUMBER, x_file->d_name [0]) == NULL) {
-         DEBUG_INPT   yLOG_note    ("not leading number");
+         DEBUG_YEXEC   yLOG_note    ("not leading number");
          continue;
       }
       x_rpid = atoi (x_file->d_name);
-      DEBUG_INPT   yLOG_value   ("x_rpid"    , x_rpid);
+      DEBUG_YEXEC   yLOG_value   ("x_rpid"    , x_rpid);
       if (x_rpid <= 0) {
-         DEBUG_INPT   yLOG_note    ("not a process entry");
+         DEBUG_YEXEC   yLOG_note    ("not a process entry");
          continue;
       }
       /*---(create)----------------------*/
       x_new = NULL;
       rc = yexec_mon__hook_proc (&x_new, x_rpid);
       if (rc < 0) {
-         DEBUG_INPT   yLOG_note    ("can not add process");
+         DEBUG_YEXEC   yLOG_note    ("can not add process");
          continue;
       }
       /*---(gather)----------------------*/
@@ -1641,22 +1641,22 @@ yexec_mon__review       (void)
       /*---(total)-----------------------*/
       ++x_count;
       if (rc >= 0)  ++x_pass;
-      DEBUG_INPT   yLOG_complex ("counts"    , "%d total, %d count, %d pass", x_total, x_count, x_pass);
+      DEBUG_YEXEC   yLOG_complex ("counts"    , "%d total, %d count, %d pass", x_total, x_count, x_pass);
       /*---(done)------------------------*/
    }
    /*---(summary)------------------------*/
-   DEBUG_INPT   yLOG_value   ("found"     , x_total);
-   DEBUG_INPT   yLOG_value   ("processed" , x_count);
-   DEBUG_INPT   yLOG_value   ("passed"    , x_pass);
+   DEBUG_YEXEC   yLOG_value   ("found"     , x_total);
+   DEBUG_YEXEC   yLOG_value   ("processed" , x_count);
+   DEBUG_YEXEC   yLOG_value   ("passed"    , x_pass);
    /*---(close)--------------------------*/
    rc = closedir (x_dir);
-   DEBUG_INPT   yLOG_point   ("close"     , rc);
+   DEBUG_YEXEC   yLOG_point   ("close"     , rc);
    --rce;  if (rc < 0) {
-      DEBUG_INPT   yLOG_exitr   (__FUNCTION__, rce);
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
    /*---(complete)-----------------------*/
-   DEBUG_INPT   yLOG_exit    (__FUNCTION__);
+   DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
    return rc;
 }
 

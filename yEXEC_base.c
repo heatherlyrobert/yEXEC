@@ -5,12 +5,14 @@
 
 
 #define MAX_FLAGS   100
-static struct {
+typedef struct cFLAGS tFLAGS;
+static struct cFLAGS {
    char        c;   /* category */
    char        v;   /* value    */
    char        d           [LEN_TERSE];
    char        desc        [LEN_DESC];
-} s_flags [MAX_FLAGS] = {
+};
+static const tFLAGS s_flags [MAX_FLAGS] = {
    /*---(importance)--------*/
    {  0, 'a', "absolute"   , ""                                         },
    {  0, 'n', "need"       , ""                                         },
@@ -20,19 +22,25 @@ static struct {
    {  0, 'l', "like"       , ""                                         },
    {  0, 'm', "might"      , ""                                         },
    {  0, '-', "unset"      , ""                                         },
+   {  0, '·', "unset"      , ""                                         },
    /*---(tracking/cum)------*/
    {  1, 'p', "profile"    , ""                                         },
    {  1, 'u', "usage"      , ""                                         },
    {  1, 'c', "console"    , ""                                         },
    {  1, 'y', "beg/end"    , ""                                         },
    {  1, '-', "unset"      , ""                                         },
-   /*---(hand-off)----------*/
-   {  2, '^', "tbd"        , ""                                         },
-   {  2, '|', "tbd"        , ""                                         },
-   {  2, '/', "tbd"        , ""                                         },
-   {  2, '<', "tbd"        , ""                                         },
-   {  2, '>', "tbd"        , ""                                         },
+   {  1, '·', "unset"      , ""                                         },
+   /*---(rolling)-----------*/
+   {  2, '[', "1day"       , ""                                         },
+   {  2, '3', "3days"      , ""                                         },
+   {  2, '6', "6days"      , ""                                         },
+   {  2, '9', "9days"      , ""                                         },
+   {  2, '<', "15days"     , ""                                         },
+   {  2, '|', "30days"     , ""                                         },
+   {  2, '>', "45days"     , ""                                         },
+   {  2, '´', "60days"     , ""                                         },
    {  2, '-', "unset"      , ""                                         },
+   {  2, '·', "unset"      , ""                                         },
    /*---(strictness)--------*/
    {  3, 'g', "graceful"   , "TERM if overruns maximum estimate"        },
    {  3, 'k', "violent"    , "KILL of overruns maximum estimate"        },
@@ -41,6 +49,7 @@ static struct {
    {  3, 'w', "warning"    , "note on reports only"                     },
    {  3, 'a', "advisory"   , "no action, just for planning"             },
    {  3, '-', "unset"      , "no action"                                },
+   {  3, '·', "unset"      , "no action"                                },
    /*---(minimum)-----------*/
    {  4, '=', "1.00"       , ""                                         },
    {  4, '9', "0.90"       , ""                                         },
@@ -49,6 +58,7 @@ static struct {
    {  4, 'q', "0.25"       , ""                                         },
    {  4, 't', "0.10"       , ""                                         },
    {  4, '-', "zero"       , ""                                         },
+   {  4, '·', "zero"       , ""                                         },
    /*---(maximum)-----------*/
    {  5, '=', "1.00"       , ""                                         },
    {  5, '1', "1.10"       , ""                                         },
@@ -57,7 +67,9 @@ static struct {
    {  5, 'D', "2.00"       , ""                                         },
    {  5, 'T', "3.00"       , ""                                         },
    {  5, '-', "infinite"   , ""                                         },
+   {  5, '·', "infinite"   , ""                                         },
    /*---(grouping)----------*/
+   {  6, '·', "unset"      , ""                                         },
    {  6, '-', "unset"      , ""                                         },
    /*---(flexibility)-------*/
    {  7, '=', "none"       , "scheduled time is unmovable"              },
@@ -66,6 +78,7 @@ static struct {
    {  7, '~', "shift"      , "schedule can be shifted +/- 8hrs"         },
    {  7, '*', "day"        , "schedule can be shifted +/- 24hrs"        },
    {  7, '-', "unset"      , ""                                         },
+   {  7, '·', "unset"      , ""                                         },
    /*---(throttle)----------*/
    {  8, 'g', "graceful"   , "TERM process if it exceeds limits"        },
    {  8, 'k', "violent"    , "KILL process if it exceeds limits"        },
@@ -73,6 +86,7 @@ static struct {
    {  8, 'r', "rules"      , "notify khaos/sysadmin, and reports"       },
    {  8, 'w', "warning"    , "note on reports only"                     },
    {  8, 'a', "advisory"   , "no action, just for planning"             },
+   {  8, '·', "unset"      , "no action"                                },
    {  8, '-', "unset"      , "no action"                                },
    /*---(cpu use)-----------*/
    {  9, '5', "1.00"       , ""                                         },
@@ -82,6 +96,7 @@ static struct {
    {  9, '1', "0.05"       , ""                                         },
    {  9, '0', "0.00"       , ""                                         },
    {  9, '-', "unset"      , ""                                         },
+   {  9, '·', "unset"      , ""                                         },
    /*---(disk use)----------*/
    { 10, '5', "1.00"       , ""                                         },
    { 10, '4', "0.75"       , ""                                         },
@@ -90,6 +105,7 @@ static struct {
    { 10, '1', "0.05"       , ""                                         },
    { 10, '0', "0.00"       , ""                                         },
    { 10, '-', "unset"      , ""                                         },
+   { 10, '·', "unset"      , ""                                         },
    /*---(network use)-------*/
    { 11, '5', "1.00"       , ""                                         },
    { 11, '4', "0.75"       , ""                                         },
@@ -98,10 +114,12 @@ static struct {
    { 11, '1', "0.05"       , ""                                         },
    { 11, '0', "0.00"       , ""                                         },
    { 11, '-', "unset"      , ""                                         },
+   { 11, '·', "unset"      , ""                                         },
    /*---(done)--------------*/
    { -1, -1 , "end-list"   , ""                                         },
 };
 
+   char        x_flags     [LEN_LABEL] = "ithsnxgftcdn";
 char
 yEXEC_controls          (void)
 {
@@ -136,14 +154,14 @@ yEXEC_controls          (void)
    printf ("- tbd     |       ´-----------´´´-----------´       |             \n");
    printf ("          |       |            |            |       |             \n");
    printf ("----------³  -----³-----  -----³-----  -----³-----  ³----------   \n");
-   printf ("TRACKING     HAND-OFF     STRICTNESS   MINIMUM       MAXIMUM      \n");
-   printf ("p profile    ^ tbd        g graceful   = 1.00        = 1.00       \n");
-   printf ("u usage      | tbd        k violent    9 0.90        1 1.10       \n");
-   printf ("c console    / tbd        ] till end   7 0.75        2 1.25       \n");
-   printf ("y beg/end    < tbd        r rules      h 0.50        H 1.50       \n");
-   printf ("- none       > tbd        w warning    q 0.25        D 2.00       \n");
-   printf ("             · none       a advisory   t 0.10        T 3.00       \n");
-   printf ("                          - passive    - 0.00        - infinite   \n");
+   printf ("TRACKING     ROLLING      STRICTNESS   MINIMUM       MAXIMUM      \n");
+   printf ("p profile    · full60     g graceful   = 1.00        = 1.00       \n");
+   printf ("u usage      [ single     k violent    9 0.90        1 1.10       \n");
+   printf ("c console    < last15     ] till end   7 0.75        2 1.25       \n");
+   printf ("y beg/end    | last30     r rules      h 0.50        H 1.50       \n");
+   printf ("- none       > last45     w warning    q 0.25        D 2.00       \n");
+   printf ("             ] full6a advisory   t 0.10        T 3.00       \n");
+   printf ("             ´ full60     - passive    - 0.00        - infinite   \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
@@ -163,7 +181,7 @@ yEXEC_controls          (void)
    printf ("                                                                  \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
-   printf ("                                                                  \n");
+   printf ("                         ithsnxgftcdn                             \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
    printf ("                                                                  \n");
@@ -183,8 +201,8 @@ yEXEC_controls          (void)
    printf ("s soonest    n need       4 four hrs   o active     - private     \n");
    printf ("d days       v value      2 two hrs    > checking                 \n");
    printf ("w weeks      c crave      1 one hr     # complete                 \n");
-   printf ("m months     w want       m 30m        x cancelled                \n");
-   printf ("y years      l like       s 15m                                   \n");
+   printf ("m months     w want       h 30m        x cancelled                \n");
+   printf ("y years      l like       q 15m                                   \n");
    printf ("- tbd        m might      ! 5m                                    \n");
    printf ("             - tbd        - tbd                                   \n");
    printf ("                                                                  \n");
@@ -245,7 +263,10 @@ yEXEC_dur_in_sec        (char *a_text, int *a_dur)
    char        t           [LEN_TERSE] = "";
    int         x_len       =    0;
    char        x_unit      =  '-';
+   int         i           =    0;
    float       x_value     =  0.0;
+   /*---(default)------------------------*/
+   if (a_dur != NULL)  *a_dur = 0;
    /*---(defense)------------------------*/
    --rce;  if (a_text == NULL)  return rce;
    --rce;  if (a_dur  == NULL)  return rce;
@@ -253,16 +274,22 @@ yEXEC_dur_in_sec        (char *a_text, int *a_dur)
    strlcpy (t, a_text, LEN_TERSE);
    x_len = strlen (t);
    /*---(metis abbreviations)------------*/
-   if (x_len == 1)  switch (t [0])  {
+   --rce;  if (x_len == 1)  switch (t [0])  {
+   case '-' : *a_dur = 0;             return 0;  break;
    case 'L' : *a_dur = 60 * 60;       return 0;  break;
    case 'M' : *a_dur = 60 * 30;       return 0;  break;
    case 'S' : *a_dur = 60 * 15;       return 0;  break;
    case '!' : *a_dur = 60 * 5;        return 0;  break;
+   case '.' : return rce;  break;
    }
    /*---(find unit)----------------------*/
    if (x_len > 1 && strchr (YSTR_NUMBER, t [x_len - 1]) == NULL) {
       x_unit = t [--x_len];
       t [x_len] = '\0';
+   }
+   /*---(check characters)---------------*/
+   --rce;  for (i = 0; i < x_len; ++i) {
+      if (strchr (YSTR_FLOAT, t [i]) == NULL)  return rce;
    }
    /*---(calculate value)----------------*/
    x_value = atof (t);
@@ -272,12 +299,14 @@ yEXEC_dur_in_sec        (char *a_text, int *a_dur)
    }
    /*---(scale by unit)------------------*/
    --rce;  switch (x_unit) {
-   case 's' :  x_value *= 1;             break;
-   case 'm' :  x_value *= 60;            break;
-   case 'h' :  x_value *= 60 * 60;       break;
-   case 'd' :  x_value *= 60 * 60 * 24;  break;
-   case '-' :  x_value *= 1;             break;
-   default  :  *a_dur = 0; return rce;   break;
+   case 's' :  x_value *= 1;                  break;
+   case 'm' :  x_value *= 60;                 break;
+   case 'h' :  x_value *= 60 * 60;            break;
+   case 'd' :  x_value *= 60 * 60 * 24;       break;
+   case 'o' :  x_value *= 60 * 60 * 24 * 30;  break;
+   case 'y' :  x_value *= 60 * 60 * 24 * 365; break;
+   case '-' :  x_value *= 1;                  break;
+   default  :  *a_dur = 0; return rce;        break;
    }
    /*---(save back)----------------------*/
    *a_dur = round (x_value);
@@ -371,10 +400,12 @@ yexec__findflag         (char a_cat, char a_val, char *a_real)
    if (a_cat < 0 || a_cat > 11)         return -2;
    if (a_val == '·')  a_val = '-';
    for (i = 0; i < MAX_FLAGS; ++i) {
+      /*---(filter)----------------------*/
       if (s_flags [i].c <  0)          break;      /* end-of-list         */
       if (s_flags [i].c > a_cat)       break;      /* too late            */
       if (s_flags [i].c != a_cat)      continue;
       if (s_flags [i].v != a_val)      continue;
+      /*---(save-back)-------------------*/
       if (a_real != NULL)  *a_real = s_flags [i].v;
       if (s_last != 'g') {
          if (a_cat > 0)  strlcat (s_terse, BOLD_OFF, LEN_RECD);
@@ -406,7 +437,7 @@ yexec__findflag         (char a_cat, char a_val, char *a_real)
 }
 
 char
-yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_handoff, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy, char *a_flex, char *a_throttle, char *a_cpu, char *a_disk, char *a_net)
+yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_rolling, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy, char *a_flex, char *a_throttle, char *a_cpu, char *a_disk, char *a_net)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
@@ -421,21 +452,22 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
    char        x_real      =  '-';
    char        x_flags     [LEN_LABEL] = "--·---·-·---";
    char        t           [LEN_LABEL] = "";
+   char       *p           = NULL;
    /*---(defaults)-----------------------*/
-   if (a_value    != NULL)  *a_value    = '-';
-   if (a_track    != NULL)  *a_track    = '-';
-   if (a_handoff  != NULL)  *a_handoff  = '-';
-   if (a_strict   != NULL)  *a_strict   = '-';
-   if (a_min      != NULL)  *a_min      = '-';
+   if (a_value    != NULL)  *a_value    = '·';
+   if (a_track    != NULL)  *a_track    = '·';
+   if (a_rolling  != NULL)  *a_rolling  = '·';
+   if (a_strict   != NULL)  *a_strict   = '·';
+   if (a_min      != NULL)  *a_min      = '·';
    if (a_mindur   != NULL)  *a_mindur   =   0;
-   if (a_max      != NULL)  *a_max      = '-';
+   if (a_max      != NULL)  *a_max      = '·';
    if (a_maxdur   != NULL)  *a_maxdur   = 9999999;
-   if (a_remedy   != NULL)  *a_remedy   = '-';
-   if (a_flex     != NULL)  *a_flex     = '-';
-   if (a_throttle != NULL)  *a_throttle = '-';
-   if (a_cpu      != NULL)  *a_cpu      = '-';
-   if (a_disk     != NULL)  *a_disk     = '-';
-   if (a_net      != NULL)  *a_net      = '-';
+   if (a_remedy   != NULL)  *a_remedy   = '·';
+   if (a_flex     != NULL)  *a_flex     = '·';
+   if (a_throttle != NULL)  *a_throttle = '·';
+   if (a_cpu      != NULL)  *a_cpu      = '·';
+   if (a_disk     != NULL)  *a_disk     = '·';
+   if (a_net      != NULL)  *a_net      = '·';
    /*---(prepare)------------------------*/
    s_last = '-';
    strlcpy (s_terse, "", LEN_HUND);
@@ -463,9 +495,22 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
    if (a_track   != NULL)  *a_track   = x_real;
    /*---(handoff)------------------------*/
    c = x_flags [i++];
+   /*> if      (c == '´')   x_real = '´';                                             <* 
+    *> else if (c == '-')   x_real = '´';                                             <* 
+    *> else if (c == '·')   x_real = '´';                                             <* 
+    *> else if (c == '[')   x_real = '[';                                             <* 
+    *> else if (c == '<')   x_real = '<';                                             <* 
+    *> else if (c == '|')   x_real = '|';                                             <* 
+    *> else if (c == '>')   x_real = '>';                                             <* 
+    *> else if (c == ']')   x_real = ']';                                             <* 
+    *> else {                                                                         <* 
+    *>    p = strchr (YSTR_COUNT, c);                                                 <* 
+    *>    if (p == NULL)  x_real = '´';                                               <* 
+    *>    else            x_real = p [0];                                             <* 
+    *> }                                                                              <*/
    rc = yexec__findflag (2, c, &x_real);
    --rce;  if (rc < 0)  x_final = rce;
-   if (a_handoff != NULL)  *a_handoff = x_real;
+   if (a_rolling != NULL)  *a_rolling = x_real;
    /*---(strictness)---------------------*/
    c = x_flags [i++];
    rc = yexec__findflag (3, c, &x_real);
@@ -534,9 +579,9 @@ yEXEC_flags_feedback    (char *a_terse, char *a_fancy)
 }
 
 char
-yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_handoff, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy)
+yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_rolling, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy)
 {
-   return yEXEC_flags_more (a_dur, a_floor, a_flags, a_value, a_track, a_handoff, a_strict, a_min, a_mindur, a_max, a_maxdur, a_remedy, NULL, NULL, NULL, NULL, NULL);
+   return yEXEC_flags_more (a_dur, a_floor, a_flags, a_value, a_track, a_rolling, a_strict, a_min, a_mindur, a_max, a_maxdur, a_remedy, NULL, NULL, NULL, NULL, NULL);
 }
 
 

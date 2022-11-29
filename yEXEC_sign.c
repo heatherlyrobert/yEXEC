@@ -94,7 +94,7 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
    } else {
       sprintf (t, "yexec  ERROR   (%2d) signal number out-of-range", a_signal);
    }
-   yEXEC_heartbeat (x_pid, 0, t, NULL, x_recd);
+   yEXEC_heartquiet (x_pid, 0, t, NULL, x_recd);
    if (f != NULL) {
       fprintf (f, "%s\n", x_recd);
       fclose (f);

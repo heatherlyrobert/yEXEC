@@ -610,13 +610,15 @@ yEXEC_quick        (char *a_cmd)
 }
 
 char         /*--> verify status of a running job --------[ ------ [ ------ ]-*/
-yEXEC_verify       (char *a_title, int a_rpid, int *a_rc2)
+yEXEC_verify       (char *a_title, int a_rpid, int *a_rc2, float *a_csec)
 {
    /*---(locals)-------------------------*/
    int       rc        =    0;
    int       x_status  =    0;
    int       x_signal  =    0;
    char      x_rc      =    0;
+   tRUSE     x_rusage;
+   long      a, b;
    /*---(output header)-----------------*/
    DEBUG_YEXEC  yLOG_senter  ("CHK");
    DEBUG_YEXEC  yLOG_snote   (a_title);
@@ -624,8 +626,12 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc2)
    if (a_rc2 != NULL)  *a_rc2 = 0;
    /*---(check status)------------------*/
    /*> rc = wait4 (a_rpid, &x_status, WNOHANG, NULL);                                 <*/
-   rc = waitpid (a_rpid, &x_status, WNOHANG);
+   /*> rc = waitpid (a_rpid, &x_status, WNOHANG);                                     <*/
+   rc = wait4 (a_rpid, &x_status, WNOHANG, &x_rusage);
    DEBUG_YEXEC  yLOG_svalue  ("waitpid"   , rc);
+   a = (x_rusage.ru_stime.tv_sec  + x_rusage.ru_utime.tv_sec ) * 1000000;
+   b = (x_rusage.ru_stime.tv_usec + x_rusage.ru_utime.tv_usec);
+   if (a_csec != NULL)  *a_csec = a + b;
    /*---(handle no such child)----------*/
    if (rc == -1) {
       DEBUG_YEXEC  yLOG_snote   ("daemonized and gone");
@@ -735,7 +741,7 @@ yEXEC_verify       (char *a_title, int a_rpid, int *a_rc2)
 char
 yEXEC_check             (int a_rpid)
 {
-   return yEXEC_verify ("quick", a_rpid, NULL);
+   return yEXEC_verify ("quick", a_rpid, NULL, NULL);
 }
 
 char
