@@ -8,6 +8,9 @@
  *
  */
 
+static llong  s_start   = 0;
+static char   s_elapsed [LEN_LABEL] = "";
+
 
 /*====================------------------------------------====================*/
 /*===----                       informational                          ----===*/
@@ -16,8 +19,50 @@ static void      o___HEARTBEAT_______________o (void) {;}
 
 char        s_heartbeat      [LEN_HUND];
 
+char
+yexec__elapsed          (char a_type, llong a_sec)
+{
+   /*---(lcoals)-----------+-----+-----+-*/
+   long        e           =    0;
+   int         d           =    0;
+   char        u           =  's';
+   char        s           [LEN_TERSE] = "";
+   char        t           [LEN_TERSE] = "";
+   /*---(mark start)---------------------*/
+   if (a_sec  <   0)    a_sec   = 0;
+   /*---(prepare)------------------------*/
+   if (a_type == 'e')   e = a_sec - s_start;
+   else                 e = a_sec;
+   /*---(represent tersely)--------------*/
+   u  = 's';
+   d  = e % 60;
+   e /= 60;
+   if (e > 0) {
+      u  = 'm';
+      d  = e % 60;
+      e /= 60;
+      if (e > 0) {
+         u  = 'h';
+         d  = e % 24;
+         e /= 24;
+         if (e > 0) {
+            u  = 'd';
+            d  = e;
+            if (d > 999)  d = 999;
+         }
+      }
+   }
+   if (a_type == 'u')   sprintf (t, "%2d%c" , d, u);
+   else                 sprintf (t, "  %3d%c", d, u);
+   /*---(put in result)------------------*/
+   if (a_type == 'u')   strlcpy (s_elapsed, t, LEN_LABEL);
+   else                 strlcat (s_elapsed, t, LEN_LABEL);
+   /*---(complete)-----------------------*/
+   return 0;
+}
+
 char         /*--> write the heartbeat file ----------------------------------*/
-yexec__heartbeat        (char a_loud, int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
+yexec__heartbeat        (char a_type, int a_rpid, long a_now, short a_update, char *a_suffix, char *a_file, char *a_heartbeat)
 {  /*---(design)-------------------------*/
    /*
     * strftime    %u   dow   1 (mo) - 7 (su)
@@ -36,59 +81,72 @@ yexec__heartbeat        (char a_loud, int a_rpid, long a_now, char *a_suffix, ch
    char        t           [LEN_TITLE] = "";
    FILE       *f           = NULL;
    /*---(header)-------------------------*/
-   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_enter   (__FUNCTION__); }
+   if (a_type != 'q') { DEBUG_YEXEC  yLOG_enter   (__FUNCTION__); }
    /*---(set time)-----------------------*/
    if (a_now > 0)  x_now  = a_now;
    else            x_now  = time (NULL);
-   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_value   ("x_now"     , x_now); }
+   if (a_type != 'q') { DEBUG_YEXEC  yLOG_value   ("x_now"     , x_now); }
+   if (s_start == 0)    s_start = x_now;
    /*---(break it down)------------------*/
    x_broke   = localtime (&x_now);
    /*---(heartbeat)----------------------*/
    strftime (t, LEN_TITLE, "%y.%m.%d.%H.%M.%S.%u.%W.%j", x_broke);
-   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_info    ("t"         , t); }
+   if (a_type != 'q') { DEBUG_YEXEC  yLOG_info    ("t"         , t); }
    sprintf  (s_heartbeat, "%-26.26s  %-10d  %6d", t, x_now, a_rpid);
-   if (a_suffix != NULL) {
-      strlcat (s_heartbeat, "  "    , LEN_HUND);
-      strlcat (s_heartbeat, a_suffix, LEN_HUND);
+   if (a_type == 'L') {
+      yexec__elapsed ('u', a_update);
+      yexec__elapsed ('e', x_now);
+      strlcat (s_heartbeat, "   "    , LEN_HUND);
+      strlcat (s_heartbeat, s_elapsed, LEN_HUND);
    }
-   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_info    ("heartbeat" , s_heartbeat); }
+   if (a_suffix != NULL) {
+      strlcat (s_heartbeat, "  "     , LEN_HUND);
+      strlcat (s_heartbeat, a_suffix , LEN_HUND);
+   }
+   if (a_type != 'q') { DEBUG_YEXEC  yLOG_info    ("heartbeat" , s_heartbeat); }
    if (a_heartbeat != NULL)  strlcpy (a_heartbeat, s_heartbeat, LEN_HUND);
-   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_point   ("a_file"    , a_file); }
+   if (a_type != 'q') { DEBUG_YEXEC  yLOG_point   ("a_file"    , a_file); }
    /*---(write file)---------------------*/
    if (a_file != NULL) {
       /*---(open)------------------------*/
-      if (a_loud == 'y') { DEBUG_YEXEC  yLOG_info    ("a_file"    , a_file); }
+      if (a_type != 'q') { DEBUG_YEXEC  yLOG_info    ("a_file"    , a_file); }
       f = fopen (a_file, "wt");
-      if (a_loud == 'y') { DEBUG_YEXEC  yLOG_point   ("f"         , f); }
+      if (a_type != 'q') { DEBUG_YEXEC  yLOG_point   ("f"         , f); }
       --rce;  if (rc < 0) {
-         if (a_loud == 'y') { DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce); }
+         if (a_type != 'q') { DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce); }
          return rce;
       }
       /*---(write)-----------------------*/
       fprintf (f, "%s\n", s_heartbeat);
       /*---(close)-----------------------*/
       rc = fclose (f);
-      if (a_loud == 'y') { DEBUG_YEXEC  yLOG_value   ("close"     , rc); }
+      if (a_type != 'q') { DEBUG_YEXEC  yLOG_value   ("close"     , rc); }
       --rce;  if (rc < 0) {
-         if (a_loud == 'y') { DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce); }
+         if (a_type != 'q') { DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce); }
          return rce;
       }
    }
    /*---(complete------------------------*/
-   if (a_loud == 'y') { DEBUG_YEXEC  yLOG_exit    (__FUNCTION__); }
+   if (a_type != 'q') { DEBUG_YEXEC  yLOG_exit    (__FUNCTION__); }
    return 0;
 }
 
 char         /*--> write the heartbeat file ----------------------------------*/
 yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
 {
-   return yexec__heartbeat ('y', a_rpid, a_now, a_suffix, a_file, a_heartbeat);
+   return yexec__heartbeat ('-', a_rpid, a_now, 0, a_suffix, a_file, a_heartbeat);
 }
 
 char         /*--> write the heartbeat file ----------------------------------*/
 yEXEC_heartquiet        (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat)
 {
-   return yexec__heartbeat ('-', a_rpid, a_now, a_suffix, a_file, a_heartbeat);
+   return yexec__heartbeat ('q', a_rpid, a_now, 0, a_suffix, a_file, a_heartbeat);
+}
+
+char         /*--> write the heartbeat file ----------------------------------*/
+yEXEC_heartlong         (int a_rpid, long a_now, short a_update, char *a_suffix, char *a_file, char *a_heartbeat)
+{
+   return yexec__heartbeat ('L', a_rpid, a_now, a_update, a_suffix, a_file, a_heartbeat);
 }
 
 char         /*--> read the last heartbeat -----------------------------------*/

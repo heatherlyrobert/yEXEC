@@ -38,6 +38,7 @@ static const tFLAGS s_flags [MAX_FLAGS] = {
    {  2, '<', "15days"     , ""                                         },
    {  2, '|', "30days"     , ""                                         },
    {  2, '>', "45days"     , ""                                         },
+   {  2, ']', "60days"     , ""                                         },
    {  2, '´', "60days"     , ""                                         },
    {  2, '-', "unset"      , ""                                         },
    {  2, '·', "unset"      , ""                                         },
@@ -412,7 +413,7 @@ yexec__findflag         (char a_cat, char a_val, char *a_real)
          strlcat (s_terse, BOLD_GRN, LEN_HUND);
       }
       sprintf (t, "%c", a_val);
-      if (a_val == '-' && (a_cat == 2 || a_cat == 6 || a_cat == 8))  strcpy (t, "·");
+      if ((a_cat == 6 || a_cat == 8) && a_val == '-')  strcpy (t, "·");
       strlcat (s_terse, t, LEN_HUND);
       if (s_last != 'g') {
          if (a_cat > 0)  strlcat (s_fancy, BOLD_OFF, LEN_RECD);
@@ -450,13 +451,13 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
    char        j           =    0;
    char        c           =  '-';
    char        x_real      =  '-';
-   char        x_flags     [LEN_LABEL] = "--·---·-·---";
+   char        x_flags     [LEN_LABEL] = "--´---·-·---";
    char        t           [LEN_LABEL] = "";
    char       *p           = NULL;
    /*---(defaults)-----------------------*/
    if (a_value    != NULL)  *a_value    = '·';
    if (a_track    != NULL)  *a_track    = '·';
-   if (a_rolling  != NULL)  *a_rolling  = '·';
+   if (a_rolling  != NULL)  *a_rolling  = '´';
    if (a_strict   != NULL)  *a_strict   = '·';
    if (a_min      != NULL)  *a_min      = '·';
    if (a_mindur   != NULL)  *a_mindur   =   0;
@@ -493,21 +494,9 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
    rc = yexec__findflag (1, c, &x_real);
    --rce;  if (rc < 0)  x_final = rce;
    if (a_track   != NULL)  *a_track   = x_real;
-   /*---(handoff)------------------------*/
+   /*---(rolling)------------------------*/
    c = x_flags [i++];
-   /*> if      (c == '´')   x_real = '´';                                             <* 
-    *> else if (c == '-')   x_real = '´';                                             <* 
-    *> else if (c == '·')   x_real = '´';                                             <* 
-    *> else if (c == '[')   x_real = '[';                                             <* 
-    *> else if (c == '<')   x_real = '<';                                             <* 
-    *> else if (c == '|')   x_real = '|';                                             <* 
-    *> else if (c == '>')   x_real = '>';                                             <* 
-    *> else if (c == ']')   x_real = ']';                                             <* 
-    *> else {                                                                         <* 
-    *>    p = strchr (YSTR_COUNT, c);                                                 <* 
-    *>    if (p == NULL)  x_real = '´';                                               <* 
-    *>    else            x_real = p [0];                                             <* 
-    *> }                                                                              <*/
+   if (strchr ("-·", c) != NULL)  c = '´';
    rc = yexec__findflag (2, c, &x_real);
    --rce;  if (rc < 0)  x_final = rce;
    if (a_rolling != NULL)  *a_rolling = x_real;

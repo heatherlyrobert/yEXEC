@@ -4,46 +4,50 @@
 #define YEXEC_pguard loaded
 
 /*===[[ HEADER ]]=============================================================*/
-/*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
-
+/*                      ´·········1·········2·········3·········4·········5·········6·········7*/
+/*--------- 12345678901 ´123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
+/*········· ··········· ´·····························´········································*/
 #define     P_NAME      "yEXEC"
 #define     P_FOCUS     "PS (programming support)"
 #define     P_NICHE     "ex (process execution)"
 #define     P_SUBJECT   "process control"
 #define     P_PURPOSE   "clear, clean, program launching and tracking"
-
+/*········· ··········· ´·····························´········································*/
 #define     P_NAMESAKE  "brontes-akmonides (son of the anvil)"
 #define     P_PRONOUNCE "brahn·tees ahk·moh·nee·dais"
 #define     P_HERITAGE  "thunderer, one of the original three cyclops, blacksmith to gods"
+#define     P_BRIEFLY   "blacksmith to the gods"
 #define     P_IMAGERY   "massive, brutish, immortal giant with a single round eye"
-#define     P_REASON    ""
-
+#define     P_REASON    "brontes is a blacksmith, launching and catching like an anvil"
+/*········· ··········· ´·····························´········································*/
 #define     P_ONELINE   P_NAMESAKE " " P_SUBJECT
-
-#define     P_BASENAME  ""
-#define     P_FULLPATH  ""
+/*········· ··········· ´·····························´········································*/
+#define     P_HOMEDIR   "/home/system/yEXEC.program_launching"
+#define     P_BASENAME  "yEXEC"
+#define     P_FULLNAME  "/usr/local/lib64/libyEXEC"
 #define     P_SUFFIX    ""
 #define     P_CONTENT   ""
-
+/*········· ··········· ´·····························´········································*/
 #define     P_SYSTEM    "gnu/linux   (powerful, ubiquitous, technical, and hackable)"
 #define     P_LANGUAGE  "ansi-c      (wicked, limitless, universal, and everlasting)"
 #define     P_COMPILER  "gcc 5.3.0"
 #define     P_CODESIZE  "small       (appoximately 1,000 slocl)"
 #define     P_DEPENDS   "ySTR"
-
+/*········· ··········· ´·····························´········································*/
 #define     P_AUTHOR    "heatherlyrobert"
 #define     P_CREATED   "2011-05"
-
+/*········· ··········· ´·····························´········································*/
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2k"
-#define     P_VERTXT    "fixed testing issues and made a quiet heartbeat version"
-
+#define     P_VERNUM    "1.2l"
+#define     P_VERTXT    "added/tested long heartbeat with update and uptime built-in"
+/*········· ··········· ´·····························´········································*/
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
 #define     P_REMINDER  "there are many better options, but i *own* every byte of this one"
+/*········· ··········· ´·····························´········································*/
+/*--------- 12345678901 ´123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
 
-/*345678901-12345678901-123456789-123456789-123456789-123456789-123456789-123456789-123456789-*/
 
 
 

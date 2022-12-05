@@ -161,6 +161,7 @@ int         yEXEC_file_verify       (char *a_name, int n, char *a_recd);
 
 char        yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat);
 char        yEXEC_heartquiet        (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat);
+char        yEXEC_heartlong         (int a_rpid, long a_now, short a_update, char *a_suffix, char *a_file, char *a_heartbeat);
 char        yEXEC_heartbeat_check   (char *a_file, char *a_heartbeat);
 char        yEXEC_userdata          (char *a_user, int *a_uid, int *a_gid, char *a_dir, char *a_shell);
 char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
