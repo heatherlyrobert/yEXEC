@@ -49,6 +49,7 @@
 
 
 
+#include <ySTR_solo.h>
 
 
 typedef long   long      llong;
@@ -168,7 +169,17 @@ char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *
 char        yEXEC_daemon            (int a_logger, int *a_rpid);
 
 
+char        yEXEC_proc_data         (short a_rpid, char *r_public, char *r_cmdline, char *r_state, int *r_ppid);
+char        yEXEC_proc_eterm        (short a_rpid, int *r_uid, char *r_home, char *r_pwd, char *r_cabbr, char *r_cname, char *r_stype, char *r_shex, char *r_rows, char *r_cols);
+char        yEXEC_find_my_eterm     (short a_rpid, int *a_eterm);
+char        yEXEC_find_eterm_use    (short a_rpid, char *a_lvl, int *a_lowest, char a_pubname [LEN_LABEL], char a_cmdline [LEN_RECD]);
+char        yEXEC_data_filter       (short a_rpid, char *a_pubname, short a_ppid, void *f_callback);
 
+char        yEXEC_fifo_create       (cchar a_name [LEN_PATH]);
+char        yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callback);
+char        yEXEC_fifo_nolisten     (void);
+char        yEXEC_fifo_destroy      (cchar a_name [LEN_PATH]);
+char        yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD]);
 
 
 #endif

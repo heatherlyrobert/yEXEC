@@ -605,7 +605,6 @@ yexec_base__unit        (char *a_question)
 char       /*----: set up program urgents/debugging --------------------------*/
 yexec__unit_quiet       (void)
 {
-   yLOGS_begin ("yEXEC", YLOG_SYS, YLOG_QUIET);
    yURG_err_none ();
    yURG_msg_none ();
    return 0;

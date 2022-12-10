@@ -39,8 +39,8 @@
 /*········· ··········· ´·····························´········································*/
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2l"
-#define     P_VERTXT    "added/tested long heartbeat with update and uptime built-in"
+#define     P_VERNUM    "1.2m"
+#define     P_VERTXT    "added and testing variable length fifo capability"
 /*········· ··········· ´·····························´········································*/
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -231,6 +231,24 @@ char*       yexec_tty__unit         (char *a_question);
 char        yexec_unpoint           (char *a_ptr []);
 char        yexec_arg               (char *a_src);
 char        yexec_env               (char *a_src);
+
+
+
+char        yexec_data__pubname     (short a_rpid, char a_unit, char *r_public);
+char        yexec_data__cmdline     (short a_rpid, char a_unit, char *r_cmdline);
+char        yexec_data__ppid        (short a_rpid, char a_unit, char *r_state, int *r_ppid);
+
+
+char        yexec_fifo__verify      (char a_force, cchar a_name [LEN_PATH]);
+char        yEXEC_fifo_create       (cchar a_name [LEN_PATH]);
+char        yexec_fifo__open        (cchar a_name [LEN_PATH]);
+char        yexec_fifo__close       (void);
+char        yEXEC_fifo_nolisten     (void);
+char        yexec_fifo__listener    (cchar a_recd [LEN_RECD]);
+char        yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callback);
+char        yEXEC_fifo_destroy      (cchar a_name [LEN_PATH]);
+char        yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD]);
+
 
 
 #endif
