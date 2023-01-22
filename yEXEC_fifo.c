@@ -120,7 +120,7 @@ yexec_fifo__open        (cchar a_name [LEN_PATH])
    }
    DEBUG_YEXEC   yLOG_snote   (a_name);
    /*---(open)---------------------------*/
-   s_fd = open (a_name, O_RDWR | O_NONBLOCK | O_ASYNC);
+   s_fd = open (a_name, O_RDONLY | O_NONBLOCK | O_ASYNC);
    DEBUG_YEXEC   yLOG_sint    (s_fd);
    --rce;  if (s_fd < 0) {
       DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);

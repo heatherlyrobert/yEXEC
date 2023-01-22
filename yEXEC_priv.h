@@ -25,8 +25,8 @@
 #define     P_HOMEDIR   "/home/system/yEXEC.program_launching"
 #define     P_BASENAME  "yEXEC"
 #define     P_FULLNAME  "/usr/local/lib64/libyEXEC"
-#define     P_SUFFIX    ""
-#define     P_CONTENT   ""
+#define     P_SUFFIX    "···"
+#define     P_CONTENT   "···"
 /*········· ··········· ´·····························´········································*/
 #define     P_SYSTEM    "gnu/linux   (powerful, ubiquitous, technical, and hackable)"
 #define     P_LANGUAGE  "ansi-c      (wicked, limitless, universal, and everlasting)"
@@ -39,8 +39,8 @@
 /*········· ··········· ´·····························´········································*/
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2m"
-#define     P_VERTXT    "added and testing variable length fifo capability"
+#define     P_VERNUM    "1.2n"
+#define     P_VERTXT    "updated to yURG_by_name after yURG change"
 /*········· ··········· ´·····························´········································*/
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
