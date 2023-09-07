@@ -750,34 +750,34 @@ yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_
    if (a_strict == 0) return '-';
    DEBUG_YEXEC  yLOG_complex ("timing"    , "%5d, %c, %5dm, %5dd, %5dg", a_rpid, a_strict, a_max, a_dur, a_grace);
    switch (a_strict) {
-   case 'g' :
+   case YEXEC_GRACEFUL :
       if (a_dur >= a_max + a_grace) {
          DEBUG_YEXEC  yLOG_note    ("violent termination, since graceful ignored");
          kill (a_rpid, SIGKILL);
-         return 'k';
+         return YEXEC_VIOLENT;
       } else if (a_dur >= a_max) {
          DEBUG_YEXEC  yLOG_note    ("graceful termination request");
          kill (a_rpid, SIGTERM);
-         return 'g';
+         return YEXEC_GRACEFUL;
       } else {
          DEBUG_YEXEC  yLOG_note    ("too early for graceful termination");
       }
       break;
-   case 'k' :
+   case YEXEC_VIOLENT  :
       if (a_dur >= a_max) {
          DEBUG_YEXEC  yLOG_note    ("violent termination");
          kill (a_rpid, SIGKILL);
-         return 'k';
+         return YEXEC_VIOLENT;
       } else {
          DEBUG_YEXEC  yLOG_note    ("too early for violent termination");
       }
       break;
-   case ']' :
+   case YEXEC_TILLEND  :
       if (a_peers == 0) {
          if (a_dur >= a_max) {
             DEBUG_YEXEC  yLOG_note    ("violent, end-of-peers, termination");
             kill (a_rpid, SIGKILL);
-            return 'k';
+            return YEXEC_VIOLENT;
          }
       }
       break;

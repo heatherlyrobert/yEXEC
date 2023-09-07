@@ -18,9 +18,9 @@ static const tFLAGS s_flags [MAX_FLAGS] = {
    {  0, 'n', "need"       , ""                                         },
    {  0, 'v', "value"      , ""                                         },
    {  0, 'c', "crave"      , ""                                         },
-   {  0, 'w', "want"       , ""                                         },
+   {  0, 'g', "good"       , ""                                         },
    {  0, 'l', "like"       , ""                                         },
-   {  0, 'm', "might"      , ""                                         },
+   {  0, 'i', "idea"       , ""                                         },
    {  0, '-', "unset"      , ""                                         },
    {  0, '·', "unset"      , ""                                         },
    /*---(tracking/cum)------*/
@@ -483,8 +483,8 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
    c = x_flags [i++];
    switch (c) {
    case 'H' :  c = 'v';  break;
-   case 'M' :  c = 'w';  break;
-   case 'L' :  c = 'l';  break;
+   case 'M' :  c = 'c';  break;
+   case 'L' :  c = 'g';  break;
    }
    rc = yexec__findflag (0, c, &x_real);
    --rce;  if (rc < 0)  x_final = rce;

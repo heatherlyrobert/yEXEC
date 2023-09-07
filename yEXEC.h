@@ -112,11 +112,17 @@ typedef struct spwd      tSHADOW;
 #define     YEXEC_KILLS    "T"
 #define     YEXEC_FAILS    "Fw"
 
+#define     YEXEC_GRACEFUL 'g'
+#define     YEXEC_VIOLENT  'k'
+#define     YEXEC_TILLEND  ']'
+
 #define     YEXEC_UNIT     "/tmp/yEXEC_unit.execution_feedback"
 
 #define     YEXEC_STDALL   'a'
 #define     YEXEC_STDOUT   'o'
 #define     YEXEC_BLIND    '-'
+
+
 
 #define     YEXEC_2USEC    1000000
 
