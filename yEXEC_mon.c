@@ -153,10 +153,10 @@ yexec_mon__ememory      (tEXEC *a_cur)
 {
    /*> int         n           =    0;                                                <* 
     *> if (a_cur == NULL) {                                                           <* 
-    *>    strlcpy (s_print, "n/a", LEN_RECD);                                         <* 
+    *>    ystrlcpy (s_print, "n/a", LEN_RECD);                                         <* 
     *>    return s_print;                                                             <* 
     *> }                                                                              <* 
-    *> strlcpy (s_print, "å__._._____.__.___æ", LEN_RECD);                            <* 
+    *> ystrlcpy (s_print, "å__._._____.__.___æ", LEN_RECD);                            <* 
     *> ++n;  if (a_cur->name [0]    != '\0')        s_print [n] = 'X';                <* 
     *> ++n;  if (a_cur->inode       >  0)           s_print [n] = 'X';                <* 
     *> ++n;                                                                           <* 
@@ -266,10 +266,10 @@ yexec_mon__pmemory      (tPROC *a_cur)
 {
    /*> int         n           =    0;                                                <* 
     *> if (a_cur == NULL) {                                                           <* 
-    *>    strlcpy (s_print, "n/a", LEN_RECD);                                         <* 
+    *>    ystrlcpy (s_print, "n/a", LEN_RECD);                                         <* 
     *>    return s_print;                                                             <* 
     *> }                                                                              <* 
-    *> strlcpy (s_print, "å__.______.___________.___.___._.__.___æ", LEN_RECD);       <* 
+    *> ystrlcpy (s_print, "å__.______.___________.___.___._.__.___æ", LEN_RECD);       <* 
     *> ++n;  if (a_cur->rpid        >  0)           s_print [n] = 'X';                <* 
     *> ++n;  if (a_cur->ppid        >  0)           s_print [n] = 'X';                <* 
     *> ++n;  if (a_cur->land        != '-')         s_print [n] = 'X';                <* 
@@ -352,10 +352,10 @@ yexec_mon__lmemory      (tLIB *a_cur)
 {
    /*> int         n           =    0;                                                <* 
     *> if (a_cur == NULL) {                                                           <* 
-    *>    strlcpy (s_print, "n/a", LEN_RECD);                                         <* 
+    *>    ystrlcpy (s_print, "n/a", LEN_RECD);                                         <* 
     *>    return s_print;                                                             <* 
     *> }                                                                              <* 
-    *> strlcpy (s_print, "å___.___._____.__.___æ", LEN_RECD);                         <* 
+    *> ystrlcpy (s_print, "å___.___._____.__.___æ", LEN_RECD);                         <* 
     *> ++n;  if (a_cur->terse   [0] != '\0')        s_print [n] = 'X';                <* 
     *> ++n;  if (a_cur->name    [0] != '\0')        s_print [n] = 'X';                <* 
     *> ++n;  if (a_cur->inode       >  0)           s_print [n] = 'X';                <* 
@@ -410,10 +410,10 @@ yexec_mon__tmemory      (tTIE *a_cur)
 {
    /*> int         n           =    0;                                                <* 
     *> if (a_cur == NULL) {                                                           <* 
-    *>    strlcpy (s_print, "n/a", LEN_RECD);                                         <* 
+    *>    ystrlcpy (s_print, "n/a", LEN_RECD);                                         <* 
     *>    return s_print;                                                             <* 
     *> }                                                                              <* 
-    *> strlcpy (s_print, "å__.__.___.___æ", LEN_RECD);                                <* 
+    *> ystrlcpy (s_print, "å__.__.___.___æ", LEN_RECD);                                <* 
     *> ++n;  if (a_cur->m_data      >  0)           s_print [n] = 'X';                <* 
     *> ++n;  if (a_cur->m_heap      >  0)           s_print [n] = 'X';                <* 
     *> ++n;                                                                           <* 
@@ -940,7 +940,7 @@ yexec_mon__hook_exec    (tPROC *a_proc, char *a_name)
     *>       return rce;                                                                <* 
     *>    }                                                                             <* 
     *>    e_curr = e_temp;                                                              <* 
-    *>    strlcpy (e_temp->name, a_name, LEN_TITLE);                                    <* 
+    *>    ystrlcpy (e_temp->name, a_name, LEN_TITLE);                                    <* 
     *>    rc = 1;                                                                       <* 
     *> } else {                                                                         <* 
     *>    DEBUG_YEXEC  yLOG_snote   ("existing");                                       <* 
@@ -1037,11 +1037,11 @@ yexec_mon__hook_lib     (tPROC *a_proc, char *a_name)
     *> }                                                                                <* 
     *> /+---(add name)-----------------------+/                                         <* 
     *> DEBUG_YEXEC  yLOG_spoint  (l_curr);                                              <* 
-    *> strlcpy (l_curr->name , a_name, LEN_TITLE);                                      <* 
+    *> ystrlcpy (l_curr->name , a_name, LEN_TITLE);                                      <* 
     *> p = strrchr (a_name, '/');                                                       <* 
     *> if (p == NULL)  p = a_name;                                                      <* 
     *> else            ++p;                                                             <* 
-    *> strlcpy (l_curr->terse, p, LEN_TITLE);                                           <* 
+    *> ystrlcpy (l_curr->terse, p, LEN_TITLE);                                           <* 
     *> rc = 1;                                                                          <* 
     *> /+---(hook tie to proc)---------------+/                                         <* 
     *> if (a_proc->t_head == NULL) {                                                    <* 
@@ -1309,7 +1309,7 @@ yexec_mon__cpu_detail   (int a_rpid, char *a_name, int *a_ppid, char *a_land, ch
    /*---(header)------------------------*/
    DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
    /*---(defaults)----------------------*/
-   if (a_name  != NULL)  strlcpy (a_name, "", LEN_TITLE);
+   if (a_name  != NULL)  ystrlcpy (a_name, "", LEN_TITLE);
    if (a_ppid  != NULL)  *a_ppid  = 0;
    if (a_land  != NULL)  *a_land  = '-';
    if (a_state != NULL)  *a_state = '-';
@@ -1336,7 +1336,7 @@ yexec_mon__cpu_detail   (int a_rpid, char *a_name, int *a_ppid, char *a_land, ch
       /*> printf ("%2d  %-10p  å%.40sæ\n", c, p, p);                                  <*/
       switch (c) {
       case  1 :
-         if (a_name  != NULL)  strlcpy (a_name, p + 1, strlen (p) - 1);
+         if (a_name  != NULL)  ystrlcpy (a_name, p + 1, strlen (p) - 1);
          break;
       case  2 :
          if (a_state != NULL)  *a_state = p [0];
@@ -1458,14 +1458,14 @@ yexec_mon__mem_detail   (int a_rpid, long *a_max, long *a_base, long *a_min, lon
          switch (i) {
          case  0 : /* permissions */
             /*---(save perms)------------*/
-            strlcpy (x_perm, p, LEN_TERSE);
+            ystrlcpy (x_perm, p, LEN_TERSE);
             /*---(get prog/lib)----------*/
             p = strtok_r (NULL  , " \t", &r);
             p = strtok_r (NULL  , " \t", &r);
             p = strtok_r (NULL  , " \t", &r);
             p = strtok_r (NULL  , " \t", &r);
             /*---(assign prog/lib)-------*/
-            /*> if (p != NULL)  strltrim (p, ySTR_BOTH, LEN_RECD);                    <* 
+            /*> if (p != NULL)  ystrltrim (p, ySTR_BOTH, LEN_RECD);                    <* 
              *> printf ("%2då%sæ\n", strlen (p), p);                                  <*/
             x_part = 'd';
             /*---(executables)-----------*/

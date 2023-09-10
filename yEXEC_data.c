@@ -17,7 +17,7 @@ yexec_data__pubname     (short a_rpid, char a_unit, char *r_public)
    /*---(header)------------------------*/
    DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
    /*---(default)-----------------------*/
-   if (r_public != NULL)  strlcpy (r_public, "", LEN_TITLE);
+   if (r_public != NULL)  ystrlcpy (r_public, "", LEN_TITLE);
    /*---(decide file)--------------------*/
    if (a_unit != 'y')  sprintf (x_file, "/proc/%d/comm", a_rpid);
    else                sprintf (x_file, "/tmp/%d_comm" , a_rpid);
@@ -42,7 +42,7 @@ yexec_data__pubname     (short a_rpid, char a_unit, char *r_public)
       return rce;
    }
    /*---(save-back)---------------------*/
-   if (r_public != NULL)  strlcpy (r_public, x_recd, LEN_TITLE);
+   if (r_public != NULL)  ystrlcpy (r_public, x_recd, LEN_TITLE);
    /*---(complete)----------------------*/
    DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
    return 0;
@@ -62,7 +62,7 @@ yexec_data__cmdline     (short a_rpid, char a_unit, char *r_cmdline)
    /*---(header)------------------------*/
    DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
    /*---(default)-----------------------*/
-   if (r_cmdline != NULL)  strlcpy (r_cmdline, "", LEN_RECD);
+   if (r_cmdline != NULL)  ystrlcpy (r_cmdline, "", LEN_RECD);
    /*---(defense)-----------------------*/
    if (a_unit != 'y')  sprintf (x_file, "/proc/%d/cmdline", a_rpid);
    else                sprintf (x_file, "/tmp/%d_cmdline" , a_rpid);
@@ -92,7 +92,7 @@ yexec_data__cmdline     (short a_rpid, char a_unit, char *r_cmdline)
       return rce;
    }
    /*---(save-back)---------------------*/
-   if (r_cmdline != NULL)  strlcpy (r_cmdline, x_recd, LEN_RECD);
+   if (r_cmdline != NULL)  ystrlcpy (r_cmdline, x_recd, LEN_RECD);
    /*---(complete)----------------------*/
    DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
    return 0;
@@ -218,12 +218,12 @@ yexec_proc__eterm       (short a_rpid, char a_unit, int *r_uid, char *r_home, ch
    DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
    /*---(default)-----------------------*/
    if (r_uid     != NULL)  *r_uid    = -1;
-   if (r_home    != NULL)  strlcpy (r_home  , "", LEN_PATH);
-   if (r_pwd     != NULL)  strlcpy (r_pwd   , "", LEN_PATH);
+   if (r_home    != NULL)  ystrlcpy (r_home  , "", LEN_PATH);
+   if (r_pwd     != NULL)  ystrlcpy (r_pwd   , "", LEN_PATH);
    if (r_cabbr   != NULL)  *r_cabbr  = '·';
-   if (r_cname   != NULL)  strlcpy (r_cname , "", LEN_TERSE);
+   if (r_cname   != NULL)  ystrlcpy (r_cname , "", LEN_TERSE);
    if (r_stype   != NULL)  *r_stype  = '·';
-   if (r_shex    != NULL)  strlcpy (r_shex  , "", LEN_TERSE);
+   if (r_shex    != NULL)  ystrlcpy (r_shex  , "", LEN_TERSE);
    if (r_rows    != NULL)  *r_rows   = 0;
    if (r_cols    != NULL)  *r_cols   = 0;
    /*---(defense)-----------------------*/
@@ -257,10 +257,10 @@ yexec_proc__eterm       (short a_rpid, char a_unit, int *r_uid, char *r_home, ch
          if (strncmp (p, "UID="       ,  4) == 0 && r_uid   != NULL)  *r_uid  = atoi (p + 4);
          break;
       case 'H'  :
-         if (strncmp (p, "HOME="      ,  5) == 0 && r_home  != NULL)  strlcpy (r_home, p + 5, LEN_PATH);
+         if (strncmp (p, "HOME="      ,  5) == 0 && r_home  != NULL)  ystrlcpy (r_home, p + 5, LEN_PATH);
          break;
       case 'P'  :
-         if (strncmp (p, "PWD="       ,  4) == 0 && r_pwd   != NULL)  strlcpy (r_pwd , p + 4, LEN_PATH);
+         if (strncmp (p, "PWD="       ,  4) == 0 && r_pwd   != NULL)  ystrlcpy (r_pwd , p + 4, LEN_PATH);
          break;
       case 'C'  :
          if (strncmp (p, "COLUMNS="   ,  8) == 0 && r_cols  != NULL)  *r_cols = atoi (p + 8);
@@ -360,8 +360,8 @@ yexec_find_child        (short a_rpid, char *a_pubname, char *a_cmdline, char a_
    /*---(header)------------------------*/
    DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
    s_rpid = a_rpid;
-   strlcpy (s_pubname, a_pubname, LEN_LABEL);
-   strlcpy (s_cmdline, a_cmdline, LEN_RECD);
+   ystrlcpy (s_pubname, a_pubname, LEN_LABEL);
+   ystrlcpy (s_cmdline, a_cmdline, LEN_RECD);
    ++s_count;
    DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
    return 0;
@@ -382,8 +382,8 @@ yEXEC_find_eterm_use    (short a_rpid, char *a_lvl, int *a_lowest, char a_pubnam
    /*---(prepare)-----------------------*/
    x_ppid  = a_rpid;
    s_rpid  = 0;
-   strlcpy (s_pubname, "", LEN_LABEL);
-   strlcpy (s_cmdline, "", LEN_RECD);
+   ystrlcpy (s_pubname, "", LEN_LABEL);
+   ystrlcpy (s_cmdline, "", LEN_RECD);
    s_count = 1;
    /*---(walk down)---------------------*/
    while (s_count != 0) {
@@ -396,8 +396,8 @@ yEXEC_find_eterm_use    (short a_rpid, char *a_lvl, int *a_lowest, char a_pubnam
    /*---(save back)---------------------*/
    if (a_lvl     != NULL)  *a_lvl    = x_lvl;
    if (a_lowest  != NULL)  *a_lowest = s_rpid;
-   if (a_pubname != NULL)  strlcpy (a_pubname, s_pubname, LEN_LABEL);
-   if (a_cmdline != NULL)  strlcpy (a_cmdline, s_cmdline, LEN_RECD);
+   if (a_pubname != NULL)  ystrlcpy (a_pubname, s_pubname, LEN_LABEL);
+   if (a_cmdline != NULL)  ystrlcpy (a_cmdline, s_cmdline, LEN_RECD);
    /*---(not found)---------------------*/
    DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, 0);
    return 0;

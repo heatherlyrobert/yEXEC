@@ -249,8 +249,8 @@ yEXEC_signal       (char a_tough, char a_inter, char a_child, void *a_signaler, 
    s_signaler   = a_signaler;
    DEBUG_YEXEC  yLOG_point  ("s_signaler", s_signaler);
    /*---(output)-------------------------*/
-   if (a_output == NULL)  strlcpy (s_output, ""      , LEN_RECD);
-   else                   strlcpy (s_output, a_output, LEN_RECD);
+   if (a_output == NULL)  ystrlcpy (s_output, ""      , LEN_RECD);
+   else                   ystrlcpy (s_output, a_output, LEN_RECD);
    /*---(keyboard)-----------------------*/
    DEBUG_YEXEC  yLOG_note  ("keyboard  : INT, TSTP, QUIT, CONT, TTIN, TTOU");
    if (s_inter != YEXEC_YES) {
@@ -320,7 +320,7 @@ yEXEC_file_verify       (char *a_name, int n, char *a_recd)
    /*---(defense)------------------------*/
    --rce;  if (a_name == NULL)         return rce;
    --rce;  if (strlen (a_name) <= 0)   return rce;
-   if (a_recd != NULL)  strlcpy (a_recd, "", LEN_RECD);
+   if (a_recd != NULL)  ystrlcpy (a_recd, "", LEN_RECD);
    /*---(open file)----------------------*/
    if      (strcmp (a_name, "stdsig") == 0)  f = fopen ("/tmp/signal.log"      , "rt");
    else if (strcmp (a_name, "unit"  ) == 0)  f = fopen ("/tmp/signal_unit.log" , "rt");
@@ -332,8 +332,8 @@ yEXEC_file_verify       (char *a_name, int n, char *a_recd)
       fgets (t, LEN_RECD, f);
       if (c != 0 && feof (f))  break;
       /*> printf ("%2d[%s]\n", strlen (t), t);                                        <*/
-      if (n <  0 && a_recd != NULL)  strlcpy (a_recd, t, LEN_RECD);
-      if (c == n && a_recd != NULL)  strlcpy (a_recd, t, LEN_RECD);
+      if (n <  0 && a_recd != NULL)  ystrlcpy (a_recd, t, LEN_RECD);
+      if (c == n && a_recd != NULL)  ystrlcpy (a_recd, t, LEN_RECD);
       ++c;
       if (feof (f))  break;
 
@@ -366,7 +366,7 @@ yexec_sign__unit        (char *a_question, int n)
    char        t           [LEN_RECD]  = "";
    int         c           =    0;
    /*---(prepare)------------------------*/
-   strlcpy  (unit_answer, "SIGN             : question not understood", LEN_RECD);
+   ystrlcpy  (unit_answer, "SIGN             : question not understood", LEN_RECD);
    /*---(crontab name)-------------------*/
    if      (strcmp (a_question, "signal"        )  == 0) {
       yEXEC_file_verify ("stdsig", n, t);

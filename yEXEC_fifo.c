@@ -127,7 +127,7 @@ yexec_fifo__open        (cchar a_name [LEN_PATH])
       return rce;
    }
    /*---(save)---------------------------*/
-   strlcpy (s_fifo, a_name, LEN_PATH);
+   ystrlcpy (s_fifo, a_name, LEN_PATH);
    /*---(complete)-----------------------*/
    DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
    return 0;
@@ -156,7 +156,7 @@ yexec_fifo__close       (void)
    }
    /*---(ground)-------------------------*/
    s_fd = -1;
-   strlcpy (s_fifo, "", LEN_PATH);
+   ystrlcpy (s_fifo, "", LEN_PATH);
    /*---(complete)-----------------------*/
    DEBUG_YEXEC   yLOG_sexit   (__FUNCTION__);
    return 0;
@@ -216,7 +216,7 @@ yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callba
    /*---(read all)-----------------------*/
    while (1) {
       /*---(read)---------------------------*/
-      strlcpy (x_recd, "", LEN_RECD);
+      ystrlcpy (x_recd, "", LEN_RECD);
       l  = 0;
       x_rc = 1;
       while (x_rc == 1) {
@@ -325,8 +325,8 @@ yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD])
       return rce;
    }
    /*---(write)--------------------------*/
-   strlcpy (x_recd, a_recd, LEN_RECD);
-   strlcat (x_recd, "\n", LEN_RECD);
+   ystrlcpy (x_recd, a_recd, LEN_RECD);
+   ystrlcat (x_recd, "\n", LEN_RECD);
    l = strlen (x_recd);
    rc = write (x_fd, x_recd, l);
    DEBUG_YEXEC  yLOG_value   ("write"     , rc);

@@ -83,7 +83,7 @@ yexec_arg               (char *a_src)
 {
    char        rc          =    0;
    yURG_err_clear ();
-   rc = strlparse (a_src, s_argw, s_argf, MAX_ARGV, &s_argc, s_argv, LEN_RECD);
+   rc = ystrlparse (a_src, s_argw, s_argf, MAX_ARGV, &s_argc, s_argv, LEN_RECD);
    if (rc < 0)  yURG_err ('f', "command line string was unparsable");
    return rc;
 }
@@ -93,7 +93,7 @@ yexec_env               (char *a_src)
 {
    char        rc          =    0;
    yURG_err_clear ();
-   rc = strlparse (a_src, s_envw, s_envf, MAX_ARGV, &s_envc, s_envp, LEN_RECD);
+   rc = ystrlparse (a_src, s_envw, s_envf, MAX_ARGV, &s_envc, s_envp, LEN_RECD);
    if (rc < 0)  yURG_err ('f', "environment description string was unparsable");
    return rc;
 }
@@ -425,7 +425,7 @@ yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
    }
    fprintf  (a_file, "USER set  : %s\n", a_user);
    snprintf (t, LEN_LONG, "USER=%s",   a_user);
-   strlcat (s_env, t, LEN_RECD);
+   ystrlcat (s_env, t, LEN_RECD);
    /*> s_envp [0] = s_envi [0][0];                                                    <*/
    /*---(set home)-----------------------*/
    rc = setenv ("HOME",  s_home,  1);
@@ -435,7 +435,7 @@ yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
    }
    fprintf  (a_file, "HOME set  : %s\n", s_home);
    snprintf (t, LEN_LONG, "HOME=%s",   s_home);
-   strlcat (s_env, t, LEN_RECD);
+   ystrlcat (s_env, t, LEN_RECD);
    /*> s_envp [1] = s_envi [1][0];                                                    <*/
    /*---(set shell)----------------------*/
    rc = setenv ("SHELL", s_shell, 1);
@@ -445,7 +445,7 @@ yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
    }
    fprintf  (a_file, "SHELL set : %s\n", s_shell);
    snprintf (t, LEN_LONG, "SHELL=%s",  s_shell);
-   strlcat (s_env, t, LEN_RECD);
+   ystrlcat (s_env, t, LEN_RECD);
    /*> s_envp [2] = s_envi [2][0];                                                    <*/
    /*---(set path)-----------------------*/
    rc = setenv ("PATH",  s_path, 1);
@@ -455,7 +455,7 @@ yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
    }
    fprintf  (a_file, "PATH set  : %s\n", s_path);
    snprintf (t, LEN_LONG, "PATH=%s", s_path);
-   strlcat (s_env, t, LEN_RECD);
+   ystrlcat (s_env, t, LEN_RECD);
    /*> s_envp [3] = s_envi [3][0];                                                    <*/
    /*---(set group)----------------------*/
    rc = initgroups (a_user, s_gid);
@@ -470,7 +470,7 @@ yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
    }
    fprintf   (a_file, "GID set   : %d\n", s_gid);
    snprintf  (t, LEN_LONG, "GID=%d", s_gid);
-   strlcat (s_env, t, LEN_RECD);
+   ystrlcat (s_env, t, LEN_RECD);
    /*> s_envp [4] = s_envi [4][0];                                                    <*/
    /*---(set uid)------------------------*/
    rc = setreuid (s_uid, s_uid);
@@ -480,7 +480,7 @@ yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
    }
    fprintf   (a_file, "UID set   : %d\n", s_uid);
    snprintf  (t, LEN_LONG, "UID=%d", s_uid);
-   strlcat (s_env, t, LEN_RECD);
+   ystrlcat (s_env, t, LEN_RECD);
    /*> s_envp [5] = s_envi [5][0];                                                    <*/
    /*---(parse)--------------------------*/
    yexec_env (s_env);
@@ -794,60 +794,60 @@ yEXEC_detail            (char a_rc, int a_rc2, char *a_desc)
    if (a_desc == NULL)  return -1;
    switch (a_rc) {
    case YEXEC_RUNNING :
-      strlcpy (a_desc, "still running, nothing to report"   , LEN_DESC);
+      ystrlcpy (a_desc, "still running, nothing to report"   , LEN_DESC);
       break;
    case YEXEC_NORMAL  :
-      strlcpy (a_desc, "normal completion and return (0)"   , LEN_DESC);
+      ystrlcpy (a_desc, "normal completion and return (0)"   , LEN_DESC);
       break;
    case YEXEC_FAILURE :
       sprintf (a_desc, "process ended with failure (%d)"    , a_rc2);
       break;
    case YEXEC_NOSUCH  :
-      strlcpy (a_desc, "daemonized and gone, untouchable"   , LEN_DESC);
+      ystrlcpy (a_desc, "daemonized and gone, untouchable"   , LEN_DESC);
       break;
    case YEXEC_KILLED  :
       sprintf (a_desc, "terminated with (%2d) "             , a_rc2);
       switch (a_rc2) {
-      case SIGTERM :  strlcat (a_desc, "SIGTERM", LEN_DESC);  break;
-      case SIGKILL :  strlcat (a_desc, "SIGKILL", LEN_DESC);  break;
-      case SIGQUIT :  strlcat (a_desc, "SIGQUIT", LEN_DESC);  break;
-      case SIGABRT :  strlcat (a_desc, "SIGABRT", LEN_DESC);  break;
-      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      case SIGTERM :  ystrlcat (a_desc, "SIGTERM", LEN_DESC);  break;
+      case SIGKILL :  ystrlcat (a_desc, "SIGKILL", LEN_DESC);  break;
+      case SIGQUIT :  ystrlcat (a_desc, "SIGQUIT", LEN_DESC);  break;
+      case SIGABRT :  ystrlcat (a_desc, "SIGABRT", LEN_DESC);  break;
+      default      :  ystrlcat (a_desc, "unknown", LEN_DESC);  break;
       }
       break;
    case YEXEC_SEGV    :
       sprintf (a_desc, "blew itself up with (%2d) "         , a_rc2);
       switch (a_rc2) {
-      case SIGSEGV :  strlcat (a_desc, "SIGSEGV", LEN_DESC);  break;
-      case SIGFPE  :  strlcat (a_desc, "SIGFPE" , LEN_DESC);  break;
-      case SIGILL  :  strlcat (a_desc, "SIGILL" , LEN_DESC);  break;
-      case SIGBUS  :  strlcat (a_desc, "SIGBUS" , LEN_DESC);  break;
-      case SIGPIPE :  strlcat (a_desc, "SIGPIPE", LEN_DESC);  break;
-      case SIGSYS  :  strlcat (a_desc, "SIGSYS" , LEN_DESC);  break;
-      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      case SIGSEGV :  ystrlcat (a_desc, "SIGSEGV", LEN_DESC);  break;
+      case SIGFPE  :  ystrlcat (a_desc, "SIGFPE" , LEN_DESC);  break;
+      case SIGILL  :  ystrlcat (a_desc, "SIGILL" , LEN_DESC);  break;
+      case SIGBUS  :  ystrlcat (a_desc, "SIGBUS" , LEN_DESC);  break;
+      case SIGPIPE :  ystrlcat (a_desc, "SIGPIPE", LEN_DESC);  break;
+      case SIGSYS  :  ystrlcat (a_desc, "SIGSYS" , LEN_DESC);  break;
+      default      :  ystrlcat (a_desc, "unknown", LEN_DESC);  break;
       }
       break;
    case YEXEC_USER    :
       sprintf (a_desc, "ipc/user communication (%2d) "      , a_rc2);
       switch (a_rc2) {
-      case SIGHUP  :  strlcat (a_desc, "SIGHUP" , LEN_DESC);  break;
-      case SIGALRM :  strlcat (a_desc, "SIGALRM", LEN_DESC);  break;
-      case SIGUSR1 :  strlcat (a_desc, "SIGUSR1", LEN_DESC);  break;
-      case SIGUSR2 :  strlcat (a_desc, "SIGUSR2", LEN_DESC);  break;
-      case SIGSTOP :  strlcat (a_desc, "SIGSTOP", LEN_DESC);  break;
-      case SIGTSTP :  strlcat (a_desc, "SIGTSTP", LEN_DESC);  break;
-      case SIGTTIN :  strlcat (a_desc, "SIGTTIN", LEN_DESC);  break;
-      case SIGTTOU :  strlcat (a_desc, "SIGTTOU", LEN_DESC);  break;
-      case SIGURG  :  strlcat (a_desc, "SIGURG" , LEN_DESC);  break;
-      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      case SIGHUP  :  ystrlcat (a_desc, "SIGHUP" , LEN_DESC);  break;
+      case SIGALRM :  ystrlcat (a_desc, "SIGALRM", LEN_DESC);  break;
+      case SIGUSR1 :  ystrlcat (a_desc, "SIGUSR1", LEN_DESC);  break;
+      case SIGUSR2 :  ystrlcat (a_desc, "SIGUSR2", LEN_DESC);  break;
+      case SIGSTOP :  ystrlcat (a_desc, "SIGSTOP", LEN_DESC);  break;
+      case SIGTSTP :  ystrlcat (a_desc, "SIGTSTP", LEN_DESC);  break;
+      case SIGTTIN :  ystrlcat (a_desc, "SIGTTIN", LEN_DESC);  break;
+      case SIGTTOU :  ystrlcat (a_desc, "SIGTTOU", LEN_DESC);  break;
+      case SIGURG  :  ystrlcat (a_desc, "SIGURG" , LEN_DESC);  break;
+      default      :  ystrlcat (a_desc, "unknown", LEN_DESC);  break;
       }
       break;
    case YEXEC_LIMIT   :
       sprintf (a_desc, "security limits reached (%2d) "     , a_rc2);
       switch (a_rc2) {
-      case SIGXCPU :  strlcat (a_desc, "SIGXCPU", LEN_DESC);  break;
-      case SIGXFSZ :  strlcat (a_desc, "SIGXFSZ", LEN_DESC);  break;
-      default      :  strlcat (a_desc, "unknown", LEN_DESC);  break;
+      case SIGXCPU :  ystrlcat (a_desc, "SIGXCPU", LEN_DESC);  break;
+      case SIGXFSZ :  ystrlcat (a_desc, "SIGXFSZ", LEN_DESC);  break;
+      default      :  ystrlcat (a_desc, "unknown", LEN_DESC);  break;
       }
       break;
    case YEXEC_DIED    :
@@ -1174,25 +1174,25 @@ yexec_proc__unit        (char *a_question, int a_num)
       snprintf (unit_answer, LEN_RECD, "PROC parse       : %2d[%s]", strlen (s_arg), s_arg);
    }
    else if (strcmp (a_question, "whoami"  )        == 0) {
-      strlcpy (s, "/tmp/unit_whoami.txt", LEN_HUND);
+      ystrlcpy (s, "/tmp/unit_whoami.txt", LEN_HUND);
       snprintf (unit_answer, LEN_RECD, "PROC whoami      : main %-5d", getpid ());
-      sprintf  (t, ", pid  %-5.5s"  , strlrecd (s, 0, NULL, NULL, LEN_RECD) + 7);
+      sprintf  (t, ", pid  %-5.5s"  , ystrlrecd (s, 0, NULL, NULL, LEN_RECD) + 7);
       strcat   (unit_answer, t);
-      sprintf  (t, ", ppid %-5.5s"  , strlrecd (s, 1, NULL, NULL, LEN_RECD) + 7);
+      sprintf  (t, ", ppid %-5.5s"  , ystrlrecd (s, 1, NULL, NULL, LEN_RECD) + 7);
       strcat   (unit_answer, t);
-      sprintf  (t, ", uid  %-5.5s"  , strlrecd (s, 2, NULL, NULL, LEN_RECD) + 7);
+      sprintf  (t, ", uid  %-5.5s"  , ystrlrecd (s, 2, NULL, NULL, LEN_RECD) + 7);
       strcat   (unit_answer, t);
-      sprintf  (t, ", who  (%-1.1s)", strlrecd (s, 3, NULL, NULL, LEN_RECD) + 7);
+      sprintf  (t, ", who  (%-1.1s)", ystrlrecd (s, 3, NULL, NULL, LEN_RECD) + 7);
       strcat   (unit_answer, t);
-      sprintf  (t, " %s"            , strlrecd (s, 4, NULL, NULL, LEN_RECD) + 7);
+      sprintf  (t, " %s"            , ystrlrecd (s, 4, NULL, NULL, LEN_RECD) + 7);
       strcat   (unit_answer, t);
    }
    else if (strcmp (a_question, "whereami")        == 0) {
-      strlcpy (s, "/tmp/unit_whoami.txt", LEN_HUND);
+      ystrlcpy (s, "/tmp/unit_whoami.txt", LEN_HUND);
       snprintf (unit_answer, LEN_RECD, "PROC whereami    : ");
-      sprintf  (t, "%-12.12s"  , strlrecd (s, 6, NULL, NULL, LEN_RECD) + 7);
+      sprintf  (t, "%-12.12s"  , ystrlrecd (s, 6, NULL, NULL, LEN_RECD) + 7);
       strcat   (unit_answer, t);
-      sprintf  (t, "  %s"  , strlrecd (s, 5, NULL, NULL, LEN_RECD) + 7);
+      sprintf  (t, "  %s"  , ystrlrecd (s, 5, NULL, NULL, LEN_RECD) + 7);
       strcat   (unit_answer, t);
    }
    /*---(argument testing)---------------*/

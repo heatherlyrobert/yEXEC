@@ -272,7 +272,7 @@ yEXEC_dur_in_sec        (char *a_text, int *a_dur)
    --rce;  if (a_text == NULL)  return rce;
    --rce;  if (a_dur  == NULL)  return rce;
    /*---(prepare)------------------------*/
-   strlcpy (t, a_text, LEN_TERSE);
+   ystrlcpy (t, a_text, LEN_TERSE);
    x_len = strlen (t);
    /*---(metis abbreviations)------------*/
    --rce;  if (x_len == 1)  switch (t [0])  {
@@ -409,30 +409,30 @@ yexec__findflag         (char a_cat, char a_val, char *a_real)
       /*---(save-back)-------------------*/
       if (a_real != NULL)  *a_real = s_flags [i].v;
       if (s_last != 'g') {
-         if (a_cat > 0)  strlcat (s_terse, BOLD_OFF, LEN_RECD);
-         strlcat (s_terse, BOLD_GRN, LEN_HUND);
+         if (a_cat > 0)  ystrlcat (s_terse, BOLD_OFF, LEN_RECD);
+         ystrlcat (s_terse, BOLD_GRN, LEN_HUND);
       }
       sprintf (t, "%c", a_val);
       if ((a_cat == 6 || a_cat == 8) && a_val == '-')  strcpy (t, "·");
-      strlcat (s_terse, t, LEN_HUND);
+      ystrlcat (s_terse, t, LEN_HUND);
       if (s_last != 'g') {
-         if (a_cat > 0)  strlcat (s_fancy, BOLD_OFF, LEN_RECD);
-         strlcat (s_fancy, BOLD_GRN, LEN_RECD);
+         if (a_cat > 0)  ystrlcat (s_fancy, BOLD_OFF, LEN_RECD);
+         ystrlcat (s_fancy, BOLD_GRN, LEN_RECD);
       }
       sprintf (t, "%c=%s", a_val, s_flags [i].d);
-      if (a_cat > 0)  strlcat (s_fancy, ", ", LEN_RECD);
-      strlcat (s_fancy, t, LEN_RECD);
+      if (a_cat > 0)  ystrlcat (s_fancy, ", ", LEN_RECD);
+      ystrlcat (s_fancy, t, LEN_RECD);
       s_last = 'g';
       return 0;
    }
    if (a_real != NULL)  *a_real = '-';
-   if (s_last != 'e')  strlcat (s_terse, BOLD_ERR, LEN_HUND);
+   if (s_last != 'e')  ystrlcat (s_terse, BOLD_ERR, LEN_HUND);
    sprintf (t, "%c", a_val);
-   strlcat (s_terse, t, LEN_HUND);
-   if (s_last != 'e')  strlcat (s_fancy, BOLD_ERR, LEN_RECD);
+   ystrlcat (s_terse, t, LEN_HUND);
+   if (s_last != 'e')  ystrlcat (s_fancy, BOLD_ERR, LEN_RECD);
    sprintf (t, "%c=ILLEGAL", a_val);
-   if (a_cat > 0)  strlcat (s_fancy, ", ", LEN_RECD);
-   strlcat (s_fancy, t, LEN_RECD);
+   if (a_cat > 0)  ystrlcat (s_fancy, ", ", LEN_RECD);
+   ystrlcat (s_fancy, t, LEN_RECD);
    s_last = 'e';
    return -1;
 }
@@ -471,8 +471,8 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
    if (a_net      != NULL)  *a_net      = '·';
    /*---(prepare)------------------------*/
    s_last = '-';
-   strlcpy (s_terse, "", LEN_HUND);
-   strlcpy (s_fancy, "", LEN_RECD);
+   ystrlcpy (s_terse, "", LEN_HUND);
+   ystrlcpy (s_fancy, "", LEN_RECD);
    /*---(defense)------------------------*/
    --rce;  if (a_flags != NULL) {
       x_len = strlen (a_flags);
@@ -552,8 +552,8 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
    --rce;  if (rc < 0)  x_final = rce;
    if (a_net      != NULL)  *a_net      = x_real;
    /*---(wrap)---------------------------*/
-   strlcat (s_terse, BOLD_OFF, LEN_HUND);
-   strlcat (s_fancy, BOLD_OFF, LEN_RECD);
+   ystrlcat (s_terse, BOLD_OFF, LEN_HUND);
+   ystrlcat (s_fancy, BOLD_OFF, LEN_RECD);
    s_last = '-';
    /*---(complete)-----------------------*/
    return x_final;
@@ -562,8 +562,8 @@ yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, c
 char
 yEXEC_flags_feedback    (char *a_terse, char *a_fancy)
 {
-   if (a_terse != NULL)  strlcpy (a_terse, s_terse, LEN_HUND);
-   if (a_fancy != NULL)  strlcpy (a_fancy, s_fancy, LEN_RECD);
+   if (a_terse != NULL)  ystrlcpy (a_terse, s_terse, LEN_HUND);
+   if (a_fancy != NULL)  ystrlcpy (a_fancy, s_fancy, LEN_RECD);
    return 0;
 }
 
