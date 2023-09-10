@@ -221,7 +221,7 @@ yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callba
       x_rc = 1;
       while (x_rc == 1) {
          x_rc = read (s_fd, x_recd + l, 1);
-         DEBUG_YEXEC  yLOG_complex ("read"      , "%4drc, %2dl, %3d, %c", x_rc, l, x_recd [l], chrvisible (x_recd [l]));
+         DEBUG_YEXEC  yLOG_complex ("read"      , "%4drc, %2dl, %3d, %c", x_rc, l, x_recd [l], ychrvisible (x_recd [l]));
          if (x_recd [l] == '\n')  break;
          if (x_rc == 1)  ++l;
       }
