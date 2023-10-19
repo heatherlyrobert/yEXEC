@@ -15,7 +15,7 @@ static struct cFLAGS {
 static const tFLAGS s_flags [MAX_FLAGS] = {
    /*---(importance)--------*/
    {  0, 'a', "absolute"   , ""                                         },
-   {  0, 'n', "need"       , ""                                         },
+   {  0, 'r', "require"    , ""                                         },
    {  0, 'v', "value"      , ""                                         },
    {  0, 'c', "crave"      , ""                                         },
    {  0, 'g', "good"       , ""                                         },
