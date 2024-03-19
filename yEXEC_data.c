@@ -504,36 +504,42 @@ yEXEC_data_filter       (short a_rpid, char *a_pubname, short a_ppid, void *f_ca
    DEBUG_YEXEC   yLOG_note    ("walk through processes");
    while ((x_file = readdir (s_dir)) != NULL) {
       /*---(simple filtering)------------*/
+      DEBUG_YEXEC   yLOG_info    ("d_name"    , x_file->d_name);
       if (strchr (YSTR_NUMBER, x_file->d_name [0]) == NULL) {
-         DEBUG_YEXEC   yLOG_note    ("not leading number");
+         DEBUG_YEXEC   yLOG_note    ("not leading number, skipping");
          continue;
       }
       x_rpid = atoi (x_file->d_name);
       DEBUG_YEXEC   yLOG_value   ("x_rpid"    , x_rpid);
       if (x_rpid <= 0) {
-         DEBUG_YEXEC   yLOG_note    ("not a process entry");
+         DEBUG_YEXEC   yLOG_note    ("not a process entry, skipping");
          continue;
       }
       /*---(public name)-----------------*/
       rc = yexec_data__pubname     (x_rpid, '-', x_pubname);
       DEBUG_YEXEC   yLOG_value   ("pubname"   , rc);
-      --rce;  if (rc < 0) {
-         DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-         return rce;
+      if (rc < 0) {
+         DEBUG_YEXEC   yLOG_note    ("can not get the pubname, skipping");
+         continue;
       }
       /*---(command line)----------------*/
       rc = yexec_data__cmdline     (x_rpid, '-', x_cmdline);
       DEBUG_YEXEC   yLOG_value   ("cmdline"   , rc);
-      --rce;  if (rc < 0) {
-         DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-         return rce;
+      if (rc < 0) {
+         DEBUG_YEXEC   yLOG_note    ("can not get the command line, skipping");
+         continue;
       }
       /*---(parent and state)------------*/
       rc = yexec_data__ppid        (x_rpid, '-', &x_state, &x_ppid);
       DEBUG_YEXEC   yLOG_value   ("ppid"      , rc);
       --rce;  if (rc < 0) {
-         DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-         return rce;
+         DEBUG_YEXEC   yLOG_note    ("can not get ppid, skipping");
+         continue;
+      }
+      DEBUG_YEXEC   yLOG_char    ("x_state"   , x_state);
+      --rce;  if (x_state == 'Z') {
+         DEBUG_YEXEC   yLOG_note    ("zombie process, skipping");
+         continue;
       }
       /*---(figure out callback)---------*/
       x_call = '-';
@@ -541,8 +547,11 @@ yEXEC_data_filter       (short a_rpid, char *a_pubname, short a_ppid, void *f_ca
       else if (a_rpid    != 0    && a_rpid == x_rpid)               x_call = 'y';
       else if (a_ppid    != 0    && a_ppid == x_ppid)               x_call = 'y';
       if (x_call == 'y') {
+         DEBUG_YEXEC   yLOG_note    ("CALLBACK");
          rc = x_callback (x_rpid, x_pubname, x_cmdline, x_state, x_ppid);
          DEBUG_YEXEC   yLOG_value   ("callback"  , rc);
+      } else {
+         DEBUG_YEXEC   yLOG_note    ("ignore entry");
       }
       /*---(done)------------------------*/
    }
