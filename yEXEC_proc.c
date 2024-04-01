@@ -873,7 +873,7 @@ yEXEC_detail            (char a_rc, int a_rc2, char *a_desc)
 }
 
 char             /* [------] find a running job by name ----------------------*/
-yEXEC_find         (char *a_name, int *a_rpid)
+yexec_duplicate         (char a_name [LEN_TITLE], int a_mypid, int *r_rpid)
 {
    /*---(locals)-----------+-----+-----+-*/
    int         rce         =  -10;
@@ -888,6 +888,7 @@ yEXEC_find         (char *a_name, int *a_rpid)
    char        t           [50];  
    char       *p;
    char       *q;
+   int         x_pid       =   -1;
    int         x_rpid      =   -1;
    int         c           =    0;
    int         x_len       =    0;
@@ -895,6 +896,9 @@ yEXEC_find         (char *a_name, int *a_rpid)
    char        x_status    =  '-';
    /*---(output header)-----------------*/
    DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
+   DEBUG_YEXEC  yLOG_sint    (a_mypid);
+   /*---(default)------------------------*/
+   if (r_rpid != NULL)  *r_rpid = -1;
    /*---(defense)-----------------------*/
    DEBUG_YEXEC  yLOG_spoint  (a_name);
    --rce;  if (a_name == NULL) {
@@ -904,8 +908,6 @@ yEXEC_find         (char *a_name, int *a_rpid)
    DEBUG_YEXEC  yLOG_snote   (a_name);
    x_len = strlen (a_name);
    DEBUG_YEXEC  yLOG_sint    (x_len);
-   /*---(prepare)------------------------*/
-   if (a_rpid != NULL)  *a_rpid = 99999;
    /*---(open the proc system)-----------*/
    x_dir = opendir("/proc");
    DEBUG_YEXEC  yLOG_spoint  (x_dir);
@@ -916,7 +918,12 @@ yEXEC_find         (char *a_name, int *a_rpid)
    /*---(cycle through the entries)------*/
    while ((x_den = readdir (x_dir)) != NULL) {
       /*---(filter non-processes)--------*/
-      if (atoi(x_den->d_name)     == 0)  continue;
+      x_pid  =  atoi (x_den->d_name);
+      if (x_pid  <= 0      )  continue;
+      if (x_pid  == a_mypid) {
+         DEBUG_YEXEC  yLOG_snote   ("DUP");
+         continue;
+      }
       /*---(open and get record)---------*/
       sprintf(x_name, "/proc/%s/stat", x_den->d_name);
       f = fopen (x_name, "r");
@@ -933,31 +940,55 @@ yEXEC_find         (char *a_name, int *a_rpid)
       switch (x_status) {
       case 'Z' : continue;      break;
       }
-      /*---(verify)----------------------*/
+      /*---(get the title)---------------*/
       q = strchr (x_title, ' ');
       if (q != NULL)  q [0] = '\0';
       if (strlen (x_title) != x_len)      continue;
       if (strcmp (x_title, a_name) != 0)  continue;
       ++c;
+      /*---(report out)------------------*/
       l = strlen (x_save);
       if (x_save [l - 1] == '\n')  x_save [--l] = '\0';
-      snprintf (t, 50, "%03d[%-40.40s]", l, x_save);
+      snprintf (t, 49, "%03d[%-40.40s]", l, x_save);
       DEBUG_YEXEC  yLOG_snote   (t);
       DEBUG_YEXEC  yLOG_schar   (x_status);
       DEBUG_YEXEC  yLOG_sint    (c);
       DEBUG_YEXEC  yLOG_snote   ("FOUND");
-      if (x_rpid < 0) {
+      DEBUG_YEXEC  yLOG_sint    (x_rpid);
+      if (x_rpid <= 0) {
          x_rpid =  atoi (x_den->d_name);
+         if (r_rpid != NULL)  *r_rpid = x_rpid;
          DEBUG_YEXEC  yLOG_sint    (x_rpid);
       }
       /*---(done)------------------------*/
    }
    closedir (x_dir);
-   if (x_rpid <= 1)      x_rpid = 99999;
-   if (a_rpid != NULL)  *a_rpid = x_rpid;
    DEBUG_YEXEC  yLOG_sint    (c);
    DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
    return c;
+}
+
+char
+yEXEC_find              (char a_name [LEN_LABEL], int *r_rpid)
+{
+   return yexec_duplicate (a_name, -1, r_rpid);
+}
+
+char
+yEXEC_duplicate         (char a_name [LEN_LABEL], int a_mypid, int *r_rpid)
+{
+   char        rce         =  -10;
+   int         x_rpid      =    0;
+   int         x_running   =    0;
+   char        t           [LEN_TITLE] = "";
+   x_running += yexec_duplicate (a_name, a_mypid, &x_rpid);
+   --rce;  if (x_running < 0)  return rce;
+   snprintf (t, LEN_TITLE, "%s_debug", a_name);
+   if (x_rpid <= 0)   x_running += yexec_duplicate (t     , a_mypid, &x_rpid);
+   else               x_running += yexec_duplicate (t     , a_mypid, NULL   );
+   --rce;  if (x_running < 0)  return rce;
+   if (r_rpid != NULL)  *r_rpid = x_rpid;
+   return x_running;
 }
 
 

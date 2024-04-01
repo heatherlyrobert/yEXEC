@@ -99,6 +99,80 @@ yexec_data__cmdline     (short a_rpid, char a_unit, char *r_cmdline)
 }
 
 char
+yexec_data__environ     (short a_rpid, char a_unit, long *r_window)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   int         rce         =  -10;
+   int         rc          =    0;
+   char        x_file      [LEN_HUND]  = "";
+   FILE       *f;
+   char        x_recd      [LEN_HUGE]  = "";
+   int         i           =    0;
+   int         l           =    0;
+   char       *p           =    0;
+   char       *q           =    0;
+   char        t           [LEN_LABEL] = "";
+   long        x_window    =    0;
+   /*---(header)------------------------*/
+   DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
+   /*---(default)-----------------------*/
+   if (r_window != NULL)  *r_window = 0;
+   /*---(decide file)--------------------*/
+   if (a_unit != 'y')  sprintf (x_file, "/proc/%d/environ", a_rpid);
+   else                sprintf (x_file, "/tmp/%d_environ" , a_rpid);
+   DEBUG_YEXEC   yLOG_info    ("x_file"    , x_file);
+   /*---(open proc)----------------------*/
+   f = fopen (x_file, "rt");
+   DEBUG_YEXEC   yLOG_point   ("f"         , f);
+   --rce;  if (f == NULL) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(read line)---------------------*/
+   fgets (x_recd, LEN_HUGE, f);
+   while (1) {
+      if (x_recd [i] == '\0' && x_recd [i + 1] == '\0')  break;
+      if (x_recd [i] == '\0')  x_recd [i] = ' ';
+      ++i;
+   }
+   l = strlen (x_recd);
+   if (x_recd [l - 1] == '\n')  x_recd [--l] = '\0';
+   DEBUG_YEXEC   yLOG_info    ("x_recd"    , x_recd);
+   /*---(close file)--------------------*/
+   rc = fclose (f);
+   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
+   --rce;  if (f <  0) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(find window)-------------------*/
+   p = strstr (x_recd, "WINDOWID=");
+   DEBUG_YEXEC   yLOG_point   ("p"         , p);
+   if (p == NULL) {
+      DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
+      return 0;
+   }
+   DEBUG_YEXEC   yLOG_info    ("p"         , p);
+   q = strchr (p, ' ');
+   DEBUG_YEXEC   yLOG_point   ("q"         , q);
+   if (q == NULL) {
+      DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
+      return 0;
+   }
+   l = q - p - 8;
+   DEBUG_YEXEC   yLOG_value   ("l"         , l);
+   ystrlcpy (t, p + 9, l);
+   DEBUG_YEXEC   yLOG_info    ("t"         , t);
+   x_window = atol (t);
+   DEBUG_YEXEC   yLOG_value   ("x_window"  , x_window);
+   /*---(save-back)---------------------*/
+   if (r_window != NULL)  *r_window = x_window;
+   /*---(complete)----------------------*/
+   DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
+   return 1;
+}
+
+char
 yexec_data__ppid        (short a_rpid, char a_unit, char *r_state, int *r_ppid)
 {
    /*---(locals)-----------+-----+-----+-*/
@@ -553,6 +627,107 @@ yEXEC_data_filter       (short a_rpid, char *a_pubname, short a_ppid, void *f_ca
       } else {
          DEBUG_YEXEC   yLOG_note    ("ignore entry");
       }
+      /*---(done)------------------------*/
+   }
+   /*---(close)--------------------------*/
+   rc = yexec_data__close ();
+   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
+   return rc;
+}
+
+char
+yEXEC_data_windows      (void *f_callback)
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   int         rc          =    0;
+   tDIRENT    *x_file      = NULL;
+   char        x_pubname   [LEN_LABEL] = "";
+   int         x_rpid      =    0;
+   int         x_ppid      =    0;
+   int         x_curr      =    0;
+   char        x_state     =    0;
+   char      (*x_callback)   (short a_rpid, short a_ppid, long a_window);
+   long        x_window    =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_point   ("f_callback", f_callback);
+   --rce;  if (f_callback == NULL) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   x_callback = f_callback;
+   /*---(open)---------------------------*/
+   rc = yexec_data__open ();
+   DEBUG_YEXEC   yLOG_value   ("open"      , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(walk files)---------------------*/
+   DEBUG_YEXEC   yLOG_note    ("walk through processes");
+   while ((x_file = readdir (s_dir)) != NULL) {
+      /*---(simple filtering)------------*/
+      DEBUG_YEXEC   yLOG_info    ("d_name"    , x_file->d_name);
+      if (strchr (YSTR_NUMBER, x_file->d_name [0]) == NULL) {
+         DEBUG_YEXEC   yLOG_note    ("not leading number, skipping");
+         continue;
+      }
+      x_rpid = atoi (x_file->d_name);
+      DEBUG_YEXEC   yLOG_value   ("x_rpid"    , x_rpid);
+      if (x_rpid <= 0) {
+         DEBUG_YEXEC   yLOG_note    ("not a process entry, skipping");
+         continue;
+      }
+      /*---(public name)-----------------*/
+      rc = yexec_data__environ     (x_rpid, '-', &x_window);
+      DEBUG_YEXEC   yLOG_value   ("environ"   , rc);
+      DEBUG_YEXEC   yLOG_value   ("x_window"  , x_window);
+      if (rc <= 0) {
+         DEBUG_YEXEC   yLOG_note    ("can not get the environment, skipping");
+         continue;
+      }
+      /*---(parent and state)------------*/
+      x_ppid = 9999;
+      x_curr = x_rpid;
+      while (x_ppid > 1) {
+         rc = yexec_data__ppid        (x_curr, '-', &x_state, &x_ppid);
+         DEBUG_YEXEC   yLOG_value   ("ppid"      , rc);
+         --rce;  if (rc < 0) {
+            DEBUG_YEXEC   yLOG_note    ("can not get ppid, skipping");
+            break;
+         }
+         DEBUG_YEXEC   yLOG_char    ("x_state"   , x_state);
+         --rce;  if (x_state == 'Z') {
+            DEBUG_YEXEC   yLOG_note    ("zombie process, skipping");
+            break;
+         }
+         /*---(public name)-----------------*/
+         rc = yexec_data__pubname     (x_curr, '-', x_pubname);
+         DEBUG_YEXEC   yLOG_value   ("pubname"   , rc);
+         if (rc < 0) {
+            DEBUG_YEXEC   yLOG_note    ("can not get the pubname, skipping");
+            break;
+         }
+         DEBUG_YEXEC   yLOG_info    ("x_pubname" , x_pubname);
+         if (strncmp (x_pubname, "Eterm", 5) == 0)  break;
+         x_curr = x_ppid;
+      }
+      if (strncmp (x_pubname, "Eterm", 5) != 0) {
+         DEBUG_YEXEC   yLOG_note    ("parent not an eterm");
+         continue;
+      }
+      /*---(figure out callback)---------*/
+      DEBUG_YEXEC   yLOG_note    ("CALLBACK");
+      rc = x_callback (x_rpid, x_curr, x_window);
+      DEBUG_YEXEC   yLOG_value   ("callback"  , rc);
       /*---(done)------------------------*/
    }
    /*---(close)--------------------------*/

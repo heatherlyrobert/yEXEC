@@ -143,7 +143,8 @@ char        yEXEC_verify            (char *a_title, int a_rpid, int *a_rc2, floa
 char        yEXEC_check             (int a_rpid);
 char        yEXEC_timing            (int a_rpid, char a_strict, int a_max, int a_dur, int a_grace, int a_peers);
 char        yEXEC_detail            (char a_rc, int a_rc2, char *a_desc);
-char        yEXEC_find              (char *a_name, int *a_rpid);
+char        yEXEC_find              (char a_name [LEN_LABEL], int *r_rpid);
+char        yEXEC_duplicate         (char a_name [LEN_LABEL], int a_mypid, int *r_rpid);
 char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);
 char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
@@ -175,11 +176,13 @@ char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *
 char        yEXEC_daemon            (int a_logger, int *a_rpid);
 
 
+char        yexec_duplicate         (char a_name [LEN_TITLE], int a_mypid, int *r_rpid);
 char        yEXEC_proc_data         (short a_rpid, char *r_public, char *r_cmdline, char *r_state, int *r_ppid);
 char        yEXEC_proc_eterm        (short a_rpid, int *r_uid, char *r_home, char *r_pwd, char *r_cabbr, char *r_cname, char *r_stype, char *r_shex, char *r_rows, char *r_cols);
 char        yEXEC_find_my_eterm     (short a_rpid, int *a_eterm);
 char        yEXEC_find_eterm_use    (short a_rpid, char *a_lvl, int *a_lowest, char a_pubname [LEN_LABEL], char a_cmdline [LEN_RECD]);
 char        yEXEC_data_filter       (short a_rpid, char *a_pubname, short a_ppid, void *f_callback);
+char        yEXEC_data_windows      (void *f_callback);
 
 char        yEXEC_fifo_create       (cchar a_name [LEN_PATH]);
 char        yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callback);

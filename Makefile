@@ -10,7 +10,7 @@ LIB_STD    = -lm
 # all heatherly libraries used, debug versions whenever available
 LIB_MINE   = -lySTR_debug -lyREGEX_debug -lcrypt
 # directory for production code, no trailing slash
-INST_DIR   = 
+INST_DIR   = /usr/local/bin
 
 
 
@@ -18,7 +18,7 @@ INST_DIR   =
 # extra include directories required
 INC_MINE   = 
 # utilities generated, separate from main program
-NAME_UTIL  = 
+NAME_UTIL  = yexec
 # libraries only for the utilities
 LIB_UTIL   = 
 
@@ -39,6 +39,8 @@ include /usr/local/sbin/make_program
 #===(post-processing)======================================#
 # create a rule for...
 install_post       :
+	make util
+	make install_util
 
 #remove_post        :
 

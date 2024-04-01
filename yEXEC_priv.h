@@ -38,9 +38,9 @@
 #define     P_CREATED   "2011-05"
 /*········· ··········· ´·····························´········································*/
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
-#define     P_VERMINOR  "1.2-, integrating into khronos and eos"
-#define     P_VERNUM    "1.2r"
-#define     P_VERTXT    "improved yEXEC_data_filter based on theia unit testing, good pressure"
+#define     P_VERMINOR  "1.3-, supporting charybdis and scripting"
+#define     P_VERNUM    "1.3a"
+#define     P_VERTXT    "added yEXEC_duplicate to yEXEC_find"
 /*········· ··········· ´·····························´········································*/
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
