@@ -13,7 +13,7 @@ static FILE    *f             = NULL;
 
 
 
-#define      MAX_SIGS         24
+#define      MAX_SIGS         30
 typedef struct cSIGS tSIGS;
 static struct cSIGS {
    char        num;
@@ -45,7 +45,9 @@ static const tSIGS s_sigs [MAX_SIGS] = {
    { 20, "SIGTSTP"  , "C-z to pause a process"        },
    { 21, "SIGTTIN"  , "terminal input required"       },
    { 22, "SIGTTOU"  , "terminal output required"      },
-   { 23, "------"   , ""                              },
+   { 26, "SIGVTALRM", "virtual alarm"                 },
+   { 27, "SIGPROF"  , "real time duration reached"    },
+   { 99, "------"   , ""                              },
    /*--, "123456789"  "123456789-123456789-123456789" */
 };
 
@@ -129,6 +131,18 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
       x_looking = 0;
       break;
    case  SIGALRM:
+      x_looking = 0;
+      break;
+   case  SIGVTALRM:
+      x_looking = 0;
+      break;
+   case  SIGPOLL:
+      x_looking = 0;
+      break;
+   case  SIGPROF:
+      x_looking = 0;
+      break;
+   case  SIGURG:
       x_looking = 0;
       break;
    }
@@ -276,10 +290,14 @@ yEXEC_signal       (char a_tough, char a_inter, char a_child, void *a_signaler, 
    }
    /*---(use involved)-------------------*/
    DEBUG_YEXEC  yLOG_info  ("program",  "look for HUP, USR1, USR2, and ALRM");
-   yexec__trapped ("SIGHUP" , "reload and refresh"       , SIGHUP );
-   yexec__trapped ("SIGUSR1", "user controlled"          , SIGUSR1);
-   yexec__trapped ("SIGUSR2", "user controlled (ping)"   , SIGUSR2);
-   yexec__trapped ("SIGALRM", "timer using alarm ()"     , SIGALRM);
+   yexec__trapped ("SIGHUP"   , "reload and refresh"       , SIGHUP );
+   yexec__trapped ("SIGUSR1"  , "user controlled"          , SIGUSR1);
+   yexec__trapped ("SIGUSR2"  , "user controlled (ping)"   , SIGUSR2);
+   yexec__trapped ("SIGALRM"  , "timer using alarm ()"     , SIGALRM);
+   yexec__trapped ("SIGVTALRM", "timer using alarm ()"     , SIGVTALRM);
+   yexec__trapped ("SIGPOLL"  , "timer using alarm ()"     , SIGPOLL);
+   yexec__trapped ("SIGPROF"  , "timer using alarm ()"     , SIGPROF);
+   yexec__trapped ("SIGURG"   , "timer using alarm ()"     , SIGURG);
    /*---(monsters)-----------------------*/
    DEBUG_YEXEC  yLOG_info  ("baddies",  "handle SEGV, TERM, and ABRT");
    yexec__trapped ("SIGTERM", "graceful termination"     , SIGTERM);
