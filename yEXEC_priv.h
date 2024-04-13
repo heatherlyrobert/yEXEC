@@ -39,8 +39,8 @@
 /*········· ··········· ´·····························´········································*/
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.3-, supporting charybdis and scripting"
-#define     P_VERNUM    "1.3b"
-#define     P_VERTXT    "added a few informational signals for charybdis"
+#define     P_VERNUM    "1.3c"
+#define     P_VERTXT    "made process data collection more bullet-proof, resilient"
 /*········· ··········· ´·····························´········································*/
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"

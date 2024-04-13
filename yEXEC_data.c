@@ -14,6 +14,7 @@ yexec_data__pubname     (short a_rpid, char a_unit, char *r_public)
    FILE       *f;
    char        x_recd      [LEN_RECD]  = "";
    int         l           =    0;
+   char       *p           = NULL;
    /*---(header)------------------------*/
    DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
    /*---(default)-----------------------*/
@@ -30,17 +31,19 @@ yexec_data__pubname     (short a_rpid, char a_unit, char *r_public)
       return rce;
    }
    /*---(read line)---------------------*/
-   fgets (x_recd, LEN_RECD, f);
-   l = strlen (x_recd);
-   if (x_recd [l - 1] == '\n')  x_recd [--l] = '\0';
-   DEBUG_YEXEC   yLOG_info    ("x_recd"    , x_recd);
+   p = fgets (x_recd, LEN_RECD, f);
+   DEBUG_YEXEC   yLOG_point   ("read"      , p);
    /*---(close file)--------------------*/
    rc = fclose (f);
    DEBUG_YEXEC   yLOG_value   ("close"     , rc);
-   --rce;  if (f <  0) {
+   --rce;  if (rc != 0 || p == NULL) {
       DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
+   /*---(parse data)--------------------*/
+   l = strlen (x_recd);
+   if (x_recd [l - 1] == '\n')  x_recd [--l] = '\0';
+   DEBUG_YEXEC   yLOG_info    ("x_recd"    , x_recd);
    /*---(save-back)---------------------*/
    if (r_public != NULL)  ystrlcpy (r_public, x_recd, LEN_TITLE);
    /*---(complete)----------------------*/
@@ -59,6 +62,7 @@ yexec_data__cmdline     (short a_rpid, char a_unit, char *r_cmdline)
    char        x_recd      [LEN_RECD]  = "";
    int         i           =    0;
    int         l           =    0;
+   char       *p           = NULL;
    /*---(header)------------------------*/
    DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
    /*---(default)-----------------------*/
@@ -75,7 +79,16 @@ yexec_data__cmdline     (short a_rpid, char a_unit, char *r_cmdline)
       return rce;
    }
    /*---(read line)---------------------*/
-   fgets (x_recd, LEN_RECD, f);
+   p = fgets (x_recd, LEN_RECD, f);
+   DEBUG_YEXEC   yLOG_point   ("read"      , p);
+   /*---(close file)--------------------*/
+   rc = fclose (f);
+   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
+   --rce;  if (rc != 0 || p == NULL) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(parse data)--------------------*/
    while (1) {
       if (x_recd [i] == '\0' && x_recd [i + 1] == '\0')  break;
       if (x_recd [i] == '\0')  x_recd [i] = ' ';
@@ -84,13 +97,6 @@ yexec_data__cmdline     (short a_rpid, char a_unit, char *r_cmdline)
    l = strlen (x_recd);
    if (x_recd [l - 1] == '\n')  x_recd [--l] = '\0';
    DEBUG_YEXEC   yLOG_info    ("x_recd"    , x_recd);
-   /*---(close file)--------------------*/
-   rc = fclose (f);
-   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
-   --rce;  if (f <  0) {
-      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-      return rce;
-   }
    /*---(save-back)---------------------*/
    if (r_cmdline != NULL)  ystrlcpy (r_cmdline, x_recd, LEN_RECD);
    /*---(complete)----------------------*/
@@ -129,7 +135,16 @@ yexec_data__environ     (short a_rpid, char a_unit, long *r_window)
       return rce;
    }
    /*---(read line)---------------------*/
-   fgets (x_recd, LEN_HUGE, f);
+   p = fgets (x_recd, LEN_HUGE, f);
+   DEBUG_YEXEC   yLOG_point   ("read"      , p);
+   /*---(close file)--------------------*/
+   rc = fclose (f);
+   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
+   --rce;  if (rc != 0 || p == NULL) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(parse data)--------------------*/
    while (1) {
       if (x_recd [i] == '\0' && x_recd [i + 1] == '\0')  break;
       if (x_recd [i] == '\0')  x_recd [i] = ' ';
@@ -138,13 +153,6 @@ yexec_data__environ     (short a_rpid, char a_unit, long *r_window)
    l = strlen (x_recd);
    if (x_recd [l - 1] == '\n')  x_recd [--l] = '\0';
    DEBUG_YEXEC   yLOG_info    ("x_recd"    , x_recd);
-   /*---(close file)--------------------*/
-   rc = fclose (f);
-   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
-   --rce;  if (f <  0) {
-      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-      return rce;
-   }
    /*---(find window)-------------------*/
    p = strstr (x_recd, "WINDOWID=");
    DEBUG_YEXEC   yLOG_point   ("p"         , p);
@@ -203,7 +211,16 @@ yexec_data__ppid        (short a_rpid, char a_unit, char *r_state, int *r_ppid)
       return rce;
    }
    /*---(read line)---------------------*/
-   fgets (x_recd, LEN_RECD, f);
+   p = fgets (x_recd, LEN_RECD, f);
+   DEBUG_YEXEC   yLOG_point   ("read"      , p);
+   /*---(close file)--------------------*/
+   rc = fclose (f);
+   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
+   --rce;  if (rc != 0 || p == NULL) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(parse data)--------------------*/
    p = strtok_r (x_recd, " ", &r);
    --rce;  while (p != NULL && c < 4) {
       DEBUG_YEXEC   yLOG_info    ("p"         , p);
@@ -214,17 +231,9 @@ yexec_data__ppid        (short a_rpid, char a_unit, char *r_state, int *r_ppid)
       ++c;
       p = strtok_r (NULL  , " ", &r);
    }
-   /*---(close file)--------------------*/
-   rc = fclose (f);
-   DEBUG_YEXEC   yLOG_value   ("close"     , rc);
-   --rce;  if (f <  0) {
-      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-      return rce;
-   }
    /*---(trouble)-----------------------*/
    DEBUG_YEXEC   yLOG_value   ("c"         , c);
    --rce;  if (c <  4) {
-      rc = fclose (f);
       DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
