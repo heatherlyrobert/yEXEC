@@ -1297,367 +1297,367 @@ static void  o___STATS___________o () { return; }
 char
 yexec_mon__cpu_detail   (int a_rpid, char *a_name, int *a_ppid, char *a_land, char *a_state, long *a_utime, long *a_stime, char *a_snice)
 {
-   /*---(locals)-----------+-----+-----+-*/
-   int         rce         =  -10;
-   int         rc          =    0;
-   FILE       *f;
-   char        x_name      [LEN_HUND]  = "";
-   char        x_recd      [LEN_RECD]  = "";
-   char       *p           = NULL;
-   char       *r           = NULL;
-   char        c           =    0;
-   /*---(header)------------------------*/
-   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
-   /*---(defaults)----------------------*/
-   if (a_name  != NULL)  ystrlcpy (a_name, "", LEN_TITLE);
-   if (a_ppid  != NULL)  *a_ppid  = 0;
-   if (a_land  != NULL)  *a_land  = '-';
-   if (a_state != NULL)  *a_state = '-';
-   if (a_utime != NULL)  *a_utime = 0;
-   if (a_stime != NULL)  *a_stime = 0;
-   if (a_snice != NULL)  *a_snice = 20;
-   /*---(open proc)----------------------*/
-   sprintf (x_name, "/proc/%d/stat", a_rpid);
-   f = fopen (x_name, "rt");
-   DEBUG_YEXEC  yLOG_spoint  (f);
-   --rce;  if (f == NULL) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
-   }
-   /*---(read line)---------------------*/
-   fgets (x_recd, LEN_RECD, f);
-   p = strtok_r (x_recd, " ", &r);
-   DEBUG_YEXEC  yLOG_spoint  (p);
-   --rce;  if (p == NULL) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
-   }
-   while (p != NULL && c < 20) {
-      /*> printf ("%2d  %-10p  å%.40sæ\n", c, p, p);                                  <*/
-      switch (c) {
-      case  1 :
-         if (a_name  != NULL)  ystrlcpy (a_name, p + 1, strlen (p) - 1);
-         break;
-      case  2 :
-         if (a_state != NULL)  *a_state = p [0];
-         break;
-      case  3 :
-         if (a_ppid  != NULL)  *a_ppid  = atoi (p);
-         if (a_land  != NULL) {
-            switch (*a_ppid) {
-            case   0 : *a_land = 'k';    break;
-            case   2 : *a_land = 'k';    break;
-            default  : *a_land = '-';    break;
-            }
-            if (a_rpid == 1)  *a_land = '-';
-         }
-         break;
-      case 13 :
-         if (a_utime != NULL)  *a_utime = atol (p);
-         break;
-      case 14 :
-         if (a_stime != NULL)  *a_stime = atol (p);
-         break;
-      case 17 :
-         if (a_snice != NULL) {
-            *a_snice = atoi (p);
-            if (*a_snice < -20)  *a_snice = -1;
-         }
-         break;
-      }
-      ++c;
-      p = strtok_r (NULL  , " ", &r);
-   }
-   DEBUG_YEXEC  yLOG_sint    (c);
-   --rce;  if (c <  20) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
-   }
-   /*---(close file)--------------------*/
-   rc = fclose (f);
-   DEBUG_YEXEC  yLOG_sint    (rc);
-   --rce;  if (f <  0) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
-   }
-   /*---(complete)----------------------*/
-   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
-   return 0;
+   /*> /+---(locals)-----------+-----+-----+-+/                                                 <* 
+    *> int         rce         =  -10;                                                          <* 
+    *> int         rc          =    0;                                                          <* 
+    *> FILE       *f;                                                                           <* 
+    *> char        x_name      [LEN_HUND]  = "";                                                <* 
+    *> char        x_recd      [LEN_RECD]  = "";                                                <* 
+    *> char       *p           = NULL;                                                          <* 
+    *> char       *r           = NULL;                                                          <* 
+    *> char        c           =    0;                                                          <* 
+    *> /+---(header)------------------------+/                                                  <* 
+    *> DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);                                                <* 
+    *> /+---(defaults)----------------------+/                                                  <* 
+    *> if (a_name  != NULL)  ystrlcpy (a_name, "", LEN_TITLE);                                  <* 
+    *> if (a_ppid  != NULL)  *a_ppid  = 0;                                                      <* 
+    *> if (a_land  != NULL)  *a_land  = '-';                                                    <* 
+    *> if (a_state != NULL)  *a_state = '-';                                                    <* 
+    *> if (a_utime != NULL)  *a_utime = 0;                                                      <* 
+    *> if (a_stime != NULL)  *a_stime = 0;                                                      <* 
+    *> if (a_snice != NULL)  *a_snice = 20;                                                     <* 
+    *> /+---(open proc)----------------------+/                                                 <* 
+    *> sprintf (x_name, "/proc/%d/stat", a_rpid);                                               <* 
+    *> f = fopen (x_name, "rt");                                                                <* 
+    *> DEBUG_YEXEC  yLOG_spoint  (f);                                                           <* 
+    *> --rce;  if (f == NULL) {                                                                 <* 
+    *>    DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);                                        <* 
+    *>    return rce;                                                                           <* 
+    *> }                                                                                        <* 
+    *> /+---(read line)---------------------+/                                                  <* 
+    *> fgets (x_recd, LEN_RECD, f);                                                             <* 
+    *> p = strtok_r (x_recd, " ", &r);                                                          <* 
+    *> DEBUG_YEXEC  yLOG_spoint  (p);                                                           <* 
+    *> --rce;  if (p == NULL) {                                                                 <* 
+    *>    DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);                                        <* 
+    *>    return rce;                                                                           <* 
+    *> }                                                                                        <* 
+    *> while (p != NULL && c < 20) {                                                            <* 
+    *>    /+> printf ("%2d  %-10p  å%.40sæ\n", c, p, p);                                  <+/   <* 
+    *>    switch (c) {                                                                          <* 
+    *>    case  1 :                                                                             <* 
+    *>       if (a_name  != NULL)  ystrlcpy (a_name, p + 1, strlen (p) - 1);                    <* 
+    *>       break;                                                                             <* 
+    *>    case  2 :                                                                             <* 
+    *>       if (a_state != NULL)  *a_state = p [0];                                            <* 
+    *>       break;                                                                             <* 
+    *>    case  3 :                                                                             <* 
+    *>       if (a_ppid  != NULL)  *a_ppid  = atoi (p);                                         <* 
+    *>       if (a_land  != NULL) {                                                             <* 
+    *>          switch (*a_ppid) {                                                              <* 
+    *>          case   0 : *a_land = 'k';    break;                                             <* 
+    *>          case   2 : *a_land = 'k';    break;                                             <* 
+    *>          default  : *a_land = '-';    break;                                             <* 
+    *>          }                                                                               <* 
+    *>          if (a_rpid == 1)  *a_land = '-';                                                <* 
+    *>       }                                                                                  <* 
+    *>       break;                                                                             <* 
+    *>    case 13 :                                                                             <* 
+    *>       if (a_utime != NULL)  *a_utime = atol (p);                                         <* 
+    *>       break;                                                                             <* 
+    *>    case 14 :                                                                             <* 
+    *>       if (a_stime != NULL)  *a_stime = atol (p);                                         <* 
+    *>       break;                                                                             <* 
+    *>    case 17 :                                                                             <* 
+    *>       if (a_snice != NULL) {                                                             <* 
+    *>          *a_snice = atoi (p);                                                            <* 
+    *>          if (*a_snice < -20)  *a_snice = -1;                                             <* 
+    *>       }                                                                                  <* 
+    *>       break;                                                                             <* 
+    *>    }                                                                                     <* 
+    *>    ++c;                                                                                  <* 
+    *>    p = strtok_r (NULL  , " ", &r);                                                       <* 
+    *> }                                                                                        <* 
+    *> DEBUG_YEXEC  yLOG_sint    (c);                                                           <* 
+    *> --rce;  if (c <  20) {                                                                   <* 
+    *>    DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);                                        <* 
+    *>    return rce;                                                                           <* 
+    *> }                                                                                        <* 
+    *> /+---(close file)--------------------+/                                                  <* 
+    *> rc = fclose (f);                                                                         <* 
+    *> DEBUG_YEXEC  yLOG_sint    (rc);                                                          <* 
+    *> --rce;  if (f <  0) {                                                                    <* 
+    *>    DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);                                        <* 
+    *>    return rce;                                                                           <* 
+    *> }                                                                                        <* 
+    *> /+---(complete)----------------------+/                                                  <* 
+    *> DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);                                                <* 
+    *> return 0;                                                                                <*/
 }
 
 char
 yexec_mon__cpu          (tPROC *a_proc)
 {
-   char        rce         =  -10;
-   char        rc          =    0;
-   char        x_name      [LEN_TITLE] = "";
-   --rce;  if (a_proc == NULL)  return rce;
-   rc = yexec_mon__cpu_detail (a_proc->rpid, x_name, &(a_proc->ppid), &(a_proc->land), &(a_proc->c_state), &(a_proc->c_utime), &(a_proc->c_stime), &(a_proc->c_snice));
-   if (a_proc->e_link == NULL)  yexec_mon__hook_exec (a_proc, x_name);
-   return rc;
+   /*> char        rce         =  -10;                                                                                                                                        <* 
+    *> char        rc          =    0;                                                                                                                                        <* 
+    *> char        x_name      [LEN_TITLE] = "";                                                                                                                              <* 
+    *> --rce;  if (a_proc == NULL)  return rce;                                                                                                                               <* 
+    *> rc = yexec_mon__cpu_detail (a_proc->rpid, x_name, &(a_proc->ppid), &(a_proc->land), &(a_proc->c_state), &(a_proc->c_utime), &(a_proc->c_stime), &(a_proc->c_snice));   <* 
+    *> if (a_proc->e_link == NULL)  yexec_mon__hook_exec (a_proc, x_name);                                                                                                    <* 
+    *> return rc;                                                                                                                                                             <*/
 }
 
 char
 yexec_mon__mem_detail   (int a_rpid, long *a_max, long *a_base, long *a_min, long *a_text, long *a_data, long *a_heap, long *a_stack, long *a_kern, long *a_libs, long *a_empty)
 {
-   /*---(locals)-----------+-----+-----+-*/
-   int         rce         =  -10;
-   int         rc          =    0;
-   FILE       *f;
-   char        x_name      [LEN_HUND]  = "";
-   char        x_recd      [LEN_RECD]  = "";
-   int         c           =    0;
-   int         i           =    0;
-   int         l           =    0;
-   char       *p           = NULL;
-   char       *r           = NULL;
-   long        x_full      =    0;
-   long        x_rss       =    0;
-   long        x_pvt       =    0;
-   long        x_empty     =    0;
-   char        x_perm      [LEN_TERSE] = "";
-   char        x_part      =  '-';
-   int         n           =    1;
-   int         x_line      =    0;
-   /*---(header)------------------------*/
-   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
-   /*---(defaults)----------------------*/
-   if (a_max   != NULL)  *a_max   = 0;
-   if (a_base  != NULL)  *a_base  = 0;
-   if (a_min   != NULL)  *a_min   = 0;
-   if (a_text  != NULL)  *a_text  = 0;
-   if (a_data  != NULL)  *a_data  = 0;
-   if (a_heap  != NULL)  *a_heap  = 0;
-   if (a_stack != NULL)  *a_stack = 0;
-   if (a_kern  != NULL)  *a_kern  = 0;
-   if (a_libs  != NULL)  *a_libs  = 0;
-   if (a_empty != NULL)  *a_empty = 0;
-   /*---(open proc)----------------------*/
-   sprintf (x_name, "/proc/%d/smaps", a_rpid);
-   f = fopen (x_name, "rt");
-   DEBUG_YEXEC  yLOG_spoint  (f);
-   --rce;  if (f == NULL) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
-   }
-   /*---(read stanza)-----------------*/
-   while (1) {
-      /*> if (c % 5 == 0)  printf ("\nline    --full-  --rss--    p  --max--  --base-  --min--  --text-  --data-  -stack-  --heap-  --kern-  --libs-    -empty-\n");   <*/
-      x_line = n;
-      for (i = 0; i < 16; ++i) {
-         fgets (x_recd, LEN_RECD, f);
-         if (feof (f))  break;
-         l = strlen (x_recd);
-         if (l > 0 && x_recd [l - 1] == '\n')  x_recd [--l] = '\0';
-         ++n;
-         /*> printf ("%2d, %s\n", i, x_recd);                                         <*/
-         p = strtok_r (x_recd, " \t", &r);
-         if (p == NULL) break;
-         p = strtok_r (NULL  , " \t", &r);
-         if (p == NULL) break;
-         switch (i) {
-         case  0 : /* permissions */
-            /*---(save perms)------------*/
-            ystrlcpy (x_perm, p, LEN_TERSE);
-            /*---(get prog/lib)----------*/
-            p = strtok_r (NULL  , " \t", &r);
-            p = strtok_r (NULL  , " \t", &r);
-            p = strtok_r (NULL  , " \t", &r);
-            p = strtok_r (NULL  , " \t", &r);
-            /*---(assign prog/lib)-------*/
-            /*> if (p != NULL)  ystrltrim (p, ySTR_BOTH, LEN_RECD);                    <* 
-             *> printf ("%2då%sæ\n", strlen (p), p);                                  <*/
-            x_part = 'd';
-            /*---(executables)-----------*/
-            if (strncmp (x_perm, "r-x"   , 3) == 0) {
-               if (c < 3)                                             x_part = 't';
-               else if (p != NULL && strcmp  (p, "[vsyscall]") == 0)  x_part = 'k';
-               else if (p != NULL && strcmp  (p, "[vdso]"    ) == 0)  x_part = 'k';
-               else                                                   x_part = '-';
-            }
-            /*---(data segments)---------*/
-            else if (c < 3 || p == NULL || strcmp  (p, "") == 0) {
-               if      (strncmp (x_perm, "r--", 3)  == 0)  x_part = 'd';
-               else if (strncmp (x_perm, "rw-", 3)  == 0)  x_part = 'd';
-               else                                        x_part = 'o';
-            }
-            /*---(kernel stuff)----------*/
-            else if (strcmp  (p, "[vvar]"    ) == 0)       x_part = 'k';
-            else if (strcmp  (p, "[heap]"    ) == 0)       x_part = 'h';
-            else if (strcmp  (p, "[stack]"   ) == 0)       x_part = 's';
-            /*---(library data)----------*/
-            else {
-               if      (strncmp (x_perm, "r--", 3)  == 0)  x_part = 'l';
-               else if (strncmp (x_perm, "rw-", 3)  == 0)  x_part = 'l';
-               else                                        x_part = 'o';
-            }
-            /*---(assign segment)--------*/
-            break;
-         case  1 : /* rss           */
-            x_full  = atol (p);
-            break;
-         case  2 : /* rss           */
-            x_rss   = atol (p);
-            x_empty = x_full - x_rss;
-            if (x_empty < 0)  x_empty = 0;
-            break;
-         case  6 : /* private clean */
-            x_pvt   = atol (p);
-            break; 
-         case  7 : /* private dirty */
-            x_pvt  += atol (p);
-            break; 
-         case 15 :
-            switch (x_part) {
-            case 't' : 
-               if (a_max   != NULL)  *a_max   += x_full;
-               if (a_base  != NULL)  *a_base  += x_full;
-               if (a_text  != NULL)  *a_text  += x_full;
-               break;
-            case 'd' : 
-               if (a_max   != NULL)  *a_max   += x_pvt;
-               if (a_base  != NULL)  *a_base  += x_pvt;
-               if (a_data  != NULL)  *a_data  += x_pvt;
-               if (a_empty != NULL)  *a_empty += x_full - x_pvt;
-               break;
-            case 'h' : 
-               if (a_max   != NULL)  *a_max   += x_rss;
-               if (a_base  != NULL)  *a_base  += x_rss;
-               if (a_heap  != NULL)  *a_heap  += x_rss;
-               if (a_empty != NULL)  *a_empty += x_empty;
-               break;
-            case 's' : 
-               if (a_max   != NULL)  *a_max   += x_rss;
-               if (a_base  != NULL)  *a_base  += x_rss;
-               if (a_stack != NULL)  *a_stack += x_rss;
-               if (a_empty != NULL)  *a_empty += x_empty;
-               break;
-            case 'k' : /* mapped kernel space */
-               if (a_max   != NULL)  *a_max   += x_full;
-               if (a_base  != NULL)  *a_base  += x_full;
-               if (a_kern  != NULL)  *a_kern  += x_full;
-               break;
-            case 'o' : 
-               if (a_max   != NULL)  *a_max   += x_full;
-               if (a_empty != NULL)  *a_empty += x_full;
-               x_empty = 0;
-               break;
-            case 'l' : 
-               if (a_max   != NULL)  *a_max   += x_pvt;
-               if (a_base  != NULL)  *a_base  += x_pvt;
-               if (a_libs  != NULL)  *a_libs  += x_pvt;
-               if (a_empty != NULL)  *a_empty += x_full - x_pvt;
-               break;
-            }
-            /*> printf ("%4d    %7ld  %7ld    %c  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld    %7ld\n",   <* 
-             *>       x_line, x_full, x_rss, x_part,                                                                 <* 
-             *>       *a_max, *a_base, *a_min, *a_text, *a_data, *a_stack,                                           <* 
-             *>       *a_heap, *a_kern, *a_libs, *a_empty);                                                          <*/
-            break;
-         }
-      }
-      if (feof (f))  break;
-      ++c;
-   }
-   /*---(close file)--------------------*/
-   rc = fclose (f);
-   DEBUG_YEXEC  yLOG_sint    (rc);
-   --rce;  if (f <  0) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
-      return rce;
-   }
-   /*---(complete)----------------------*/
-   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
-   return 0;
+   /*> /+---(locals)-----------+-----+-----+-+/                                                                                                                                  <* 
+    *> int         rce         =  -10;                                                                                                                                           <* 
+    *> int         rc          =    0;                                                                                                                                           <* 
+    *> FILE       *f;                                                                                                                                                            <* 
+    *> char        x_name      [LEN_HUND]  = "";                                                                                                                                 <* 
+    *> char        x_recd      [LEN_RECD]  = "";                                                                                                                                 <* 
+    *> int         c           =    0;                                                                                                                                           <* 
+    *> int         i           =    0;                                                                                                                                           <* 
+    *> int         l           =    0;                                                                                                                                           <* 
+    *> char       *p           = NULL;                                                                                                                                           <* 
+    *> char       *r           = NULL;                                                                                                                                           <* 
+    *> long        x_full      =    0;                                                                                                                                           <* 
+    *> long        x_rss       =    0;                                                                                                                                           <* 
+    *> long        x_pvt       =    0;                                                                                                                                           <* 
+    *> long        x_empty     =    0;                                                                                                                                           <* 
+    *> char        x_perm      [LEN_TERSE] = "";                                                                                                                                 <* 
+    *> char        x_part      =  '-';                                                                                                                                           <* 
+    *> int         n           =    1;                                                                                                                                           <* 
+    *> int         x_line      =    0;                                                                                                                                           <* 
+    *> /+---(header)------------------------+/                                                                                                                                   <* 
+    *> DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);                                                                                                                                 <* 
+    *> /+---(defaults)----------------------+/                                                                                                                                   <* 
+    *> if (a_max   != NULL)  *a_max   = 0;                                                                                                                                       <* 
+    *> if (a_base  != NULL)  *a_base  = 0;                                                                                                                                       <* 
+    *> if (a_min   != NULL)  *a_min   = 0;                                                                                                                                       <* 
+    *> if (a_text  != NULL)  *a_text  = 0;                                                                                                                                       <* 
+    *> if (a_data  != NULL)  *a_data  = 0;                                                                                                                                       <* 
+    *> if (a_heap  != NULL)  *a_heap  = 0;                                                                                                                                       <* 
+    *> if (a_stack != NULL)  *a_stack = 0;                                                                                                                                       <* 
+    *> if (a_kern  != NULL)  *a_kern  = 0;                                                                                                                                       <* 
+    *> if (a_libs  != NULL)  *a_libs  = 0;                                                                                                                                       <* 
+    *> if (a_empty != NULL)  *a_empty = 0;                                                                                                                                       <* 
+    *> /+---(open proc)----------------------+/                                                                                                                                  <* 
+    *> sprintf (x_name, "/proc/%d/smaps", a_rpid);                                                                                                                               <* 
+    *> f = fopen (x_name, "rt");                                                                                                                                                 <* 
+    *> DEBUG_YEXEC  yLOG_spoint  (f);                                                                                                                                            <* 
+    *> --rce;  if (f == NULL) {                                                                                                                                                  <* 
+    *>    DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);                                                                                                                         <* 
+    *>    return rce;                                                                                                                                                            <* 
+    *> }                                                                                                                                                                         <* 
+    *> /+---(read stanza)-----------------+/                                                                                                                                     <* 
+    *> while (1) {                                                                                                                                                               <* 
+    *>    /+> if (c % 5 == 0)  printf ("\nline    --full-  --rss--    p  --max--  --base-  --min--  --text-  --data-  -stack-  --heap-  --kern-  --libs-    -empty-\n");   <+/   <* 
+    *>    x_line = n;                                                                                                                                                            <* 
+    *>    for (i = 0; i < 16; ++i) {                                                                                                                                             <* 
+    *>       fgets (x_recd, LEN_RECD, f);                                                                                                                                        <* 
+    *>       if (feof (f))  break;                                                                                                                                               <* 
+    *>       l = strlen (x_recd);                                                                                                                                                <* 
+    *>       if (l > 0 && x_recd [l - 1] == '\n')  x_recd [--l] = '\0';                                                                                                          <* 
+    *>       ++n;                                                                                                                                                                <* 
+    *>       /+> printf ("%2d, %s\n", i, x_recd);                                         <+/                                                                                    <* 
+    *>       p = strtok_r (x_recd, " \t", &r);                                                                                                                                   <* 
+    *>       if (p == NULL) break;                                                                                                                                               <* 
+    *>       p = strtok_r (NULL  , " \t", &r);                                                                                                                                   <* 
+    *>       if (p == NULL) break;                                                                                                                                               <* 
+    *>       switch (i) {                                                                                                                                                        <* 
+    *>       case  0 : /+ permissions +/                                                                                                                                         <* 
+    *>          /+---(save perms)------------+/                                                                                                                                  <* 
+    *>          ystrlcpy (x_perm, p, LEN_TERSE);                                                                                                                                 <* 
+    *>          /+---(get prog/lib)----------+/                                                                                                                                  <* 
+    *>          p = strtok_r (NULL  , " \t", &r);                                                                                                                                <* 
+    *>          p = strtok_r (NULL  , " \t", &r);                                                                                                                                <* 
+    *>          p = strtok_r (NULL  , " \t", &r);                                                                                                                                <* 
+    *>          p = strtok_r (NULL  , " \t", &r);                                                                                                                                <* 
+    *>          /+---(assign prog/lib)-------+/                                                                                                                                  <* 
+    *>          /+> if (p != NULL)  ystrltrim (p, ySTR_BOTH, LEN_RECD);                    <*                                                                                    <* 
+    *>           *> printf ("%2då%sæ\n", strlen (p), p);                                  <+/                                                                                    <* 
+    *>          x_part = 'd';                                                                                                                                                    <* 
+    *>          /+---(executables)-----------+/                                                                                                                                  <* 
+    *>          if (strncmp (x_perm, "r-x"   , 3) == 0) {                                                                                                                        <* 
+    *>             if (c < 3)                                             x_part = 't';                                                                                          <* 
+    *>             else if (p != NULL && strcmp  (p, "[vsyscall]") == 0)  x_part = 'k';                                                                                          <* 
+    *>             else if (p != NULL && strcmp  (p, "[vdso]"    ) == 0)  x_part = 'k';                                                                                          <* 
+    *>             else                                                   x_part = '-';                                                                                          <* 
+    *>          }                                                                                                                                                                <* 
+    *>          /+---(data segments)---------+/                                                                                                                                  <* 
+    *>          else if (c < 3 || p == NULL || strcmp  (p, "") == 0) {                                                                                                           <* 
+    *>             if      (strncmp (x_perm, "r--", 3)  == 0)  x_part = 'd';                                                                                                     <* 
+    *>             else if (strncmp (x_perm, "rw-", 3)  == 0)  x_part = 'd';                                                                                                     <* 
+    *>             else                                        x_part = 'o';                                                                                                     <* 
+    *>          }                                                                                                                                                                <* 
+    *>          /+---(kernel stuff)----------+/                                                                                                                                  <* 
+    *>          else if (strcmp  (p, "[vvar]"    ) == 0)       x_part = 'k';                                                                                                     <* 
+    *>          else if (strcmp  (p, "[heap]"    ) == 0)       x_part = 'h';                                                                                                     <* 
+    *>          else if (strcmp  (p, "[stack]"   ) == 0)       x_part = 's';                                                                                                     <* 
+    *>          /+---(library data)----------+/                                                                                                                                  <* 
+    *>          else {                                                                                                                                                           <* 
+    *>             if      (strncmp (x_perm, "r--", 3)  == 0)  x_part = 'l';                                                                                                     <* 
+    *>             else if (strncmp (x_perm, "rw-", 3)  == 0)  x_part = 'l';                                                                                                     <* 
+    *>             else                                        x_part = 'o';                                                                                                     <* 
+    *>          }                                                                                                                                                                <* 
+    *>          /+---(assign segment)--------+/                                                                                                                                  <* 
+    *>          break;                                                                                                                                                           <* 
+    *>       case  1 : /+ rss           +/                                                                                                                                       <* 
+    *>          x_full  = atol (p);                                                                                                                                              <* 
+    *>          break;                                                                                                                                                           <* 
+    *>       case  2 : /+ rss           +/                                                                                                                                       <* 
+    *>          x_rss   = atol (p);                                                                                                                                              <* 
+    *>          x_empty = x_full - x_rss;                                                                                                                                        <* 
+    *>          if (x_empty < 0)  x_empty = 0;                                                                                                                                   <* 
+    *>          break;                                                                                                                                                           <* 
+    *>       case  6 : /+ private clean +/                                                                                                                                       <* 
+    *>          x_pvt   = atol (p);                                                                                                                                              <* 
+    *>          break;                                                                                                                                                           <* 
+    *>       case  7 : /+ private dirty +/                                                                                                                                       <* 
+    *>          x_pvt  += atol (p);                                                                                                                                              <* 
+    *>          break;                                                                                                                                                           <* 
+    *>       case 15 :                                                                                                                                                           <* 
+    *>          switch (x_part) {                                                                                                                                                <* 
+    *>          case 't' :                                                                                                                                                       <* 
+    *>             if (a_max   != NULL)  *a_max   += x_full;                                                                                                                     <* 
+    *>             if (a_base  != NULL)  *a_base  += x_full;                                                                                                                     <* 
+    *>             if (a_text  != NULL)  *a_text  += x_full;                                                                                                                     <* 
+    *>             break;                                                                                                                                                        <* 
+    *>          case 'd' :                                                                                                                                                       <* 
+    *>             if (a_max   != NULL)  *a_max   += x_pvt;                                                                                                                      <* 
+    *>             if (a_base  != NULL)  *a_base  += x_pvt;                                                                                                                      <* 
+    *>             if (a_data  != NULL)  *a_data  += x_pvt;                                                                                                                      <* 
+    *>             if (a_empty != NULL)  *a_empty += x_full - x_pvt;                                                                                                             <* 
+    *>             break;                                                                                                                                                        <* 
+    *>          case 'h' :                                                                                                                                                       <* 
+    *>             if (a_max   != NULL)  *a_max   += x_rss;                                                                                                                      <* 
+    *>             if (a_base  != NULL)  *a_base  += x_rss;                                                                                                                      <* 
+    *>             if (a_heap  != NULL)  *a_heap  += x_rss;                                                                                                                      <* 
+    *>             if (a_empty != NULL)  *a_empty += x_empty;                                                                                                                    <* 
+    *>             break;                                                                                                                                                        <* 
+    *>          case 's' :                                                                                                                                                       <* 
+    *>             if (a_max   != NULL)  *a_max   += x_rss;                                                                                                                      <* 
+    *>             if (a_base  != NULL)  *a_base  += x_rss;                                                                                                                      <* 
+    *>             if (a_stack != NULL)  *a_stack += x_rss;                                                                                                                      <* 
+    *>             if (a_empty != NULL)  *a_empty += x_empty;                                                                                                                    <* 
+    *>             break;                                                                                                                                                        <* 
+    *>          case 'k' : /+ mapped kernel space +/                                                                                                                             <* 
+    *>             if (a_max   != NULL)  *a_max   += x_full;                                                                                                                     <* 
+    *>             if (a_base  != NULL)  *a_base  += x_full;                                                                                                                     <* 
+    *>             if (a_kern  != NULL)  *a_kern  += x_full;                                                                                                                     <* 
+    *>             break;                                                                                                                                                        <* 
+    *>          case 'o' :                                                                                                                                                       <* 
+    *>             if (a_max   != NULL)  *a_max   += x_full;                                                                                                                     <* 
+    *>             if (a_empty != NULL)  *a_empty += x_full;                                                                                                                     <* 
+    *>             x_empty = 0;                                                                                                                                                  <* 
+    *>             break;                                                                                                                                                        <* 
+    *>          case 'l' :                                                                                                                                                       <* 
+    *>             if (a_max   != NULL)  *a_max   += x_pvt;                                                                                                                      <* 
+    *>             if (a_base  != NULL)  *a_base  += x_pvt;                                                                                                                      <* 
+    *>             if (a_libs  != NULL)  *a_libs  += x_pvt;                                                                                                                      <* 
+    *>             if (a_empty != NULL)  *a_empty += x_full - x_pvt;                                                                                                             <* 
+    *>             break;                                                                                                                                                        <* 
+    *>          }                                                                                                                                                                <* 
+    *>          /+> printf ("%4d    %7ld  %7ld    %c  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld  %7ld    %7ld\n",   <*                                                      <* 
+    *>           *>       x_line, x_full, x_rss, x_part,                                                                 <*                                                      <* 
+    *>           *>       *a_max, *a_base, *a_min, *a_text, *a_data, *a_stack,                                           <*                                                      <* 
+    *>           *>       *a_heap, *a_kern, *a_libs, *a_empty);                                                          <+/                                                     <* 
+    *>          break;                                                                                                                                                           <* 
+    *>       }                                                                                                                                                                   <* 
+    *>    }                                                                                                                                                                      <* 
+    *>    if (feof (f))  break;                                                                                                                                                  <* 
+    *>    ++c;                                                                                                                                                                   <* 
+    *> }                                                                                                                                                                         <* 
+    *> /+---(close file)--------------------+/                                                                                                                                   <* 
+    *> rc = fclose (f);                                                                                                                                                          <* 
+    *> DEBUG_YEXEC  yLOG_sint    (rc);                                                                                                                                           <* 
+    *> --rce;  if (f <  0) {                                                                                                                                                     <* 
+    *>    DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);                                                                                                                         <* 
+    *>    return rce;                                                                                                                                                            <* 
+    *> }                                                                                                                                                                         <* 
+    *> /+---(complete)----------------------+/                                                                                                                                   <* 
+    *> DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);                                                                                                                                 <* 
+    *> return 0;                                                                                                                                                                 <*/
 }
 
 char
 yexec_mon__mem          (tPROC *a_proc)
 {
-   char        rce         =  -10;
-   char        rc          =    0;
-   --rce;  if (a_proc == NULL)  return rce;
-   rc = yexec_mon__mem_detail (a_proc->rpid, &(a_proc->m_max), &(a_proc->m_base), &(a_proc->m_min), &(a_proc->m_text), &(a_proc->m_data), &(a_proc->m_heap), &(a_proc->m_stack), &(a_proc->m_kern), &(a_proc->m_libs), &(a_proc->m_other));
-   return rc;
+   /*> char        rce         =  -10;                                                                                                                                                                                                            <* 
+    *> char        rc          =    0;                                                                                                                                                                                                            <* 
+    *> --rce;  if (a_proc == NULL)  return rce;                                                                                                                                                                                                   <* 
+    *> rc = yexec_mon__mem_detail (a_proc->rpid, &(a_proc->m_max), &(a_proc->m_base), &(a_proc->m_min), &(a_proc->m_text), &(a_proc->m_data), &(a_proc->m_heap), &(a_proc->m_stack), &(a_proc->m_kern), &(a_proc->m_libs), &(a_proc->m_other));   <* 
+    *> return rc;                                                                                                                                                                                                                                 <*/
 }
 
 char         /*--> review and act on global crontabs -------------------------*/
 yexec_mon__review       (void)
 {
-   /*---(locals)-----------+-----+-----+-*/
-   char        rce         =  -10;
-   int         rc          =    0;
-   DIR        *x_dir       = NULL;
-   tDIRENT    *x_file      = NULL;
-   int         x_rpid      =    0;
-   tPROC      *x_new       = NULL;
-   int         x_total     =    0;
-   int         x_count     =    0;
-   int         x_pass      =    0;
-   char        x_prefix    [LEN_USER]  = "";
-   char        x_central   [LEN_PATH]  = "";
-   /*---(header)-------------------------*/
-   DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);
-   /*---(defense)------------------------*/
-   x_dir = opendir ("/proc");
-   DEBUG_YEXEC   yLOG_point   ("x_dir"     , x_dir);
-   --rce;  if (x_dir == NULL) {
-      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-      return rce;
-   }
-   /*---(walk files)---------------------*/
-   DEBUG_YEXEC   yLOG_note    ("walk through processes");
-   while ((x_file = readdir (x_dir)) != NULL) {
-      /*---(simple filtering)-------------------*/
-      if (rc != 0)  ++x_total;
-      if (strchr (YSTR_NUMBER, x_file->d_name [0]) == NULL) {
-         DEBUG_YEXEC   yLOG_note    ("not leading number");
-         continue;
-      }
-      x_rpid = atoi (x_file->d_name);
-      DEBUG_YEXEC   yLOG_value   ("x_rpid"    , x_rpid);
-      if (x_rpid <= 0) {
-         DEBUG_YEXEC   yLOG_note    ("not a process entry");
-         continue;
-      }
-      /*---(create)----------------------*/
-      x_new = NULL;
-      rc = yexec_mon__hook_proc (&x_new, x_rpid);
-      if (rc < 0) {
-         DEBUG_YEXEC   yLOG_note    ("can not add process");
-         continue;
-      }
-      /*---(gather)----------------------*/
-      rc = yexec_mon__cpu (x_new);
-      rc = yexec_mon__mem (x_new);
-      /*---(summary)---------------------*/
-      if (x_count % 5 == 0)  printf ("\n#rpid  ---name--------- -ppid l   s -utime- -stime- sn   --text- --data-   --heap- -stack-\n");
-      /*> printf ("%5d  %-16.16s %5d %c   %c %7ld %7ld %2d   %7ld %7ld   %7ld %7ld\n",   <* 
-       *>       x_new->rpid, x_new->name, x_new->ppid, x_new->land,                      <* 
-       *>       x_new->c_state, x_new->c_utime, x_new->c_stime, x_new->c_snice,          <* 
-       *>       x_new->m_text , x_new->m_data , x_new->m_heap , x_new->m_stack);         <*/
-      /*> printf ("%s\n",                                                             <* 
-       *>       x_file->d_name);                                                      <*/
-      /*---(total)-----------------------*/
-      ++x_count;
-      if (rc >= 0)  ++x_pass;
-      DEBUG_YEXEC   yLOG_complex ("counts"    , "%d total, %d count, %d pass", x_total, x_count, x_pass);
-      /*---(done)------------------------*/
-   }
-   /*---(summary)------------------------*/
-   DEBUG_YEXEC   yLOG_value   ("found"     , x_total);
-   DEBUG_YEXEC   yLOG_value   ("processed" , x_count);
-   DEBUG_YEXEC   yLOG_value   ("passed"    , x_pass);
-   /*---(close)--------------------------*/
-   rc = closedir (x_dir);
-   DEBUG_YEXEC   yLOG_point   ("close"     , rc);
-   --rce;  if (rc < 0) {
-      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
-      return rce;
-   }
-   /*---(complete)-----------------------*/
-   DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);
-   return rc;
+   /*> /+---(locals)-----------+-----+-----+-+/                                                                                               <* 
+    *> char        rce         =  -10;                                                                                                        <* 
+    *> int         rc          =    0;                                                                                                        <* 
+    *> DIR        *x_dir       = NULL;                                                                                                        <* 
+    *> tDIRENT    *x_file      = NULL;                                                                                                        <* 
+    *> int         x_rpid      =    0;                                                                                                        <* 
+    *> tPROC      *x_new       = NULL;                                                                                                        <* 
+    *> int         x_total     =    0;                                                                                                        <* 
+    *> int         x_count     =    0;                                                                                                        <* 
+    *> int         x_pass      =    0;                                                                                                        <* 
+    *> char        x_prefix    [LEN_USER]  = "";                                                                                              <* 
+    *> char        x_central   [LEN_PATH]  = "";                                                                                              <* 
+    *> /+---(header)-------------------------+/                                                                                               <* 
+    *> DEBUG_YEXEC   yLOG_enter   (__FUNCTION__);                                                                                             <* 
+    *> /+---(defense)------------------------+/                                                                                               <* 
+    *> x_dir = opendir ("/proc");                                                                                                             <* 
+    *> DEBUG_YEXEC   yLOG_point   ("x_dir"     , x_dir);                                                                                      <* 
+    *> --rce;  if (x_dir == NULL) {                                                                                                           <* 
+    *>    DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);                                                                                     <* 
+    *>    return rce;                                                                                                                         <* 
+    *> }                                                                                                                                      <* 
+    *> /+---(walk files)---------------------+/                                                                                               <* 
+    *> DEBUG_YEXEC   yLOG_note    ("walk through processes");                                                                                 <* 
+    *> while ((x_file = readdir (x_dir)) != NULL) {                                                                                           <* 
+    *>    /+---(simple filtering)-------------------+/                                                                                        <* 
+    *>    if (rc != 0)  ++x_total;                                                                                                            <* 
+    *>    if (strchr (YSTR_NUMBER, x_file->d_name [0]) == NULL) {                                                                             <* 
+    *>       DEBUG_YEXEC   yLOG_note    ("not leading number");                                                                               <* 
+    *>       continue;                                                                                                                        <* 
+    *>    }                                                                                                                                   <* 
+    *>    x_rpid = atoi (x_file->d_name);                                                                                                     <* 
+    *>    DEBUG_YEXEC   yLOG_value   ("x_rpid"    , x_rpid);                                                                                  <* 
+    *>    if (x_rpid <= 0) {                                                                                                                  <* 
+    *>       DEBUG_YEXEC   yLOG_note    ("not a process entry");                                                                              <* 
+    *>       continue;                                                                                                                        <* 
+    *>    }                                                                                                                                   <* 
+    *>    /+---(create)----------------------+/                                                                                               <* 
+    *>    x_new = NULL;                                                                                                                       <* 
+    *>    rc = yexec_mon__hook_proc (&x_new, x_rpid);                                                                                         <* 
+    *>    if (rc < 0) {                                                                                                                       <* 
+    *>       DEBUG_YEXEC   yLOG_note    ("can not add process");                                                                              <* 
+    *>       continue;                                                                                                                        <* 
+    *>    }                                                                                                                                   <* 
+    *>    /+---(gather)----------------------+/                                                                                               <* 
+    *>    rc = yexec_mon__cpu (x_new);                                                                                                        <* 
+    *>    rc = yexec_mon__mem (x_new);                                                                                                        <* 
+    *>    /+---(summary)---------------------+/                                                                                               <* 
+    *>    if (x_count % 5 == 0)  printf ("\n#rpid  ---name--------- -ppid l   s -utime- -stime- sn   --text- --data-   --heap- -stack-\n");   <* 
+    *>    /+> printf ("%5d  %-16.16s %5d %c   %c %7ld %7ld %2d   %7ld %7ld   %7ld %7ld\n",   <*                                               <* 
+    *>     *>       x_new->rpid, x_new->name, x_new->ppid, x_new->land,                      <*                                               <* 
+    *>     *>       x_new->c_state, x_new->c_utime, x_new->c_stime, x_new->c_snice,          <*                                               <* 
+    *>     *>       x_new->m_text , x_new->m_data , x_new->m_heap , x_new->m_stack);         <+/                                              <* 
+    *>    /+> printf ("%s\n",                                                             <*                                                  <* 
+    *>     *>       x_file->d_name);                                                      <+/                                                 <* 
+    *>    /+---(total)-----------------------+/                                                                                               <* 
+    *>    ++x_count;                                                                                                                          <* 
+    *>    if (rc >= 0)  ++x_pass;                                                                                                             <* 
+    *>    DEBUG_YEXEC   yLOG_complex ("counts"    , "%d total, %d count, %d pass", x_total, x_count, x_pass);                                 <* 
+    *>    /+---(done)------------------------+/                                                                                               <* 
+    *> }                                                                                                                                      <* 
+    *> /+---(summary)------------------------+/                                                                                               <* 
+    *> DEBUG_YEXEC   yLOG_value   ("found"     , x_total);                                                                                    <* 
+    *> DEBUG_YEXEC   yLOG_value   ("processed" , x_count);                                                                                    <* 
+    *> DEBUG_YEXEC   yLOG_value   ("passed"    , x_pass);                                                                                     <* 
+    *> /+---(close)--------------------------+/                                                                                               <* 
+    *> rc = closedir (x_dir);                                                                                                                 <* 
+    *> DEBUG_YEXEC   yLOG_point   ("close"     , rc);                                                                                         <* 
+    *> --rce;  if (rc < 0) {                                                                                                                  <* 
+    *>    DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);                                                                                     <* 
+    *>    return rce;                                                                                                                         <* 
+    *> }                                                                                                                                      <* 
+    *> /+---(complete)-----------------------+/                                                                                               <* 
+    *> DEBUG_YEXEC   yLOG_exit    (__FUNCTION__);                                                                                             <* 
+    *> return rc;                                                                                                                             <*/
 }
 
 

@@ -605,7 +605,7 @@ int
 yEXEC_quick        (char *a_cmd)
 {
    char        x_user      [LEN_LABEL] = "";
-   yEXEC_whoami (NULL, NULL, NULL, NULL, x_user, NULL);
+   yEXEC_whoami (NULL, NULL, NULL, NULL, NULL, x_user, NULL, NULL, NULL, NULL);
    return yEXEC_full ("quick", x_user, a_cmd, YEXEC_DASH, YEXEC_FULL, YEXEC_FORK, YEXEC_UNIT);
 }
 
@@ -873,7 +873,7 @@ yEXEC_detail            (char a_rc, int a_rc2, char *a_desc)
 }
 
 char             /* [------] find a running job by name ----------------------*/
-yexec_duplicate         (char a_name [LEN_TITLE], int a_mypid, int *r_rpid)
+yexec_duplicate         (char *a_func, char a_name [LEN_TITLE], int a_mypid, int *r_rpid)
 {
    /*---(locals)-----------+-----+-----+-*/
    int         rce         =  -10;
@@ -895,24 +895,24 @@ yexec_duplicate         (char a_name [LEN_TITLE], int a_mypid, int *r_rpid)
    int         l           =    0;
    char        x_status    =  '-';
    /*---(output header)-----------------*/
-   DEBUG_YEXEC  yLOG_senter  (__FUNCTION__);
-   DEBUG_YEXEC  yLOG_sint    (a_mypid);
+   DEBUG_YEXEC  yLOG_enter   (a_func);
+   DEBUG_YEXEC  yLOG_value   ("a_mypid"   , a_mypid);
    /*---(default)------------------------*/
    if (r_rpid != NULL)  *r_rpid = -1;
    /*---(defense)-----------------------*/
-   DEBUG_YEXEC  yLOG_spoint  (a_name);
+   DEBUG_YEXEC  yLOG_point   ("a_name"    , a_name);
    --rce;  if (a_name == NULL) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC  yLOG_exitr   (a_func, rce);
       return rce;
    }
-   DEBUG_YEXEC  yLOG_snote   (a_name);
+   DEBUG_YEXEC  yLOG_note    (a_name);
    x_len = strlen (a_name);
-   DEBUG_YEXEC  yLOG_sint    (x_len);
+   DEBUG_YEXEC  yLOG_value   ("x_len"     , x_len);
    /*---(open the proc system)-----------*/
    x_dir = opendir("/proc");
-   DEBUG_YEXEC  yLOG_spoint  (x_dir);
+   DEBUG_YEXEC  yLOG_point   ("x_dir"     , x_dir);
    --rce;  if (x_dir == NULL) {
-      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      DEBUG_YEXEC  yLOG_exitr   (a_func, rce);
       return rce;
    }
    /*---(cycle through the entries)------*/
@@ -921,7 +921,7 @@ yexec_duplicate         (char a_name [LEN_TITLE], int a_mypid, int *r_rpid)
       x_pid  =  atoi (x_den->d_name);
       if (x_pid  <= 0      )  continue;
       if (x_pid  == a_mypid) {
-         DEBUG_YEXEC  yLOG_snote   ("DUP");
+         DEBUG_YEXEC  yLOG_note    ("DUP");
          continue;
       }
       /*---(open and get record)---------*/
@@ -950,28 +950,28 @@ yexec_duplicate         (char a_name [LEN_TITLE], int a_mypid, int *r_rpid)
       l = strlen (x_save);
       if (x_save [l - 1] == '\n')  x_save [--l] = '\0';
       snprintf (t, 49, "%03d[%-40.40s]", l, x_save);
-      DEBUG_YEXEC  yLOG_snote   (t);
-      DEBUG_YEXEC  yLOG_schar   (x_status);
-      DEBUG_YEXEC  yLOG_sint    (c);
-      DEBUG_YEXEC  yLOG_snote   ("FOUND");
-      DEBUG_YEXEC  yLOG_sint    (x_rpid);
+      DEBUG_YEXEC  yLOG_note    (t);
+      DEBUG_YEXEC  yLOG_char    ("x_status"  , x_status);
+      DEBUG_YEXEC  yLOG_value   ("c"         , c);
+      DEBUG_YEXEC  yLOG_note    ("FOUND");
+      DEBUG_YEXEC  yLOG_value   ("x_rpid"    , x_rpid);
       if (x_rpid <= 0) {
          x_rpid =  atoi (x_den->d_name);
          if (r_rpid != NULL)  *r_rpid = x_rpid;
-         DEBUG_YEXEC  yLOG_sint    (x_rpid);
+         DEBUG_YEXEC  yLOG_value   ("x_rpid"    , x_rpid);
       }
       /*---(done)------------------------*/
    }
    closedir (x_dir);
-   DEBUG_YEXEC  yLOG_sint    (c);
-   DEBUG_YEXEC  yLOG_sexit   (__FUNCTION__);
+   DEBUG_YEXEC  yLOG_value   ("c"         , c);
+   DEBUG_YEXEC  yLOG_exit    (a_func);
    return c;
 }
 
 char
 yEXEC_find              (char a_name [LEN_LABEL], int *r_rpid)
 {
-   return yexec_duplicate (a_name, -1, r_rpid);
+   return yexec_duplicate (__FUNCTION__, a_name, -1, r_rpid);
 }
 
 char
@@ -981,11 +981,11 @@ yEXEC_duplicate         (char a_name [LEN_LABEL], int a_mypid, int *r_rpid)
    int         x_rpid      =    0;
    int         x_running   =    0;
    char        t           [LEN_TITLE] = "";
-   x_running += yexec_duplicate (a_name, a_mypid, &x_rpid);
+   x_running += yexec_duplicate (__FUNCTION__, a_name, a_mypid, &x_rpid);
    --rce;  if (x_running < 0)  return rce;
    snprintf (t, LEN_TITLE, "%s_debug", a_name);
-   if (x_rpid <= 0)   x_running += yexec_duplicate (t     , a_mypid, &x_rpid);
-   else               x_running += yexec_duplicate (t     , a_mypid, NULL   );
+   if (x_rpid <= 0)   x_running += yexec_duplicate (__FUNCTION__, t     , a_mypid, &x_rpid);
+   else               x_running += yexec_duplicate (__FUNCTION__, t     , a_mypid, NULL   );
    --rce;  if (x_running < 0)  return rce;
    if (r_rpid != NULL)  *r_rpid = x_rpid;
    return x_running;

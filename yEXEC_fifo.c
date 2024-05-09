@@ -46,7 +46,7 @@ yexec_fifo__verify      (char a_force, cchar a_name [LEN_PATH])
    /*---(need to create)-----------------*/
    --rce;  if (rc < 0) {
       /*---(create)----------------------*/
-      rc = mkfifo (a_name, 0600);
+      rc = mkfifo (a_name, 0666);
       DEBUG_YEXEC  yLOG_value   ("mkfifo"    , rc);
       --rce;  if (rc < 0) {
          DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
@@ -177,7 +177,7 @@ yexec_fifo__listener    (cchar a_recd [LEN_RECD])
 }
 
 char
-yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callback)
+yEXEC_fifo_listen_OLD   (char a_persist, cchar a_name [LEN_PATH], void *f_callback)
 {
    /*---(locals)-----------+-----+-----+-*/
    char        rce         =  -10;
@@ -197,7 +197,7 @@ yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callba
    }
    x_callback = f_callback;
    /*---(verify fifo each time)----------*/
-   rc = yexec_fifo__verify ('y', a_name);
+   rc = yexec_fifo__verify ('-', a_name);
    DEBUG_YEXEC  yLOG_value   ("verify"    , rc);
    --rce;  if (rc < 0) {
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
@@ -255,6 +255,73 @@ yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callba
    return c;
 }
 
+int
+yEXEC_fifo_listen       (char a_name [LEN_HUND], char r_recd [LEN_RECD])
+{
+   /*---(locals)-----------+-----+-----+-*/
+   char        rce         =  -10;
+   int         rc          =    0;
+   int         x_fd        =   -1;
+   int         x_rc        =    0;
+   char        x_ch        =  ' ';
+   int         c           =    0;
+   int         l           =    0;
+   /*---(header)-------------------------*/
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   /*---(defense)------------------------*/
+   DEBUG_YEXEC  yLOG_point   ("a_name"    , a_name);
+   --rce;  if (a_name == NULL) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_point   ("r_recd"    , r_recd);
+   --rce;  if (r_recd == NULL) {
+      DEBUG_YEXEC   yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(verify fifo each time)----------*/
+   rc = yexec_fifo__verify ('-', a_name);
+   DEBUG_YEXEC  yLOG_value   ("verify"    , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(open fifo)----------------------*/
+   x_fd = open (a_name, O_RDWR | O_NONBLOCK | O_ASYNC);
+   /*> x_fd = open (a_name, O_RDONLY | O_NONBLOCK | O_ASYNC);                         <*/
+   DEBUG_YEXEC   yLOG_value   ("x_fd"     , x_fd);
+   --rce;  if (x_fd < 0) {
+      DEBUG_YEXEC  yLOG_sexitr  (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(prepare)------------------------*/
+   ystrlcpy (r_recd, "", LEN_RECD);
+   rc = read (s_fd, x_ch, 1);
+   DEBUG_YEXEC  yLOG_complex ("read"      , "%2dc, %4drc, %3d, %c", c, x_rc, r_recd [c], ychrvisible (r_recd [c]));
+   /*---(handle characters)--------------*/
+   while (rc == 1) {
+      /*---(filter)----------------------*/
+      if (x_ch == '\n')  break;
+      /*---(handle)----------------------*/
+      r_recd [c]   = x_ch;
+      r_recd [++c] = '\0';
+      /*---(next)------------------------*/
+      rc = read (s_fd, x_ch, 1);
+      DEBUG_YEXEC  yLOG_complex ("read"      , "%2dc, %4drc, %3d, %c", c, x_rc, r_recd [c], ychrvisible (r_recd [c]));
+      /*---(done)------------------------*/
+   }
+   /*---(close file)---------------------*/
+   rc = close (x_fd);
+   DEBUG_YEXEC  yLOG_value   ("close"     , rc);
+   --rce;  if (rc < 0) {
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   /*---(complete)-----------------------*/
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return c;
+}
+
 char
 yEXEC_fifo_destroy      (cchar a_name [LEN_PATH])
 {
@@ -301,6 +368,7 @@ yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD])
    char        x_recd      [LEN_RECD];
    int         l           =    0;
    int         c           =    0;
+   FILE       *f           = NULL;
    /*---(header)-------------------------*/
    DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
    /*---(defense)------------------------*/
@@ -311,15 +379,17 @@ yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD])
    }
    DEBUG_YEXEC   yLOG_info    ("a_name"    , a_name);
    /*---(verify fifo)--------------------*/
-   rc = yexec_fifo__verify ('y', a_name);
+   rc = yexec_fifo__verify ('-', a_name);
    DEBUG_YEXEC  yLOG_value   ("verify"    , rc);
    --rce;  if (rc < 0) {
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
    /*---(open fifo)----------------------*/
-   x_fd = open (a_name, O_WRONLY | O_NONBLOCK);
-   DEBUG_YEXEC  yLOG_value   ("open"      , x_fd);
+   x_fd = open (a_name, O_RDWR | O_NONBLOCK | O_ASYNC);
+   /*> x_fd = open (a_name, O_RDWR | O_NONBLOCK);                                     <*/
+   /*> x_fd = open (a_name, O_WRONLY | O_NONBLOCK | O_ASYNC);                         <*/
+   DEBUG_YEXEC  yLOG_value   ("x_fd"      , x_fd);
    --rce;  if (x_fd < 0) {
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
@@ -338,7 +408,7 @@ yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD])
       DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
       return 0;
    }
-   ++c;
+   c = l;
    /*---(open fifo)----------------------*/
    rc = close (x_fd);
    DEBUG_YEXEC  yLOG_value   ("close"     , rc);

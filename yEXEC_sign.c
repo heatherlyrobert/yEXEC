@@ -190,6 +190,18 @@ yEXEC__comm        (int a_signal, siginfo_t *a_info, void *a_nada)
    return;
 }
 
+char       /*lf--: PURPOSE : exit on termintation/signal ---------------------*/
+yEXEC_term         (const char *a_func, const int a_exit)
+{
+   /*---(log)----------------------------*//*===fat=beg===*/
+   if (strncmp(a_func, "", 1) != 0) DEBUG_YEXEC  yLOG_exit  (a_func);
+   DEBUG_YEXEC  yLOGS_end   ();
+   /*---(check for harsh exit)-----------*//*===fat=end===*/
+   if (a_exit > 0) exit(a_exit);
+   /*---(complete)-----------------------*/
+   return 0;
+}
+
 
 
 /*====================------------------------------------====================*/
@@ -318,95 +330,5 @@ char
 yEXEC_sigsoft           (void)
 {
    return yEXEC_signal (YEXEC_SOFT, YEXEC_YES, YEXEC_NO, NULL, NULL);
-}
-
-
-
-/*====================------------------------------------====================*/
-/*===----                       signal checking                        ----===*/
-/*====================------------------------------------====================*/
-static void      o___CHECK___________________o (void) {;}
-
-int
-yEXEC_file_verify       (char *a_name, int n, char *a_recd)
-{
-   char        rce         =  -10;
-   FILE       *f           = NULL;
-   char        t           [LEN_RECD]  = "";
-   int         c           =    0;
-   int         x_len       =    0;
-   /*---(defense)------------------------*/
-   --rce;  if (a_name == NULL)         return rce;
-   --rce;  if (strlen (a_name) <= 0)   return rce;
-   if (a_recd != NULL)  ystrlcpy (a_recd, "", LEN_RECD);
-   /*---(open file)----------------------*/
-   if      (strcmp (a_name, "stdsig") == 0)  f = fopen ("/tmp/signal.log"      , "rt");
-   else if (strcmp (a_name, "unit"  ) == 0)  f = fopen ("/tmp/signal_unit.log" , "rt");
-   else if (strcmp (a_name, "local" ) == 0)  f = fopen ("/tmp/signal_local.log", "rt");
-   else                                      f = fopen (a_name                 , "rt");
-   --rce;  if (f == NULL)              return rce;
-   /*---(read records)-------------------*/
-   while (1) {
-      fgets (t, LEN_RECD, f);
-      if (c != 0 && feof (f))  break;
-      /*> printf ("%2d[%s]\n", strlen (t), t);                                        <*/
-      if (n <  0 && a_recd != NULL)  ystrlcpy (a_recd, t, LEN_RECD);
-      if (c == n && a_recd != NULL)  ystrlcpy (a_recd, t, LEN_RECD);
-      ++c;
-      if (feof (f))  break;
-
-   }
-   if (c > 999)  c = 999;
-   /*---(clean record)-------------------*/
-   if (a_recd != NULL) {
-      x_len = strlen (a_recd);
-      if (x_len > 0 && a_recd [x_len - 1] == '\n')  a_recd [--x_len] = '\0';
-   }
-   /*---(close file)---------------------*/
-   fclose (f);
-   /*---(complete)-----------------------*/
-   return c;
-}
-
-
-
-/*====================------------------------------------====================*/
-/*===----                      unit test accessor                      ----===*/
-/*====================------------------------------------====================*/
-static void      o___UNITTEST________________o (void) {;}
-
-char*            /*--> unit test accessor ------------------------------*/
-yexec_sign__unit        (char *a_question, int n)
-{ 
-   /*---(locals)-----------+-----+-----+-*/
-   char        rce         =  -10;
-   int         rc          =    0;
-   char        t           [LEN_RECD]  = "";
-   int         c           =    0;
-   /*---(prepare)------------------------*/
-   ystrlcpy  (unit_answer, "SIGN             : question not understood", LEN_RECD);
-   /*---(crontab name)-------------------*/
-   if      (strcmp (a_question, "signal"        )  == 0) {
-      yEXEC_file_verify ("stdsig", n, t);
-      snprintf (unit_answer, LEN_RECD, "SIGN signal (%2d) : %3d  %2d[%.70s]", n, c, strlen (t), t);
-   }
-   else if (strcmp (a_question, "unit"          )  == 0) {
-      c = yEXEC_file_verify ("unit", n, t);
-      snprintf (unit_answer, LEN_RECD, "SIGN unit   (%2d) : %3d  %2d[%.70s]", n, c, strlen (t), t);
-   }
-   else if (strcmp (a_question, "local"         )  == 0) {
-      c = yEXEC_file_verify ("local", n, t);
-      snprintf (unit_answer, LEN_RECD, "SIGN local  (%2d) : %3d  %2d[%.70s]", n, c, strlen (t), t);
-   }
-   else if (strcmp (a_question, "ticker"        )  == 0) {
-      c = yEXEC_file_verify ("/tmp/unit_ticker.txt", 0, t);
-      snprintf (unit_answer, LEN_RECD, "SIGN ticker      : %3d  %2d[%.70s]", c, strlen (t), t);
-   }
-   else if (strcmp (a_question, "settings"      )  == 0) {
-      c = yEXEC_file_verify ("local", n, t);
-      snprintf (unit_answer, LEN_RECD, "SIGN settings    : tough  %c, inter  %c, child  %c, handle %-10p, output %s", s_tough, s_inter, s_child, s_signaler, s_output);
-   }
-   /*---(complete)-----------------------*/
-   return unit_answer;
 }
 

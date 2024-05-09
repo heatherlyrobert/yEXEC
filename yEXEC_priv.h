@@ -39,8 +39,8 @@
 /*········· ··········· ´·····························´········································*/
 #define     P_VERMAJOR  "1.--, improvements for next generation tools"
 #define     P_VERMINOR  "1.3-, supporting charybdis and scripting"
-#define     P_VERNUM    "1.3c"
-#define     P_VERTXT    "made process data collection more bullet-proof, resilient"
+#define     P_VERNUM    "1.3e"
+#define     P_VERTXT    "cleaned up and unit test updated"
 /*········· ··········· ´·····························´········································*/
 #define     P_PRIORITY  "direct, simple, brief, vigorous, and lucid (h.w. fowler)"
 #define     P_PRINCIPAL "[grow a set] and build your wings on the way down (r. bradbury)"
@@ -97,12 +97,19 @@
 
 /*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
 typedef struct passwd    tPASSWD;
+typedef struct group     tGROUP;
 typedef struct tm        tTIME;
 typedef struct dirent    tDIRENT;
 typedef struct sigaction tSIGACT;
 typedef struct stat      tSTAT;
 typedef struct termios   tTERMIOS;
 typedef struct rusage    tRUSE;
+
+
+#define  YEXEC_STDSIG   "/tmp/signal.log"
+#define  YEXEC_UNIT     "/tmp/signal_unit.log"
+#define  YEXEC_LOCAL    "/tmp/signal_local.log"
+
 
 
 #define     SIMPLIFIER     /**/
@@ -130,7 +137,7 @@ extern char   g_runmode;
 extern char   g_runfile     [LEN_PATH];
 extern char   g_norun;
 extern char   s_terse     [LEN_HUND];
-extern char   s_fancy     [LEN_RECD];
+extern char   s_fancy     [LEN_FULL];
 
 typedef struct cEXEC tEXEC;
 typedef struct cPROC tPROC;
@@ -245,11 +252,11 @@ char        yexec_fifo__open        (cchar a_name [LEN_PATH]);
 char        yexec_fifo__close       (void);
 char        yEXEC_fifo_nolisten     (void);
 char        yexec_fifo__listener    (cchar a_recd [LEN_RECD]);
-char        yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callback);
 char        yEXEC_fifo_destroy      (cchar a_name [LEN_PATH]);
 char        yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD]);
 
 
+char        yexec_heart_reset       (void);
 
 #endif
 /*============================----end-of-source---============================*/

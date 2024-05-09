@@ -131,8 +131,50 @@ typedef struct spwd      tSHADOW;
 
 
 
-/*345678901-12345678901-12345678901-12345678901-12345678901-12345678901-123456*/
+/*===[[ yEXEC_data.c ]]=======================================================*/
+/*········· ´······················ ´·········································*/
+/*---(process)--------------*/
+char        yEXEC_proc_data         (short a_rpid, char *r_public, char *r_cmdline, char *r_state, int *r_ppid);
+/*---(eterm)----------------*/
+char        yEXEC_proc_eterm        (short a_rpid, int *r_uid, char *r_home, char *r_pwd, char *r_cabbr, char *r_cname, char *r_stype, char *r_shex, char *r_rows, char *r_cols);
+char        yEXEC_find_my_eterm     (short a_rpid, int *a_eterm);
+char        yEXEC_find_eterm_use    (short a_rpid, char *a_lvl, int *a_lowest, char a_pubname [LEN_LABEL], char a_cmdline [LEN_RECD]);
+char        yEXEC_data_filter       (short a_rpid, char *a_pubname, short a_ppid, void *f_callback);
+char        yEXEC_data_windows      (void *f_callback);
+/*---(done)-----------------*/
+
+
+
+/*===[[ yEXEC_fifo.c ]]=======================================================*/
+/*········· ´······················ ´·········································*/
+/*---(duration)-------------*/
+char        yEXEC_fifo_create       (cchar a_name [LEN_PATH]);
+int         yEXEC_fifo_listen       (char a_name [LEN_HUND], char r_recd [LEN_RECD]);
+char        yEXEC_fifo_nolisten     (void);
+char        yEXEC_fifo_destroy      (cchar a_name [LEN_PATH]);
+char        yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD]);
+/*---(done)-----------------*/
+
+
+
+/*===[[ yEXEC_flags.c ]]======================================================*/
+/*········· ´······················ ´·········································*/
+/*---(duration)-------------*/
+char        yEXEC_dur_in_sec        (char *a_text, int *a_dur);
+/*---(flags)----------------*/
+char        yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_rolling, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy);
+char        yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_rolling, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy, char *a_flex, char *a_throttle, char *a_cpu, char *a_disk, char *a_net);
+char        yEXEC_flags_feedback    (char a_terse [LEN_HUND], char a_fancy [LEN_FULL]);
+/*---(usage)----------------*/
+char        yEXEC_controls          (void);
+/*---(done)-----------------*/
+
+
+
+
 char*       yEXEC_version           (void);
+
+
 
 char        yEXEC_runable           (char *a_title, char *a_user, char  *a_cmd, char a_path);
 int         yEXEC_quick             (char *a_cmd);
@@ -148,47 +190,55 @@ char        yEXEC_duplicate         (char a_name [LEN_LABEL], int a_mypid, int *
 char        yEXEC_maxname           (int a_argc, char *a_argv [], int *a_max);
 char        yEXEC_rename            (char *a_mem, char *a_name, int a_max);
 
+
+
 char        yEXEC_cpu_main          (long *a_utime, long *a_stime, long *a_idle);
 char        yEXEC_cpu_proc          (int a_rpid, char a_cpu, char *a_state, long *a_utime, long *a_stime, char *a_snice);
 char        yEXEC_mem_proc          (int a_rpid, char a_mem, long *a_total, long *a_true, long *a_text, long *a_data, long *a_heap, long *a_stack, long *a_kern, long *a_libs, long *a_empty, char *a_flag);
 char        yEXEC_mem_proc_OLD      (int a_rpid, long *a_total, long *a_text, long *a_data, long *a_stack, long *a_heap, long *a_libs);
 
-char        yEXEC_dur_in_sec        (char *a_text, int *a_dur);
-char        yEXEC_flags             (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_rolling, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy);
-char        yEXEC_flags_more        (int a_dur, int a_floor, char *a_flags, char *a_value, char *a_track, char *a_rolling, char *a_strict, char *a_min, int *a_mindur, char *a_max, int *a_maxdur, char *a_remedy, char *a_flex, char *a_throttle, char *a_cpu, char *a_disk, char *a_net);
-char        yEXEC_flags_feedback    (char *a_terse, char *a_fancy);
-char        yEXEC_controls          (void);
 
 
+
+
+
+
+
+
+/*===[[ yEXEC_sign.c ]]=======================================================*/
+/*········· ´······················ ´·········································*/
+/*---(terminate)------------*/
 char        yEXEC_term              (const char *a_func, const int a_exit);
-
+/*---(setting)--------------*/
 char        yEXEC_signal            (char a_tough, char a_inter, char a_child, void *a_signaler, char *a_output);
 char        yEXEC_sighard           (void);
 char        yEXEC_sigsoft           (void);
-int         yEXEC_file_verify       (char *a_name, int n, char *a_recd);
+/*---(done)-----------------*/
 
+
+
+
+
+
+
+
+
+
+
+/*===[[ yEXEC_self.c ]]=======================================================*/
+/*········· ´······················ ´·········································*/
+/*---(myself)---------------*/
+char        yEXEC_whoami            (int *r_pid, int *r_ppid, int *r_uid, int *r_euid, char *r_root, char r_user [LEN_USER], char a_wheel, int *r_gid, int *r_egid, char r_group [LEN_USER]);
+/*---(heartbeat)------------*/
 char        yEXEC_heartbeat         (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat);
 char        yEXEC_heartquiet        (int a_rpid, long a_now, char *a_suffix, char *a_file, char *a_heartbeat);
 char        yEXEC_heartlong         (int a_rpid, long a_now, short a_update, char *a_suffix, char *a_file, char *a_heartbeat);
 char        yEXEC_heartbeat_check   (char *a_file, char *a_heartbeat);
-char        yEXEC_userdata          (char *a_user, int *a_uid, int *a_gid, char *a_dir, char *a_shell);
-char        yEXEC_whoami            (int *a_pid, int *a_ppid, int *a_uid, char *a_root, char *a_user, char a_wheel);
+/*---(daemon)---------------*/
 char        yEXEC_daemon            (int a_logger, int *a_rpid);
-
-
-char        yexec_duplicate         (char a_name [LEN_TITLE], int a_mypid, int *r_rpid);
-char        yEXEC_proc_data         (short a_rpid, char *r_public, char *r_cmdline, char *r_state, int *r_ppid);
-char        yEXEC_proc_eterm        (short a_rpid, int *r_uid, char *r_home, char *r_pwd, char *r_cabbr, char *r_cname, char *r_stype, char *r_shex, char *r_rows, char *r_cols);
-char        yEXEC_find_my_eterm     (short a_rpid, int *a_eterm);
-char        yEXEC_find_eterm_use    (short a_rpid, char *a_lvl, int *a_lowest, char a_pubname [LEN_LABEL], char a_cmdline [LEN_RECD]);
-char        yEXEC_data_filter       (short a_rpid, char *a_pubname, short a_ppid, void *f_callback);
-char        yEXEC_data_windows      (void *f_callback);
-
-char        yEXEC_fifo_create       (cchar a_name [LEN_PATH]);
-char        yEXEC_fifo_listen       (char a_persist, cchar a_name [LEN_PATH], void *f_callback);
-char        yEXEC_fifo_nolisten     (void);
-char        yEXEC_fifo_destroy      (cchar a_name [LEN_PATH]);
-char        yEXEC_fifo_speak        (cchar a_name [LEN_PATH], cchar a_recd [LEN_RECD]);
+/*---(DEPRICATED)-----------*/
+char        yEXEC_userdata          (char *a_user, int *a_uid, int *a_gid, char *a_dir, char *a_shell);
+/*---(done)-----------------*/
 
 
 #endif
