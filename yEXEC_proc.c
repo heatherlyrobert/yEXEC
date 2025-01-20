@@ -284,8 +284,14 @@ yexec__validate         (char *a_title, char *a_user, char *a_cmd, char a_shell,
    s_symlink = '-';
    /*---(check title)--------------------*/
    DEBUG_YEXEC  yLOG_point   ("a_title"   , a_title);
-   --rce;  if (a_title == NULL || strlen (a_title) <= 0) {
-      yURG_err ('f', "run-time title provided is null/empty (not allowed)");
+   --rce;  if (a_title == NULL) {
+      yURG_err ('f', "run-time title provided is null (not allowed)");
+      DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
+      return rce;
+   }
+   DEBUG_YEXEC  yLOG_info    ("a_title"   , a_title);
+   --rce;  if (strlen (a_title) <= 0) {
+      yURG_err ('f', "run-time title provided is empty (not allowed)");
       DEBUG_YEXEC  yLOG_exitr   (__FUNCTION__, rce);
       return rce;
    }
@@ -511,7 +517,11 @@ yexec__environ          (FILE *a_file, char *a_user, char a_fork, FILE *a_out)
 char         /*--> early validation of key fields ----------------------------*/
 yEXEC_runable      (char *a_title, char *a_user, char  *a_cmd, char a_path)
 {
-   return yexec__validate (a_title, a_user, a_cmd, YEXEC_DASH, a_path, NULL);
+   char        rc          =    0;
+   DEBUG_YEXEC  yLOG_enter   (__FUNCTION__);
+   rc = yexec__validate (a_title, a_user, a_cmd, YEXEC_DASH, a_path, NULL);
+   DEBUG_YEXEC  yLOG_exit    (__FUNCTION__);
+   return rc;
 }
 
 int              /* [------] execute a specific command ----------------------*/

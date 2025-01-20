@@ -9,7 +9,7 @@ NAME_BASE  = yEXEC
 LIB_STD    = -lm
 # all heatherly libraries used, debug versions whenever available
 LIB_MINE   = -lySTR_debug -lyREGEX_debug -lcrypt
-# all heatherly libraries used, but only in unit tests
+# all heatherly libraries used only in unit tests
 LIB_MYUNIT = -lyENV_debug
 # directory for production code, no trailing slash
 INST_DIR   = /usr/local/bin
@@ -34,7 +34,7 @@ LIB_UTIL   =
 
 
 #===(master template)======================================#
-include /usr/local/sbin/make_program
+include /usr/local/sbin/zeno_make
 
 
 
